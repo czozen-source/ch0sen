@@ -17,6 +17,13 @@ Aplikacja do rejestrowania uszkodzeń wózków widłowych na magazynie: zgłosze
 7. **Authentication → Settings → Authorized domains** → dodaj `czozen-source.github.io`.
 8. **Ustawienia projektu (zębatka) → Twoje aplikacje → ikona `</>`** → zarejestruj aplikację webową → skopiuj obiekt `firebaseConfig` i wpisz jego wartości do `docs/firebase-config.js`.
 
+### 1a. Moderatorzy (kto może zmieniać listy pracowników, wózków, rodzajów uderzeń i ustawienia maila)
+1. **Firestore Database → Dane → Rozpocznij kolekcję** → ID kolekcji: `config`.
+2. ID dokumentu: `roles`, pole `moderators`, typ **array**, elementy typu string: adresy e-mail moderatorów (małymi literami, tak jak konto w Authentication).
+3. Zakładka **Reguły** → wklej aktualną zawartość `firestore.rules` → **Opublikuj**.
+
+Specjaliści (pozostali zalogowani) dodają zgłoszenia i zmieniają statusy, ale nie widzą zakładki Ustawienia, nie mogą zmieniać list ani usuwać zgłoszeń. Pracownika w formularzu wybierają przez wyszukiwarkę (min. 2 litery) — pełna lista nie jest wyświetlana.
+
 ### 2. GitHub Pages
 1. Repozytorium → **Settings → Pages**.
 2. **Source: Deploy from a branch**, branch z plikami (`main` po scaleniu albo `claude/happy-planck-oank1g`), folder **`/docs`** → **Save**.
