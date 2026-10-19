@@ -194,14 +194,14 @@ table.slots .clash, table.slots .clash:hover { border-color: var(--bad); backgro
 .plwarn { display: grid; gap: 4px; }
 .plwarn div { font-size: .86rem; padding: 6px 10px; border-radius: var(--r); background: var(--warn-bg); color: var(--warn); }
 .plwarn div.bad { background: var(--bad-bg); color: var(--bad); }
-.print-head, .sign, .print-only { display: none; }
+.print-head, .sign, .print-only, .pagehead, .pagesign { display: none; }
 section[role="tabpanel"] > *, .panel > * { min-width: 0; }
 .planhint { font-size: .86rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
 .planhint b { color: var(--fg); font-weight: 600; }
 .card .plan-line { grid-column: 2; font-size: .82rem; color: var(--muted); }
 @media (max-width: 980px) { .plgrid { grid-template-columns: minmax(0, 1fr); } }
 @media print {
-  @page { size: A4 landscape; margin: 8mm; }
+  @page { size: A4 portrait; margin: 9mm 10mm; }
   :root { --bg: #fff; --surface: #fff; --surface-2: #fff; --fg: #000; --muted: #333; --line: #000; --head: #fff; --head-fg: #000; color-scheme: light; }
   body { background: #fff !important; color: #000; font-size: 9pt; padding: 0 !important; }
   body::before, header.top, .no-print, #toast, #noConfig, #login, section[role="tabpanel"]:not(#p-plan) { display: none !important; }
@@ -215,14 +215,26 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
   .print-head p { margin: 0; font-size: 12pt; font-weight: 600; }
   .sign { display: flex; gap: 40px; margin-top: 10px; font-size: 9pt; }
   .print-only { display: inline; }
-  .plgrid { grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)) !important; gap: 4mm; }
-  .shiftcol { border: 1px solid #000; border-radius: 0; break-inside: avoid; }
-  .shifthead { border-bottom: 1px solid #000; padding: 3px 6px; }
-  .shifthead b { font-size: 11pt; }
-  .shifthead span { color: #000; font-size: 8pt; }
-  .specrow { padding: 2px 6px; color: #000; border-bottom: 1px solid #000; }
-  .sec h4 { padding: 2px 6px; font-size: 8.5pt; border-color: #000; background: #e6e6e6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  table.slots td { border-bottom: 1px solid #999; padding: 1px 4px; height: 15pt; font-size: 8.5pt; }
+  /* one shift = one A4 page */
+  #plArea > .print-head, #plArea > .sign { display: none !important; }
+  .plgrid { display: block !important; }
+  .shiftcol { border: 0; border-radius: 0; }
+  .shiftcol:not(.skip-print) ~ .shiftcol:not(.skip-print) { break-before: page; page-break-before: always; }
+  .shiftcol.skip-print { display: none !important; }
+  .shiftcol .pagehead { display: flex !important; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .pagehead h2 { font-size: 15pt; margin: 0; }
+  .pagehead p { margin: 0; font-size: 12pt; font-weight: 600; }
+  .shifthead { border: 1px solid #000; padding: 4px 8px; }
+  .shifthead b { font-size: 14pt; }
+  .shifthead span { color: #000; font-size: 10pt; }
+  .specrow { padding: 4px 8px; color: #000; border: 1px solid #000; border-top: 0; font-size: 10pt; }
+  .sec { border: 1px solid #000; border-top: 0; }
+  .sec h4 { padding: 1px 8px; font-size: 9.5pt; border-color: #000; background: #e6e6e6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.slots th { color: #000; font-size: 7pt; border-bottom: 1px solid #000; padding: 0 6px; }
+  table.slots td { border-bottom: 1px solid #999; padding: 0 6px; height: 14.6pt; font-size: 9.5pt; }
+  table.slots th:nth-child(3), table.slots td.f { width: 14% !important; }
+  table.slots th:nth-child(4), table.slots td.u { width: 34% !important; }
+  .shiftcol .pagesign { display: flex !important; gap: 40px; margin-top: 10px; font-size: 9.5pt; }
   table.slots td.n { color: #000; }
   table.slots input, table.slots select, .specrow input, .addrow { display: none !important; }
   .tablewrap { overflow: visible; border: 0; }
@@ -345,6 +357,7 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
     </div>
     <div class="row no-print">
       <button class="btn primary small" type="button" id="plPrint">Drukuj rozpiskę</button>
+      <select id="plPrintWhich" aria-label="Co drukować" style="width:auto;padding:6px 8px;font-size:.88rem"></select>
       <button class="btn small" type="button" id="plCopy">Kopiuj z poprzedniego dnia</button>
       <button class="btn small danger" type="button" id="plClear">Wyczyść dzień</button>
       <span class="sub" id="plInfo" style="font-size:.84rem"></span>
@@ -854,6 +867,9 @@ function renderPlan() {
   const slots = state.plan.slots || {}, specs = state.plan.specialists || {};
   const fks = activeForklifts();
   grid.style.setProperty("--cols", state.shifts.length);
+  const pw = $("plPrintWhich"), pwv = pw.value;
+  pw.replaceChildren(el("option", { value: "", text: "wszystkie zmiany (każda na osobnej stronie)" }), ...state.shifts.map((x, i) => el("option", { value: String(i), text: `tylko zmiana ${x.name}` })));
+  pw.value = [...pw.options].some(o => o.value === pwv) ? pwv : "";
 
   // clashes per shift: one forklift for two people, one person twice
   const clashFk = new Set(), clashName = new Set(), warns = [];
@@ -872,7 +888,8 @@ function renderPlan() {
   });
   $("plWarn").replaceChildren(...warns.map(w => el("div", { class: w.bad ? "bad" : "", text: "⚠ " + w.t })));
 
-  grid.replaceChildren(...state.shifts.map((sh, s) => el("div", { class: "shiftcol" },
+  grid.replaceChildren(...state.shifts.map((sh, s) => el("div", { class: "shiftcol", "data-shift": s },
+    el("div", { class: "pagehead" }, el("h2", { text: "Rozpiska wózków" }), el("p", { text: `${fmtDate(date)} (${weekday(date)})` })),
     el("div", { class: "shifthead" }, el("b", { text: `Zmiana ${sh.name}` }), el("span", { text: sh.hours || "" })),
     el("div", { class: "specrow" }, el("span", { text: "Specjalista zmiany:" }),
       el("input", { type: "text", id: `spec-${s}`, "aria-label": `Specjalista zmiany ${sh.name}`, value: specs[s] || "", placeholder: "imię i nazwisko",
@@ -903,7 +920,8 @@ function renderPlan() {
               onchange: (e) => saveSlot(k, { ...(v || {}), note: e.target.value.trim() }) }), el("span", { class: "print-only", text: v?.note || "" })));
         }))),
         el("button", { class: "addrow no-print", type: "button", onclick: () => { extraRows[`${s}|${sec.id}`] = (extraRows[`${s}|${sec.id}`] || 0) + 1; renderPlan(); } }, "+ wiersz"));
-    }))));
+    }),
+    el("div", { class: "pagesign" }, el("span", { text: "Sporządził: ______________________" }), el("span", { text: "Podpis specjalisty zmiany: ______________________" })))));
 
   const people = Object.values(slots).filter(v => v && v.name).length, withFk = Object.values(slots).filter(v => v && v.forklift).length;
   $("plInfo").textContent = people ? `Osób: ${people} · z wózkiem: ${withFk}` : "Brak rozpiski na ten dzień — wpisz osoby albo skopiuj z poprzedniego dnia.";
@@ -923,7 +941,12 @@ $("plNext").addEventListener("click", () => openPlanDay(addDays(state.planDate |
 $("plToday").addEventListener("click", () => openPlanDay(today()));
 function printPart(part) { document.body.dataset.print = part; setTimeout(() => { window.print(); }, 50); }
 window.addEventListener("afterprint", () => { delete document.body.dataset.print; });
-$("plPrint").addEventListener("click", () => printPart("plan"));
+$("plPrint").addEventListener("click", () => {
+  const w = $("plPrintWhich").value;
+  document.querySelectorAll("#plGrid .shiftcol").forEach(c => c.classList.toggle("skip-print", w !== "" && c.dataset.shift !== w));
+  printPart("plan");
+});
+window.addEventListener("afterprint", () => document.querySelectorAll("#plGrid .skip-print").forEach(c => c.classList.remove("skip-print")));
 const planHasData = () => Object.values(state.plan?.slots || {}).some(Boolean);
 function armed(btn, label, run) {
   if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = label; return run(); }
