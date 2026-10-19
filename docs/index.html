@@ -627,9 +627,6 @@ function mailFor(d) {
     "",
     "Opis zdarzenia:",
     desc,
-    "",
-    `Zgłaszający: ${state.email || "—"}`,
-    `Rejestr: ${location.href.split("#")[0]}`,
   ].filter(x => x != null).join("\n");
   const to = splitAddr(state.mail.to), cc = splitAddr(state.mail.cc);
   const q = [cc.length ? "cc=" + cc.join(",") : null, "subject=" + encodeURIComponent(subject), "body=" + encodeURIComponent(body)].filter(Boolean).join("&");
