@@ -1,0 +1,556 @@
+<title>Rejestr uszkodzeń wózków</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: sticky header + tab bar; Flota = grid of forklift plates, Zgłoszenia = filterable list, forms in plain panels */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --surface-2: #f5f7f9;
+  --line: #d5dbe2;
+  --fg: #17202b;
+  --muted: #5b6878;
+  --accent: #e8a200;      /* safety amber */
+  --accent-ink: #1a1400;
+  --head: #1d2733;
+  --head-fg: #f3f5f7;
+  --ok: #1f8a4c;    --ok-bg: #e2f4ea;
+  --warn: #b26b00;  --warn-bg: #fff1d6;
+  --busy: #1f62b8;  --busy-bg: #e1ecfa;
+  --bad: #c0332b;   --bad-bg: #fbe4e2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11161c; --surface: #1a2129; --surface-2: #151b22; --line: #2e3844;
+  --fg: #e6eaef; --muted: #96a3b3; --accent: #f2b31d; --accent-ink: #1a1400;
+  --head: #0b0f14; --head-fg: #e6eaef;
+  --ok: #4cc47f; --ok-bg: #173323; --warn: #f0a63a; --warn-bg: #3a2a10;
+  --busy: #6ea6f0; --busy-bg: #172a45; --bad: #f07067; --bad-bg: #3e1a18;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #11161c; --surface: #1a2129; --surface-2: #151b22; --line: #2e3844;
+  --fg: #e6eaef; --muted: #96a3b3; --accent: #f2b31d; --accent-ink: #1a1400;
+  --head: #0b0f14; --head-fg: #e6eaef;
+  --ok: #4cc47f; --ok-bg: #173323; --warn: #f0a63a; --warn-bg: #3a2a10;
+  --busy: #6ea6f0; --busy-bg: #172a45; --bad: #f07067; --bad-bg: #3e1a18;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--head); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--head); color: var(--head-fg); border-bottom: 3px solid var(--accent); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding-block: 10px 0; }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.brand h1 { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; letter-spacing: .02em; text-transform: uppercase; margin: 0; text-wrap: balance; }
+.live { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: #9fb0c2; display: inline-flex; align-items: center; gap: 6px; }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: #6b7785; }
+.live.on i { background: #3fd07c; box-shadow: 0 0 0 3px rgba(63,208,124,.2); }
+nav.tabs { display: flex; gap: 2px; width: 100%; overflow-x: auto; }
+nav.tabs button { font-family: var(--f-display); font-size: 1.05rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; background: transparent; color: #b8c4d1; border: 0; padding: 8px 14px 9px; cursor: pointer; border-radius: var(--r) var(--r) 0 0; white-space: nowrap; }
+nav.tabs button:hover { color: #fff; background: rgba(255,255,255,.06); }
+nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+nav.tabs .count { font-family: var(--f-mono); font-size: .75rem; margin-left: 6px; padding: 1px 6px; border-radius: 10px; background: rgba(0,0,0,.25); }
+
+main { padding-block: 20px 48px; }
+section[role="tabpanel"] { display: grid; gap: 18px; }
+h2 { font-family: var(--f-display); font-weight: 700; font-size: 1.35rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 1.15rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
+.sub { color: var(--muted); margin: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.between { justify-content: space-between; }
+
+/* Summary strip */
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px; display: grid; gap: 2px; }
+.stat b { font-family: var(--f-mono); font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat span { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.stat.ok b { color: var(--ok); } .stat.warn b { color: var(--warn); } .stat.busy b { color: var(--busy); } .stat.bad b { color: var(--bad); }
+
+/* Forklift plates */
+.fleet { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.plate { text-align: left; font: inherit; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 0; cursor: pointer; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+.plate:hover { border-color: var(--muted); }
+.plate:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.plate-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.plate-no { font-family: var(--f-display); font-weight: 700; font-size: 2.3rem; line-height: 1; letter-spacing: .02em; }
+.plate-type { font-size: .82rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.plate-body { padding: 10px 14px 12px; display: grid; gap: 6px; font-size: .88rem; }
+.plate-body .last { color: var(--muted); overflow-wrap: anywhere; }
+.plate[data-state="ok"] { box-shadow: inset 4px 0 0 var(--ok); }
+.plate[data-state="warn"] { box-shadow: inset 4px 0 0 var(--warn); }
+.plate[data-state="busy"] { box-shadow: inset 4px 0 0 var(--busy); }
+.plate[data-state="bad"] { box-shadow: inset 4px 0 0 var(--bad); }
+.plate[data-state="bad"] .plate-head { background: repeating-linear-gradient(-45deg, var(--bad-bg) 0 10px, transparent 10px 20px); }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: .76rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.ok { color: var(--ok); background: var(--ok-bg); }
+.pill.warn { color: var(--warn); background: var(--warn-bg); }
+.pill.busy { color: var(--busy); background: var(--busy-bg); }
+.pill.bad { color: var(--bad); background: var(--bad-bg); }
+.pill.done { color: var(--muted); background: var(--surface-2); }
+.counts { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Filters + list */
+.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; }
+.filters .field { min-width: 150px; flex: 1 1 150px; }
+label.field { display: grid; gap: 4px; font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+input, select, textarea { font: inherit; font-size: .95rem; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 10px; width: 100%; min-width: 0; text-transform: none; letter-spacing: normal; font-weight: 400; }
+textarea { min-height: 96px; resize: vertical; }
+.list { display: grid; gap: 10px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; grid-template-columns: 74px minmax(0,1fr); gap: 4px 14px; }
+.card .no { grid-row: span 3; font-family: var(--f-display); font-weight: 700; font-size: 1.9rem; line-height: 1; border-right: 1px solid var(--line); padding-right: 10px; }
+.card .no small { display: block; font-family: var(--f-body); font-weight: 500; font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+.card .meta { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; font-size: .86rem; color: var(--muted); }
+.card .meta strong { color: var(--fg); font-weight: 600; }
+.card .desc { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.card .actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.card .actions select, .card .actions input { width: auto; flex: 0 1 auto; padding: 6px 8px; font-size: .88rem; }
+.card .actions input { flex: 1 1 180px; }
+.card.closed { opacity: .72; }
+.log { grid-column: 2; font-size: .8rem; color: var(--muted); display: grid; gap: 2px; margin: 4px 0 0; padding: 0; list-style: none; }
+.log li { overflow-wrap: anywhere; }
+.log time { font-family: var(--f-mono); font-size: .76rem; }
+.flag { color: var(--bad); font-weight: 600; }
+
+button.btn { font: inherit; font-weight: 600; font-size: .9rem; border-radius: var(--r); padding: 8px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); }
+button.btn:hover { border-color: var(--muted); }
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button.btn.primary:hover { filter: brightness(1.05); }
+button.btn.small { padding: 5px 10px; font-size: .82rem; }
+button.btn.danger { color: var(--bad); }
+button.btn:disabled { opacity: .5; cursor: not-allowed; }
+button.link { font: inherit; background: none; border: 0; padding: 0; color: var(--busy); cursor: pointer; text-decoration: underline; }
+
+/* Form */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: .92rem; cursor: pointer; }
+.check input { width: 18px; height: 18px; margin-top: 2px; flex: none; accent-color: var(--bad); }
+.notice { padding: 10px 12px; border-radius: var(--r); font-size: .9rem; }
+.notice.ok { background: var(--ok-bg); color: var(--ok); }
+.notice.err { background: var(--bad-bg); color: var(--bad); }
+.notice.info { background: var(--surface-2); color: var(--muted); border: 1px dashed var(--line); }
+
+/* Settings */
+.settings { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; align-items: start; }
+.items { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--line); }
+.items li { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: .92rem; }
+.items li span { min-width: 0; overflow-wrap: anywhere; }
+.items li.off span { color: var(--muted); text-decoration: line-through; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.empty { padding: 22px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); }
+
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--head); color: var(--head-fg); padding: 10px 16px; border-radius: var(--r); font-size: .9rem; z-index: 20; border-left: 4px solid var(--accent); max-width: calc(100% - 32px); }
+
+@media (max-width: 860px) {
+  .settings { grid-template-columns: minmax(0,1fr); }
+  .summary { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 560px) {
+  .grid2 { grid-template-columns: minmax(0,1fr); }
+  .card { grid-template-columns: minmax(0,1fr); }
+  .card .no { grid-row: auto; border-right: 0; padding-right: 0; display: flex; gap: 10px; align-items: baseline; }
+  .card .actions, .log { grid-column: 1; }
+  .brand h1 { font-size: 1.3rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Rejestr uszkodzeń wózków</h1>
+      <span class="live" id="live"><i></i><span id="liveText">Łączenie…</span></span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sekcje">
+      <button role="tab" id="tab-fleet" aria-controls="p-fleet" aria-selected="true">Flota</button>
+      <button role="tab" id="tab-list" aria-controls="p-list" aria-selected="false">Zgłoszenia<span class="count" id="openCount">0</span></button>
+      <button role="tab" id="tab-new" aria-controls="p-new" aria-selected="false">+ Nowe zgłoszenie</button>
+      <button role="tab" id="tab-settings" aria-controls="p-settings" aria-selected="false">Ustawienia</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="dbMissing" class="notice err" hidden>Nie udało się połączyć z bazą danych rejestru. Zaloguj się do claude.ai i otwórz stronę ponownie. Bez połączenia nie można przeglądać ani dodawać zgłoszeń.</div>
+  <div id="readOnly" class="notice info" hidden>Masz dostęp tylko do podglądu. Aby dodawać zgłoszenia i zmieniać statusy, poproś właściciela o uprawnienia „Contributor” lub wyższe.</div>
+
+  <!-- FLOTA -->
+  <section role="tabpanel" id="p-fleet" aria-labelledby="tab-fleet">
+    <div class="summary" id="summary"></div>
+    <div class="row between">
+      <h2>Stan wózków</h2>
+      <p class="sub">Kliknij wózek, aby zobaczyć jego zgłoszenia.</p>
+    </div>
+    <div class="fleet" id="fleet"><div class="empty">Ładowanie listy wózków…</div></div>
+  </section>
+
+  <!-- ZGŁOSZENIA -->
+  <section role="tabpanel" id="p-list" aria-labelledby="tab-list" hidden>
+    <div class="filters">
+      <label class="field">Status
+        <select id="fStatus">
+          <option value="open">Otwarte (do naprawy)</option>
+          <option value="all">Wszystkie</option>
+          <option value="zgloszona">Zgłoszona</option>
+          <option value="w_naprawie">W naprawie</option>
+          <option value="czeka_czesci">Czeka na części</option>
+          <option value="naprawiona">Naprawiona</option>
+          <option value="odrzucona">Bez naprawy / odrzucona</option>
+        </select>
+      </label>
+      <label class="field">Wózek
+        <select id="fForklift"><option value="">Wszystkie wózki</option></select>
+      </label>
+      <label class="field">Pracownik
+        <select id="fEmployee"><option value="">Wszyscy</option></select>
+      </label>
+      <label class="field">Szukaj w opisie
+        <input id="fText" type="search" placeholder="np. widły, regał C4">
+      </label>
+    </div>
+    <div class="row between"><h2 id="listTitle">Zgłoszenia</h2><span class="counts" id="listCount"></span></div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <!-- NOWE -->
+  <section role="tabpanel" id="p-new" aria-labelledby="tab-new" hidden>
+    <h2>Nowe zgłoszenie uszkodzenia</h2>
+    <form class="panel" id="newForm" novalidate>
+      <div class="grid2">
+        <label class="field">Wózek *
+          <select id="nForklift" required></select>
+        </label>
+        <label class="field">Data zdarzenia *
+          <input id="nDate" type="date" required>
+        </label>
+        <label class="field">Pracownik (operator) *
+          <select id="nEmployee" required></select>
+        </label>
+        <label class="field">Rodzaj uderzenia *
+          <select id="nImpact" required></select>
+        </label>
+      </div>
+      <label class="field">Opis zdarzenia *
+        <textarea id="nDesc" required placeholder="Co się stało, gdzie (alejka / regał / brama), jakie uszkodzenie widać na wózku"></textarea>
+      </label>
+      <label class="check"><input type="checkbox" id="nStop"><span><strong>Wózek wyłączony z pracy</strong> — nie może jeździć do czasu naprawy</span></label>
+      <div id="newMsg" hidden></div>
+      <div class="row"><button class="btn primary" type="submit" id="nSubmit">Zapisz zgłoszenie</button><button class="btn" type="reset">Wyczyść</button></div>
+    </form>
+  </section>
+
+  <!-- USTAWIENIA -->
+  <section role="tabpanel" id="p-settings" aria-labelledby="tab-settings" hidden>
+    <div>
+      <h2>Ustawienia</h2>
+      <p class="sub">Listy używane w formularzu zgłoszenia. Usunięcie pracownika lub wózka ukrywa go w formularzu, ale zachowuje historię zgłoszeń.</p>
+    </div>
+    <div class="settings">
+      <div class="panel">
+        <h3>Pracownicy</h3>
+        <form class="grid2" id="empForm"><input id="empName" placeholder="Imię i nazwisko" aria-label="Imię i nazwisko"><input id="empDept" placeholder="Dział, np. strefa" aria-label="Dział" list="depts"><datalist id="depts"><option value="biuro"><option value="opakowania"><option value="strefa"></datalist><button class="btn primary small" type="submit">Dodaj pracownika</button></form>
+        <ul class="items" id="empList"></ul>
+      </div>
+      <div class="panel">
+        <h3>Wózki</h3>
+        <form class="grid2" id="flForm">
+          <input id="flNo" placeholder="Nr, np. 105" aria-label="Numer wózka" inputmode="numeric">
+          <input id="flType" placeholder="Typ, np. Czołowy" aria-label="Typ wózka" list="flTypes">
+          <datalist id="flTypes"><option value="Czołowy"><option value="Wysoki skład"><option value="Paleciak elektryczny"><option value="Kompletacyjny"></datalist>
+          <button class="btn primary small" type="submit">Dodaj wózek</button>
+        </form>
+        <ul class="items" id="flList"></ul>
+      </div>
+      <div class="panel">
+        <h3>Rodzaje uderzeń</h3>
+        <form class="row" id="imForm"><input id="imName" placeholder="np. Uderzenie w regał" aria-label="Rodzaj uderzenia"><button class="btn primary small" type="submit">Dodaj</button></form>
+        <ul class="items" id="imList"></ul>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const STATUS = {
+  zgloszona:    { label: "Zgłoszona",          cls: "warn", open: true },
+  w_naprawie:   { label: "W naprawie",         cls: "busy", open: true },
+  czeka_czesci: { label: "Czeka na części",    cls: "busy", open: true },
+  naprawiona:   { label: "Naprawiona",         cls: "ok",   open: false },
+  odrzucona:    { label: "Bez naprawy",        cls: "done", open: false },
+};
+const FLEET_STATE = {
+  ok:   { label: "Sprawny" },
+  warn: { label: "Usterka zgłoszona" },
+  busy: { label: "W naprawie" },
+  bad:  { label: "Wyłączony z pracy" },
+};
+
+const state = { forklifts: [], employees: [], impacts: [], damages: [], loaded: {}, canWrite: true, uid: null, names: {} };
+let db = null, userCap = null;
+const $ = (id) => document.getElementById(id);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") n.className = v; else if (k === "text") n.textContent = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c != null) n.append(c.nodeType ? c : document.createTextNode(String(c)));
+  return n;
+};
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const fmtDate = (s) => { if (!s) return "—"; const [y, m, d] = s.split("-"); return `${d}.${m}.${y}`; };
+const fmtStamp = (iso) => { try { const d = new Date(iso); return d.toLocaleString("pl-PL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return iso; } };
+const slug = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ł/g, "l").replace(/Ł/g, "L").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || ("x" + Date.now());
+let toastT;
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
+function errMsg(e) {
+  if (e && e.code === "invalid_argument") return "Brak uprawnień do zapisu albo niepoprawne dane.";
+  if (e && e.code === "quota_exceeded") return "Baza jest pełna — usuń stare zgłoszenia.";
+  if (e && e.code === "resource_exhausted") return "Za dużo operacji naraz. Spróbuj za chwilę.";
+  return "Nie udało się zapisać. Sprawdź połączenie i spróbuj ponownie.";
+}
+function onWriteError(e) { if (e && e.code === "invalid_argument" && state.canWrite === null) { state.canWrite = false; applyWriteMode(); } toast(errMsg(e)); }
+
+/* ---------- tabs ---------- */
+const tabs = ["fleet", "list", "new", "settings"];
+function showTab(name) {
+  for (const t of tabs) { $("tab-" + t).setAttribute("aria-selected", t === name); $("p-" + t).hidden = t !== name; }
+  try { localStorage.setItem("tab", name); } catch {}
+}
+tabs.forEach(t => $("tab-" + t).addEventListener("click", () => showTab(t)));
+try { const t = localStorage.getItem("tab"); if (tabs.includes(t)) showTab(t); } catch {}
+
+/* ---------- derived ---------- */
+const activeForklifts = () => state.forklifts.filter(f => f.active !== false).sort((a, b) => a.no.localeCompare(b.no, "pl", { numeric: true }));
+const activeEmployees = () => state.employees.filter(e => e.active !== false).sort((a, b) => a.name.localeCompare(b.name, "pl"));
+const activeImpacts = () => state.impacts.filter(i => i.active !== false).sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.name.localeCompare(b.name, "pl"));
+const empName = (d) => (state.employees.find(e => e.id === d.employeeId)?.name) || d.employeeName || "—";
+function forkliftState(no) {
+  const open = state.damages.filter(d => d.forklift === no && STATUS[d.status]?.open);
+  let s = "ok";
+  if (open.some(d => d.status === "zgloszona")) s = "warn";
+  if (open.some(d => d.status === "w_naprawie" || d.status === "czeka_czesci")) s = "busy";
+  if (open.some(d => d.outOfService)) s = "bad";
+  return { s, open };
+}
+
+/* ---------- render ---------- */
+function render() { renderFleet(); renderFilters(); renderList(); renderForm(); renderSettings(); }
+
+function renderFleet() {
+  const fl = activeForklifts();
+  const counts = { ok: 0, warn: 0, busy: 0, bad: 0 };
+  const plates = fl.map(f => {
+    const { s, open } = forkliftState(f.no); counts[s]++;
+    const last = open.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
+    return el("button", { class: "plate", "data-state": s, type: "button", "aria-label": `Wózek ${f.no}, ${FLEET_STATE[s].label}`, onclick: () => { $("fForklift").value = f.no; $("fStatus").value = "open"; renderList(); showTab("list"); } },
+      el("div", { class: "plate-head" },
+        el("div", {}, el("div", { class: "plate-no", text: f.no }), el("div", { class: "plate-type", text: f.type || "" })),
+        el("span", { class: "pill " + s, text: FLEET_STATE[s].label })),
+      el("div", { class: "plate-body" },
+        el("div", { class: "counts", text: open.length ? `Otwarte usterki: ${open.length}` : "Brak otwartych usterek" }),
+        last ? el("div", { class: "last", text: `${fmtDate(last.date)} · ${last.impact} — ${STATUS[last.status]?.label}` }) : null));
+  });
+  $("fleet").replaceChildren(...(plates.length ? plates : [el("div", { class: "empty", text: state.loaded.forklifts ? "Brak wózków. Dodaj je w zakładce Ustawienia." : "Ładowanie listy wózków…" })]));
+  const stat = (cls, n, label) => el("div", { class: "stat " + cls }, el("b", { text: n }), el("span", { text: label }));
+  $("summary").replaceChildren(stat("ok", counts.ok, "Sprawne"), stat("warn", counts.warn, "Usterka zgłoszona"), stat("busy", counts.busy, "W naprawie"), stat("bad", counts.bad, "Wyłączone z pracy"));
+  $("openCount").textContent = state.damages.filter(d => STATUS[d.status]?.open).length;
+}
+
+function fillSelect(sel, items, placeholder, keep = true) {
+  const v = sel.value;
+  sel.replaceChildren(...(placeholder != null ? [el("option", { value: "", text: placeholder })] : []), ...items.map(([val, label]) => el("option", { value: val, text: label })));
+  if (keep && [...sel.options].some(o => o.value === v)) sel.value = v;
+}
+function renderFilters() {
+  fillSelect($("fForklift"), state.forklifts.slice().sort((a, b) => a.no.localeCompare(b.no, "pl", { numeric: true })).map(f => [f.no, `${f.no} — ${f.type || ""}`]), "Wszystkie wózki");
+  fillSelect($("fEmployee"), state.employees.slice().sort((a, b) => a.name.localeCompare(b.name, "pl")).map(e => [e.id, e.name]), "Wszyscy");
+}
+
+const drafts = {}; // per-card status change drafts survive live re-renders
+function renderList() {
+  const st = $("fStatus").value, fk = $("fForklift").value, em = $("fEmployee").value, q = $("fText").value.trim().toLowerCase();
+  const rows = state.damages.filter(d =>
+    (st === "all" || (st === "open" ? STATUS[d.status]?.open : d.status === st)) &&
+    (!fk || d.forklift === fk) && (!em || d.employeeId === em) &&
+    (!q || [d.description, d.impact, empName(d), d.forklift].join(" ").toLowerCase().includes(q))
+  ).sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || "").localeCompare(a.createdAt || ""));
+  $("listTitle").textContent = fk ? `Zgłoszenia — wózek ${fk}` : "Zgłoszenia";
+  $("listCount").textContent = `${rows.length} ${rows.length === 1 ? "pozycja" : (rows.length % 10 >= 2 && rows.length % 10 <= 4 && (rows.length % 100 < 10 || rows.length % 100 >= 20) ? "pozycje" : "pozycji")}`;
+  if (!rows.length) {
+    $("list").replaceChildren(el("div", { class: "empty" },
+      state.loaded.damages ? (state.damages.length ? "Brak zgłoszeń dla wybranych filtrów." : "Nie ma jeszcze żadnych zgłoszeń. Dodaj pierwsze w zakładce „+ Nowe zgłoszenie”.") : "Ładowanie zgłoszeń…"));
+    return;
+  }
+  $("list").replaceChildren(...rows.map(cardFor));
+}
+function cardFor(d) {
+  const S = STATUS[d.status] || STATUS.zgloszona;
+  const f = state.forklifts.find(x => x.no === d.forklift);
+  const dr = drafts[d.id] || (drafts[d.id] = { status: d.status, note: "", confirmDel: false });
+  const statusSel = el("select", { "aria-label": "Nowy status", id: "st-" + d.id, onchange: (e) => { dr.status = e.target.value; } },
+    Object.entries(STATUS).map(([k, v]) => el("option", { value: k, text: v.label, selected: k === dr.status })));
+  const note = el("input", { placeholder: "Notatka (opcjonalnie), np. wymiana wideł", "aria-label": "Notatka do zmiany statusu", id: "nt-" + d.id, value: dr.note, oninput: (e) => { dr.note = e.target.value; } });
+  const stopChk = el("input", { type: "checkbox", id: "oos-" + d.id, checked: !!d.outOfService, onchange: (e) => setOutOfService(d, e.target.checked) });
+  const actions = state.canWrite === false ? null : el("div", { class: "actions" },
+    statusSel, note,
+    el("button", { class: "btn small primary", type: "button", onclick: () => changeStatus(d, dr) }, "Zmień status"),
+    el("label", { class: "check", style: "font-size:.84rem" }, stopChk, el("span", { text: "Wyłączony z pracy" })),
+    dr.confirmDel
+      ? el("span", { class: "row" }, el("span", { class: "flag", text: "Usunąć na stałe?" }),
+          el("button", { class: "btn small danger", type: "button", onclick: () => removeDamage(d) }, "Tak, usuń"),
+          el("button", { class: "btn small", type: "button", onclick: () => { dr.confirmDel = false; renderList(); } }, "Anuluj"))
+      : el("button", { class: "btn small danger", type: "button", onclick: () => { dr.confirmDel = true; renderList(); } }, "Usuń"));
+  const log = (d.log || []).slice().reverse().slice(0, 6);
+  return el("article", { class: "card" + (S.open ? "" : " closed") },
+    el("div", { class: "no" }, d.forklift, el("small", { text: f?.type || "" })),
+    el("div", { class: "meta" },
+      el("span", { class: "pill " + S.cls, text: S.label }),
+      d.outOfService && S.open ? el("span", { class: "flag", text: "⛔ Wyłączony z pracy" }) : null,
+      el("span", {}, "Data: ", el("strong", { class: "mono", text: fmtDate(d.date) })),
+      el("span", {}, "Uderzenie: ", el("strong", { text: d.impact || "—" })),
+      el("span", {}, "Pracownik: ", el("strong", { text: empName(d) }))),
+    el("p", { class: "desc", text: d.description || "" }),
+    log.length ? el("ul", { class: "log" }, log.map(l => el("li", {}, el("time", { text: fmtStamp(l.at) }), " · ", STATUS[l.status]?.label || l.status, l.by ? ` · ${state.names[l.by] || "użytkownik"}` : "", l.note ? ` — ${l.note}` : ""))) : null,
+    actions);
+}
+
+function renderForm() {
+  fillSelect($("nForklift"), activeForklifts().map(f => [f.no, `${f.no} — ${f.type || ""}`]), "Wybierz wózek");
+  fillSelect($("nEmployee"), activeEmployees().map(e => [e.id, e.dept ? `${e.name} (${e.dept})` : e.name]), activeEmployees().length ? "Wybierz pracownika" : "Najpierw dodaj pracowników w Ustawieniach");
+  fillSelect($("nImpact"), activeImpacts().map(i => [i.name, i.name]), "Wybierz rodzaj");
+  if (!$("nDate").value) $("nDate").value = today();
+}
+
+function renderSettings() {
+  const item = (label, off, onToggle, extra) => el("li", { class: off ? "off" : "" }, el("span", {}, label, extra || null),
+    state.canWrite === false ? null : el("button", { class: "btn small" + (off ? "" : " danger"), type: "button", onclick: onToggle }, off ? "Przywróć" : "Usuń"));
+  const emps = state.employees.slice().sort((a, b) => (a.active === false) - (b.active === false) || a.name.localeCompare(b.name, "pl"));
+  $("empList").replaceChildren(...(emps.length ? emps.map(e => item(e.name, e.active === false, () => toggleActive("employees", e), e.dept ? el("span", { class: "plate-type", text: " · " + e.dept }) : null)) : [el("li", {}, el("span", { class: "sub", text: "Lista pracowników jest pusta. Dodaj pierwszą osobę powyżej." }))]));
+  const fls = state.forklifts.slice().sort((a, b) => a.no.localeCompare(b.no, "pl", { numeric: true }));
+  $("flList").replaceChildren(...(fls.length ? fls.map(f => item(el("span", {}, el("strong", { class: "mono", text: f.no }), " " + (f.type || "")), f.active === false, () => toggleActive("forklifts", f))) : [el("li", {}, el("span", { class: "sub", text: "Brak wózków." }))]));
+  const ims = state.impacts.slice().sort((a, b) => (a.active === false) - (b.active === false) || (a.order ?? 99) - (b.order ?? 99) || a.name.localeCompare(b.name, "pl"));
+  $("imList").replaceChildren(...(ims.length ? ims.map(i => item(i.name, i.active === false, () => toggleActive("impacts", i))) : [el("li", {}, el("span", { class: "sub", text: "Brak zdefiniowanych rodzajów." }))]));
+}
+
+["fStatus", "fForklift", "fEmployee"].forEach(id => $(id).addEventListener("change", renderList));
+let qT; $("fText").addEventListener("input", () => { clearTimeout(qT); qT = setTimeout(renderList, 150); });
+
+/* ---------- writes ---------- */
+async function changeStatus(d, dr) {
+  if (dr.status === d.status && !dr.note.trim()) { toast("Wybierz inny status lub dodaj notatkę."); return; }
+  const now = new Date().toISOString();
+  const log = [...(d.log || []), { at: now, status: dr.status, note: dr.note.trim().slice(0, 300), by: state.uid }].slice(-40);
+  const patch = { status: dr.status, updatedAt: now, log };
+  if (!STATUS[dr.status].open) patch.outOfService = false;
+  try { await db.collection("damages").doc(d.id).update(patch); dr.note = ""; toast(`Wózek ${d.forklift}: ${STATUS[dr.status].label}`); }
+  catch (e) { onWriteError(e); }
+}
+async function setOutOfService(d, on) {
+  try { await db.collection("damages").doc(d.id).update({ outOfService: on, updatedAt: new Date().toISOString() }); toast(on ? `Wózek ${d.forklift} wyłączony z pracy` : `Wózek ${d.forklift} dopuszczony do pracy`); }
+  catch (e) { onWriteError(e); renderList(); }
+}
+async function removeDamage(d) {
+  try { await db.collection("damages").doc(d.id).delete(); delete drafts[d.id]; toast("Zgłoszenie usunięte"); }
+  catch (e) { onWriteError(e); }
+}
+async function toggleActive(coll, item) {
+  try { await db.collection(coll).doc(item.id).update({ active: item.active === false }); }
+  catch (e) { onWriteError(e); }
+}
+
+$("newForm").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const msg = $("newMsg");
+  const v = { forklift: $("nForklift").value, date: $("nDate").value, employeeId: $("nEmployee").value, impact: $("nImpact").value, description: $("nDesc").value.trim() };
+  const missing = [!v.forklift && "wózek", !v.date && "datę", !v.employeeId && "pracownika", !v.impact && "rodzaj uderzenia", !v.description && "opis"].filter(Boolean);
+  if (missing.length) { msg.className = "notice err"; msg.textContent = "Uzupełnij: " + missing.join(", ") + "."; msg.hidden = false; return; }
+  if (!db) return;
+  const now = new Date().toISOString();
+  const doc = { ...v, description: v.description.slice(0, 4000), employeeName: state.employees.find(e => e.id === v.employeeId)?.name || "", status: "zgloszona", outOfService: $("nStop").checked, createdAt: now, updatedAt: now, reportedBy: state.uid, log: [{ at: now, status: "zgloszona", note: "Zgłoszenie utworzone", by: state.uid }] };
+  $("nSubmit").disabled = true;
+  try {
+    await db.collection("damages").add(doc);
+    msg.className = "notice ok"; msg.textContent = `Zapisano zgłoszenie dla wózka ${v.forklift}.`; msg.hidden = false;
+    $("nDesc").value = ""; $("nStop").checked = false;
+    toast("Zgłoszenie zapisane");
+  } catch (e) { msg.className = "notice err"; msg.textContent = errMsg(e); msg.hidden = false; onWriteError(e); }
+  finally { $("nSubmit").disabled = false; }
+});
+$("newForm").addEventListener("reset", () => { $("newMsg").hidden = true; setTimeout(() => { $("nDate").value = today(); }, 0); });
+
+$("empForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); const name = $("empName").value.trim().replace(/\s+/g, " "), dept = $("empDept").value.trim(); if (!name) return;
+  if (state.employees.some(x => x.name.toLowerCase() === name.toLowerCase())) { toast("Taki pracownik już jest na liście."); return; }
+  try { await db.collection("employees").add({ name, dept, active: true, createdAt: new Date().toISOString() }); $("empName").value = ""; $("empDept").value = ""; toast(`Dodano: ${name}`); } catch (err) { onWriteError(err); }
+});
+$("flForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); const no = $("flNo").value.trim(), type = $("flType").value.trim();
+  if (!/^[A-Za-z0-9_-]{1,20}$/.test(no)) { toast("Podaj numer wózka (cyfry/litery, bez spacji)."); return; }
+  if (state.forklifts.some(f => f.no === no)) { toast(`Wózek ${no} już istnieje.`); return; }
+  try { await db.collection("forklifts").doc(no).set({ no, type, active: true }); $("flNo").value = ""; $("flType").value = ""; toast(`Dodano wózek ${no}`); } catch (err) { onWriteError(err); }
+});
+$("imForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); const name = $("imName").value.trim(); if (!name) return;
+  if (state.impacts.some(x => x.name.toLowerCase() === name.toLowerCase())) { toast("Taki rodzaj już istnieje."); return; }
+  try { await db.collection("impacts").doc(slug(name)).set({ name, active: true, order: 50 }); $("imName").value = ""; toast(`Dodano: ${name}`); } catch (err) { onWriteError(err); }
+});
+
+function applyWriteMode() {
+  const ro = state.canWrite === false;
+  $("readOnly").hidden = !ro;
+  $("tab-new").hidden = ro;
+  for (const f of ["empForm", "flForm", "imForm"]) $(f).hidden = ro;
+  if (ro && $("tab-new").getAttribute("aria-selected") === "true") showTab("fleet");
+  render();
+}
+
+/* ---------- live data ---------- */
+let liveTimer;
+function markLive(meta) {
+  const on = !meta.fromCache;
+  $("live").classList.toggle("on", on);
+  $("liveText").textContent = on ? "Na żywo" : "Synchronizacja…";
+}
+async function resolveNames() {
+  if (!userCap?.profiles) return;
+  const ids = new Set(); state.damages.forEach(d => (d.log || []).forEach(l => l.by && !(l.by in state.names) && ids.add(l.by)));
+  if (!ids.size) return;
+  try { const ps = await userCap.profiles([...ids]); let changed = false; for (const id of ids) { state.names[id] = ps?.[id]?.name || "użytkownik"; changed = true; } if (changed) renderList(); } catch {}
+}
+function subscribe(coll, key) {
+  db.collection(coll).onSnapshot((snap) => {
+    state[key] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.loaded[key] = true;
+    markLive(snap.metadata);
+    clearTimeout(liveTimer); liveTimer = setTimeout(() => { render(); if (key === "damages") resolveNames(); }, 30);
+  }, (e) => { $("live").classList.remove("on"); $("liveText").textContent = "Brak połączenia"; if (e.code === "unavailable") setTimeout(() => subscribe(coll, key), 3000); });
+}
+
+(async function start() {
+  render();
+  db = window.claude?.use ? await window.claude.use("db") : null;
+  if (!db) { $("dbMissing").hidden = false; $("liveText").textContent = "Offline"; return; }
+  userCap = await window.claude.use("user");
+  if (userCap) {
+    try { state.uid = await userCap.id(); } catch {}
+    try { const c = await userCap.can("data.write"); state.canWrite = c === null ? null : c; } catch { state.canWrite = null; }
+  } else state.canWrite = null;
+  applyWriteMode();
+  subscribe("forklifts", "forklifts");
+  subscribe("employees", "employees");
+  subscribe("impacts", "impacts");
+  subscribe("damages", "damages");
+})();
+</script>
