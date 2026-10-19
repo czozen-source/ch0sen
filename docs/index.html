@@ -311,7 +311,7 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
     </div>
     <div class="row no-print">
       <button class="btn primary small" type="button" id="plPrint">Drukuj rozpiskę</button>
-      <span class="row" id="plModTools" hidden>
+      <span class="row" id="plModTools">
         <button class="btn small" type="button" id="plCopy">Kopiuj z poprzedniego dnia</button>
         <button class="btn small danger" type="button" id="plClear">Wyczyść dzień</button>
       </span>
@@ -344,7 +344,7 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
       </div>
     </div>
 
-    <div class="panel no-print" id="plImport" hidden>
+    <div class="panel no-print" id="plImport">
       <h3>Wklej rozpiskę z Excela</h3>
       <p class="sub" style="font-size:.84rem">Na wybrany dzień. Każdy wiersz: <b>nr wózka; nazwisko i imię; zmiana</b> (zmiana opcjonalnie: 1, 2, 3 albo nazwa). Kolumny z Excela wklejają się tak samo.</p>
       <textarea id="plImpText" aria-label="Rozpiska do importu" placeholder="101;ADAMOWSKI DARIUSZ;1&#10;102;BOSEK MARCIN;2"></textarea>
@@ -711,7 +711,6 @@ $("nEmpSearch").addEventListener("blur", () => setTimeout(() => { $("nEmpList").
 /* ---------- roles ---------- */
 function applyRole() {
   $("tab-settings").hidden = !state.isMod;
-  $("plModTools").hidden = !state.isMod; $("plImport").hidden = !state.isMod;
   renderPlan();
   if (!state.isMod && $("tab-settings").getAttribute("aria-selected") === "true") showTab("fleet");
   renderList();
@@ -734,37 +733,58 @@ function openPlanDay(date) {
     renderPlan(); renderPlanHint();
   }, (e) => { console.error(e); $("plInfo").textContent = "Nie udało się wczytać rozpiski."; });
 }
-function empOptionsList() {
-  let dl = $("empOptions");
-  if (!dl) { dl = el("datalist", { id: "empOptions" }); document.body.append(dl); }
-  dl.replaceChildren(...activeEmployees().map(e => el("option", { value: empLabel(e) })));
-}
 function findEmpByLabel(txt) {
   const t = norm(txt.trim());
   if (!t) return null;
   return activeEmployees().find(e => norm(empLabel(e)) === t) || activeEmployees().find(e => norm(e.name) === t) || null;
 }
+function planCellPicker(fk, i, sh, c) {
+  const inp = el("input", { type: "text", autocomplete: "off", id: `pl-${fk}-${i}`, "aria-label": `Wózek ${fk}, ${sh}`, placeholder: "wpisz 2 litery…", value: c ? c.name : "" });
+  const ul = el("ul", { class: "suggest", role: "listbox", hidden: true });
+  let hits = [];
+  const show = () => {
+    const q = norm(inp.value.trim());
+    if (q.length < 2) { ul.hidden = true; hits = []; return; }
+    hits = activeEmployees().filter(e => norm(e.name).split(/\s+/).some(w => w.startsWith(q)) || norm(e.name).includes(q)).slice(0, 8);
+    ul.replaceChildren(...(hits.length ? hits.map((e, k) => el("li", { role: "option", class: k === 0 ? "active" : "", onmousedown: (ev) => { ev.preventDefault(); pick(e); } }, empLabel(e)))
+      : [el("li", { class: "none", text: "Brak pasującej osoby" })]));
+    const r = inp.getBoundingClientRect();   // fixed, so the scrolling table wrapper doesn't clip it
+    Object.assign(ul.style, { position: "fixed", left: r.left + "px", top: (r.bottom + 4) + "px", right: "auto", width: Math.max(r.width, 240) + "px" });
+    ul.hidden = false;
+  };
+  const pick = (e) => { ul.hidden = true; inp.value = e.name; setPlanCell(fk, i, e); inp.blur(); };
+  inp.addEventListener("input", show);
+  inp.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") { ev.preventDefault(); if (hits.length && !ul.hidden) pick(hits[0]); }
+    if (ev.key === "Escape") { ul.hidden = true; inp.value = c ? c.name : ""; inp.blur(); }
+  });
+  inp.addEventListener("blur", () => setTimeout(() => {
+    ul.hidden = true;
+    if (!inp.value.trim() && c) setPlanCell(fk, i, null);        // emptied = remove assignment
+    else if (inp.value.trim() !== (c ? c.name : "")) inp.value = c ? c.name : "";  // unconfirmed typing = revert
+    if (planDirty) { planDirty = false; renderPlan(); }
+  }, 150));
+  return el("div", { class: "picker" }, inp, ul);
+}
+let planDirty = false;
 function renderPlan() {
   const tbl = $("plTable"); if (!tbl) return;
+  if (tbl.contains(document.activeElement)) { planDirty = true; return; }  // don't disrupt typing
   const date = state.planDate || today();
   $("plTitleDate").textContent = `${fmtDate(date)} (${weekday(date)})`;
   if (!state.plan) { tbl.replaceChildren(el("tbody", {}, el("tr", {}, el("td", { text: "Ładowanie rozpiski…" })))); return; }
   const cells = state.plan.cells || {};
   const fls = activeForklifts();
-  if (state.isMod) empOptionsList();
   const head = el("thead", {}, el("tr", {}, el("th", { text: "Wózek" }), state.shifts.map(sh => el("th", { text: sh }))));
   const body = el("tbody", {}, fls.map(f => el("tr", {},
     el("td", { class: "fk" }, f.no, el("small", { text: f.type || "" })),
     state.shifts.map((sh, i) => {
       const c = cells[cellKey(f.no, i)];
-      if (!state.isMod) return el("td", { text: c?.name || "—" });
-      const inp = el("input", { list: "empOptions", id: `pl-${f.no}-${i}`, "aria-label": `Wózek ${f.no}, ${sh}`, placeholder: "—", value: c ? (c.label || c.name) : "",
-        onchange: (e) => setPlanCell(f.no, i, e.target.value) });
-      return el("td", {}, inp, el("span", { class: "print-only", text: c?.name || "—" }));
+      return el("td", {}, planCellPicker(f.no, i, sh, c), el("span", { class: "print-only", text: c?.name || "—" }));
     }))));
   tbl.replaceChildren(head, body);
   const filled = Object.values(cells).filter(Boolean).length;
-  $("plInfo").textContent = filled ? `Przydziałów: ${filled}` : (state.isMod ? "Brak rozpiski na ten dzień — wpisz pracowników w tabeli albo skopiuj z poprzedniego dnia." : "Brak rozpiski na ten dzień.");
+  $("plInfo").textContent = filled ? `Przydziałów: ${filled}` : "Brak rozpiski na ten dzień — wpisz pracowników w tabeli albo skopiuj z poprzedniego dnia.";
   $("plMeta").textContent = state.plan.updatedAt ? `Ostatnia zmiana: ${fmtStamp(state.plan.updatedAt)}${state.plan.updatedBy ? " · " + state.plan.updatedBy : ""}` : "";
 }
 async function savePlan(cells) {
@@ -772,14 +792,10 @@ async function savePlan(cells) {
   try { await db.collection("schedule").doc(date).set({ date, cells, updatedAt: new Date().toISOString(), updatedBy: state.email }); }
   catch (e) { onWriteError(e); renderPlan(); }
 }
-async function setPlanCell(fk, i, txt) {
+async function setPlanCell(fk, i, e) {
   const cells = { ...(state.plan?.cells || {}) };
-  if (!txt.trim()) delete cells[cellKey(fk, i)];
-  else {
-    const e = findEmpByLabel(txt);
-    if (!e) { toast("Wybierz pracownika z listy podpowiedzi."); renderPlan(); return; }
-    cells[cellKey(fk, i)] = { employeeId: e.id, name: e.name, label: empLabel(e) };
-  }
+  if (!e) delete cells[cellKey(fk, i)];
+  else cells[cellKey(fk, i)] = { employeeId: e.id, name: e.name };
   await savePlan(cells);
 }
 $("plDate").addEventListener("change", (e) => e.target.value && openPlanDay(e.target.value));
@@ -816,7 +832,7 @@ $("plImpGo").addEventListener("click", async () => {
     let i = 0;
     if (sh) { const k = parseInt(sh, 10); i = !isNaN(k) ? k - 1 : state.shifts.findIndex(x => norm(x) === norm(sh)); }
     if (i < 0 || i >= state.shifts.length) { bad.push(`zmiana „${sh}”`); continue; }
-    cells[cellKey(fk, i)] = { employeeId: e.id, name: e.name, label: empLabel(e) }; n++;
+    cells[cellKey(fk, i)] = { employeeId: e.id, name: e.name }; n++;
   }
   if (!n) { toast(bad.length ? "Nie rozpoznano: " + bad.slice(0, 3).join(", ") : "Brak danych do wczytania."); return; }
   await savePlan(cells); $("plImpText").value = "";
