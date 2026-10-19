@@ -161,6 +161,40 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
 
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--head); color: var(--head-fg); padding: 10px 16px; border-radius: var(--r); font-size: .9rem; z-index: 20; border-left: 4px solid var(--accent); max-width: calc(100% - 32px); }
 
+/* Rozpiska */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+table.plan { width: 100%; border-collapse: collapse; font-size: .92rem; }
+table.plan th, table.plan td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: middle; }
+table.plan th { font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
+table.plan td.fk { font-family: var(--f-display); font-weight: 700; font-size: 1.35rem; white-space: nowrap; }
+table.plan td.fk small { display: block; font-family: var(--f-body); font-size: .68rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+table.plan td input { min-width: 180px; }
+table.plan tr:last-child td { border-bottom: 0; }
+.print-head, .sign, .print-only { display: none; }
+section[role="tabpanel"] > *, .panel > * { min-width: 0; }
+.planhint { font-size: .86rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.planhint b { color: var(--fg); font-weight: 600; }
+.card .plan-line { grid-column: 2; font-size: .82rem; color: var(--muted); }
+@media print {
+  @page { margin: 14mm; }
+  :root { --bg: #fff; --surface: #fff; --surface-2: #fff; --fg: #000; --muted: #333; --line: #000; color-scheme: light; }
+  body { background: #fff !important; color: #000; font-size: 11pt; padding: 0 !important; }
+  body::before, header.top, .no-print, #toast, #noConfig, #login, section[role="tabpanel"]:not(#p-plan) { display: none !important; }
+  .wrap { max-width: none; padding: 0 !important; }
+  main { padding: 0 !important; }
+  #p-plan { display: block !important; }
+  body[data-print="plan"] #histPanel, body[data-print="hist"] #plArea { display: none !important; }
+  #histPanel { border: 0; padding: 0; }
+  .print-head { display: block; margin-bottom: 8px; }
+  .print-head h2 { font-size: 18pt; }
+  .print-head p { margin: 2px 0 0; font-size: 12pt; }
+  .sign { display: flex; gap: 40px; margin-top: 28px; font-size: 10pt; }
+  .print-only { display: inline; }
+  table.plan td input { display: none; }
+  .tablewrap { overflow: visible; border: 0; }
+  table.plan th, table.plan td { border: 1px solid #000 !important; padding: 6px 8px; color: #000; }
+  table.plan th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 @media (max-width: 860px) {
   .summary { grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
@@ -199,6 +233,7 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
     <nav class="tabs" role="tablist" aria-label="Sekcje" id="tabs" hidden>
       <button role="tab" id="tab-fleet" aria-controls="p-fleet" aria-selected="true">Flota</button>
       <button role="tab" id="tab-list" aria-controls="p-list" aria-selected="false">Zgłoszenia<span class="count" id="openCount">0</span></button>
+      <button role="tab" id="tab-plan" aria-controls="p-plan" aria-selected="false">Rozpiska</button>
       <button role="tab" id="tab-new" aria-controls="p-new" aria-selected="false">+ Nowe zgłoszenie</button>
       <button role="tab" id="tab-settings" aria-controls="p-settings" aria-selected="false" hidden>Ustawienia</button>
     </nav>
@@ -263,6 +298,60 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
     <div class="list" id="list"></div>
   </section>
 
+  <!-- ROZPISKA -->
+  <section role="tabpanel" id="p-plan" aria-labelledby="tab-plan" hidden>
+    <div class="row between no-print">
+      <h2>Rozpiska wózków</h2>
+      <div class="row">
+        <button class="btn small" type="button" id="plPrev" aria-label="Poprzedni dzień">‹</button>
+        <input type="date" id="plDate" aria-label="Dzień rozpiski" style="width:auto">
+        <button class="btn small" type="button" id="plNext" aria-label="Następny dzień">›</button>
+        <button class="btn small" type="button" id="plToday">Dziś</button>
+      </div>
+    </div>
+    <div class="row no-print">
+      <button class="btn primary small" type="button" id="plPrint">Drukuj rozpiskę</button>
+      <span class="row" id="plModTools" hidden>
+        <button class="btn small" type="button" id="plCopy">Kopiuj z poprzedniego dnia</button>
+        <button class="btn small danger" type="button" id="plClear">Wyczyść dzień</button>
+      </span>
+      <span class="sub" id="plInfo" style="font-size:.84rem"></span>
+    </div>
+    <div id="plArea">
+      <div class="print-head"><h2>Rozpiska wózków</h2><p id="plTitleDate"></p></div>
+      <div class="tablewrap"><table class="plan" id="plTable"></table></div>
+      <p class="sub no-print" id="plMeta" style="font-size:.82rem;margin-top:6px"></p>
+      <div class="sign"><span>Sporządził: ______________________</span><span>Data i podpis: ______________________</span></div>
+    </div>
+
+    <div class="panel" id="histPanel">
+      <h3 class="no-print">Kto korzystał z wózka</h3>
+      <div class="filters no-print" style="border:0;padding:0">
+        <label class="field">Wózek
+          <select id="hFk"><option value="">Wszystkie wózki</option></select>
+        </label>
+        <label class="field">Od
+          <input type="date" id="hFrom">
+        </label>
+        <label class="field">Do
+          <input type="date" id="hTo">
+        </label>
+        <div class="row" style="align-self:end"><button class="btn primary small" type="button" id="hGo">Pokaż</button><button class="btn small" type="button" id="hPrint">Drukuj</button></div>
+      </div>
+      <div id="histArea">
+        <div class="print-head"><h2>Użytkowanie wózków</h2><p id="hTitle"></p></div>
+        <div id="hist"><p class="sub">Wybierz wózek i zakres dat, a potem kliknij „Pokaż”.</p></div>
+      </div>
+    </div>
+
+    <div class="panel no-print" id="plImport" hidden>
+      <h3>Wklej rozpiskę z Excela</h3>
+      <p class="sub" style="font-size:.84rem">Na wybrany dzień. Każdy wiersz: <b>nr wózka; nazwisko i imię; zmiana</b> (zmiana opcjonalnie: 1, 2, 3 albo nazwa). Kolumny z Excela wklejają się tak samo.</p>
+      <textarea id="plImpText" aria-label="Rozpiska do importu" placeholder="101;ADAMOWSKI DARIUSZ;1&#10;102;BOSEK MARCIN;2"></textarea>
+      <div><button class="btn primary small" type="button" id="plImpGo">Wczytaj na wybrany dzień</button></div>
+    </div>
+  </section>
+
   <!-- NOWE -->
   <section role="tabpanel" id="p-new" aria-labelledby="tab-new" hidden>
     <h2>Nowe zgłoszenie uszkodzenia</h2>
@@ -281,6 +370,7 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
           <ul id="nEmpList" class="suggest" role="listbox" hidden></ul>
           <span class="picked" id="nEmpPicked" hidden></span>
         </div>
+        <div class="planhint" id="nPlanHint" hidden style="grid-column:1 / -1"></div>
         <label class="field">Rodzaj uderzenia *
           <select id="nImpact" required></select>
         </label>
@@ -301,6 +391,15 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
       <p class="sub">Ta zakładka jest widoczna tylko dla moderatorów. Listy używane w formularzu zgłoszenia. Usunięcie pracownika lub wózka ukrywa go w formularzu, ale zachowuje historię zgłoszeń.</p>
     </div>
     <div class="settings">
+      <div class="panel">
+        <h3>Zmiany w rozpisce</h3>
+        <form class="list" id="shiftForm">
+          <label class="field">Nazwy zmian (oddziel przecinkiem)
+            <input id="shNames" type="text" placeholder="I zmiana, II zmiana">
+          </label>
+          <div><button class="btn primary small" type="submit">Zapisz zmiany</button></div>
+        </form>
+      </div>
       <div class="panel">
         <h3>Powiadomienia e-mail</h3>
         <form class="list" id="mailForm">
@@ -370,7 +469,7 @@ const FLEET_STATE = {
 };
 const DEFAULT_IMPACTS = ["Uderzenie w regał", "Uderzenie w bramę / drzwi", "Uderzenie w ścianę / słup", "Kolizja z innym wózkiem", "Uderzenie w paletę / ładunek", "Najechanie na przeszkodę / próg", "Inne"];
 
-const state = { forklifts: [], employees: [], impacts: [], damages: [], mail: {}, loaded: {}, uid: null, email: "", isMod: false };
+const state = { forklifts: [], employees: [], impacts: [], damages: [], mail: {}, loaded: {}, uid: null, email: "", isMod: false, shifts: ["I zmiana", "II zmiana"], plan: null, planDate: "" };
 let db = null, auth = null, unsubs = [];
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, ...kids) => {
@@ -398,7 +497,7 @@ function errMsg(e) {
 function onWriteError(e) { console.error(e); toast(errMsg(e)); }
 
 /* ---------- tabs ---------- */
-const tabs = ["fleet", "list", "new", "settings"];
+const tabs = ["fleet", "list", "plan", "new", "settings"];
 function showTab(name) {
   for (const t of tabs) { $("tab-" + t).setAttribute("aria-selected", t === name); $("p-" + t).hidden = t !== name; }
   try { localStorage.setItem("tab", name); } catch {}
@@ -472,7 +571,7 @@ function mailBox(d, intro) {
 }
 
 /* ---------- render ---------- */
-function render() { renderFleet(); renderFilters(); renderList(); renderForm(); renderSettings(); }
+function render() { renderFleet(); renderFilters(); renderList(); renderForm(); renderSettings(); renderPlan(); renderPlanHint(); }
 
 function renderFleet() {
   const fl = activeForklifts();
@@ -500,6 +599,8 @@ function fillSelect(sel, items, placeholder) {
   if ([...sel.options].some(o => o.value === v)) sel.value = v;
 }
 function renderFilters() {
+  fillSelect($("hFk"), activeForklifts().map(f => [f.no, `${f.no} — ${f.type || ""}`]), "Wszystkie wózki");
+  if (!$("hFrom").value) { $("hTo").value = today(); $("hFrom").value = addDays(today(), -30); }
   fillSelect($("fForklift"), state.forklifts.slice().sort((a, b) => a.no.localeCompare(b.no, "pl", { numeric: true })).map(f => [f.no, `${f.no} — ${f.type || ""}`]), "Wszystkie wózki");
   const inReports = new Map(state.damages.map(d => [d.employeeId, empName(d)]));
   fillSelect($("fEmployee"), [...inReports].sort((a, b) => a[1].localeCompare(b[1], "pl")), "Wszyscy");
@@ -551,6 +652,7 @@ function cardFor(d) {
       el("span", {}, "Uderzenie: ", el("strong", { text: d.impact || "—" })),
       el("span", {}, "Pracownik: ", el("strong", { text: empName(d) }))),
     el("p", { class: "desc", text: d.description || "" }),
+    planLine(d),
     log.length ? el("ul", { class: "log" }, log.map(l => el("li", {}, el("time", { text: fmtStamp(l.at) }), " · ", STATUS[l.status]?.label || l.status, l.byName ? ` · ${l.byName}` : "", l.note ? ` — ${l.note}` : ""))) : null,
     actions,
     dr.mail ? el("div", { style: "grid-column: 1 / -1" }, mailBox(d, `Mail o wózku ${d.forklift}`)) : null);
@@ -609,8 +711,190 @@ $("nEmpSearch").addEventListener("blur", () => setTimeout(() => { $("nEmpList").
 /* ---------- roles ---------- */
 function applyRole() {
   $("tab-settings").hidden = !state.isMod;
+  $("plModTools").hidden = !state.isMod; $("plImport").hidden = !state.isMod;
+  renderPlan();
   if (!state.isMod && $("tab-settings").getAttribute("aria-selected") === "true") showTab("fleet");
   renderList();
+}
+
+/* ---------- rozpiska ---------- */
+const planCache = {};          // date -> cells (from reads), for hints on reports
+let planUnsub = null;
+const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const weekday = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("pl-PL", { weekday: "long" });
+const cellKey = (fk, i) => `${fk}|${i}`;
+function openPlanDay(date) {
+  if (!db || !date) return;
+  state.planDate = date; $("plDate").value = date;
+  if (planUnsub) planUnsub();
+  state.plan = null; renderPlan();
+  planUnsub = db.collection("schedule").doc(date).onSnapshot((s) => {
+    state.plan = s.exists ? s.data() : { date, cells: {} };
+    planCache[date] = state.plan.cells || {};
+    renderPlan(); renderPlanHint();
+  }, (e) => { console.error(e); $("plInfo").textContent = "Nie udało się wczytać rozpiski."; });
+}
+function empOptionsList() {
+  let dl = $("empOptions");
+  if (!dl) { dl = el("datalist", { id: "empOptions" }); document.body.append(dl); }
+  dl.replaceChildren(...activeEmployees().map(e => el("option", { value: empLabel(e) })));
+}
+function findEmpByLabel(txt) {
+  const t = norm(txt.trim());
+  if (!t) return null;
+  return activeEmployees().find(e => norm(empLabel(e)) === t) || activeEmployees().find(e => norm(e.name) === t) || null;
+}
+function renderPlan() {
+  const tbl = $("plTable"); if (!tbl) return;
+  const date = state.planDate || today();
+  $("plTitleDate").textContent = `${fmtDate(date)} (${weekday(date)})`;
+  if (!state.plan) { tbl.replaceChildren(el("tbody", {}, el("tr", {}, el("td", { text: "Ładowanie rozpiski…" })))); return; }
+  const cells = state.plan.cells || {};
+  const fls = activeForklifts();
+  if (state.isMod) empOptionsList();
+  const head = el("thead", {}, el("tr", {}, el("th", { text: "Wózek" }), state.shifts.map(sh => el("th", { text: sh }))));
+  const body = el("tbody", {}, fls.map(f => el("tr", {},
+    el("td", { class: "fk" }, f.no, el("small", { text: f.type || "" })),
+    state.shifts.map((sh, i) => {
+      const c = cells[cellKey(f.no, i)];
+      if (!state.isMod) return el("td", { text: c?.name || "—" });
+      const inp = el("input", { list: "empOptions", id: `pl-${f.no}-${i}`, "aria-label": `Wózek ${f.no}, ${sh}`, placeholder: "—", value: c ? (c.label || c.name) : "",
+        onchange: (e) => setPlanCell(f.no, i, e.target.value) });
+      return el("td", {}, inp, el("span", { class: "print-only", text: c?.name || "—" }));
+    }))));
+  tbl.replaceChildren(head, body);
+  const filled = Object.values(cells).filter(Boolean).length;
+  $("plInfo").textContent = filled ? `Przydziałów: ${filled}` : (state.isMod ? "Brak rozpiski na ten dzień — wpisz pracowników w tabeli albo skopiuj z poprzedniego dnia." : "Brak rozpiski na ten dzień.");
+  $("plMeta").textContent = state.plan.updatedAt ? `Ostatnia zmiana: ${fmtStamp(state.plan.updatedAt)}${state.plan.updatedBy ? " · " + state.plan.updatedBy : ""}` : "";
+}
+async function savePlan(cells) {
+  const date = state.planDate;
+  try { await db.collection("schedule").doc(date).set({ date, cells, updatedAt: new Date().toISOString(), updatedBy: state.email }); }
+  catch (e) { onWriteError(e); renderPlan(); }
+}
+async function setPlanCell(fk, i, txt) {
+  const cells = { ...(state.plan?.cells || {}) };
+  if (!txt.trim()) delete cells[cellKey(fk, i)];
+  else {
+    const e = findEmpByLabel(txt);
+    if (!e) { toast("Wybierz pracownika z listy podpowiedzi."); renderPlan(); return; }
+    cells[cellKey(fk, i)] = { employeeId: e.id, name: e.name, label: empLabel(e) };
+  }
+  await savePlan(cells);
+}
+$("plDate").addEventListener("change", (e) => e.target.value && openPlanDay(e.target.value));
+$("plPrev").addEventListener("click", () => openPlanDay(addDays(state.planDate || today(), -1)));
+$("plNext").addEventListener("click", () => openPlanDay(addDays(state.planDate || today(), 1)));
+$("plToday").addEventListener("click", () => openPlanDay(today()));
+function printPart(part) { document.body.dataset.print = part; setTimeout(() => { window.print(); }, 50); }
+window.addEventListener("afterprint", () => { delete document.body.dataset.print; });
+$("plPrint").addEventListener("click", () => printPart("plan"));
+$("plCopy").addEventListener("click", async () => {
+  const prev = addDays(state.planDate, -1);
+  try {
+    const s = await db.collection("schedule").doc(prev).get();
+    const cells = s.exists ? (s.data().cells || {}) : {};
+    if (!Object.keys(cells).length) { toast(`Brak rozpiski na ${fmtDate(prev)}.`); return; }
+    await savePlan({ ...cells }); toast(`Skopiowano rozpiskę z ${fmtDate(prev)}`);
+  } catch (e) { onWriteError(e); }
+});
+let clearArmed = false;
+$("plClear").addEventListener("click", async () => {
+  if (!clearArmed) { clearArmed = true; $("plClear").textContent = "Na pewno wyczyścić?"; setTimeout(() => { clearArmed = false; $("plClear").textContent = "Wyczyść dzień"; }, 4000); return; }
+  clearArmed = false; $("plClear").textContent = "Wyczyść dzień";
+  await savePlan({}); toast("Rozpiska wyczyszczona");
+});
+$("plImpGo").addEventListener("click", async () => {
+  const cells = { ...(state.plan?.cells || {}) };
+  const bad = []; let n = 0;
+  for (const line of $("plImpText").value.split(/\r?\n/)) {
+    const [fk, who, sh = ""] = line.split(/\t|;/).map(c => (c || "").trim());
+    if (!fk || /^nr/i.test(fk)) continue;
+    if (!state.forklifts.some(f => f.no === fk)) { bad.push(`wózek ${fk}`); continue; }
+    const e = findEmpByLabel(who) || activeEmployees().find(x => norm(x.name).includes(norm(who)) && norm(who).length > 3);
+    if (!e) { bad.push(who || "(puste nazwisko)"); continue; }
+    let i = 0;
+    if (sh) { const k = parseInt(sh, 10); i = !isNaN(k) ? k - 1 : state.shifts.findIndex(x => norm(x) === norm(sh)); }
+    if (i < 0 || i >= state.shifts.length) { bad.push(`zmiana „${sh}”`); continue; }
+    cells[cellKey(fk, i)] = { employeeId: e.id, name: e.name, label: empLabel(e) }; n++;
+  }
+  if (!n) { toast(bad.length ? "Nie rozpoznano: " + bad.slice(0, 3).join(", ") : "Brak danych do wczytania."); return; }
+  await savePlan(cells); $("plImpText").value = "";
+  toast(`Wczytano ${n}${bad.length ? " · pominięto: " + bad.slice(0, 3).join(", ") : ""}`);
+});
+$("shiftForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const shifts = $("shNames").value.split(",").map(x => x.trim()).filter(Boolean).slice(0, 6);
+  if (!shifts.length) { toast("Podaj co najmniej jedną zmianę."); return; }
+  try { await db.collection("settings").doc("schedule").set({ shifts }); toast("Zapisano zmiany"); } catch (err) { onWriteError(err); }
+});
+
+/* history: who used which forklift */
+async function loadRange(from, to) {
+  const snap = await db.collection("schedule").where("date", ">=", from).where("date", "<=", to).get();
+  const out = {}; snap.docs.forEach(d => { out[d.id] = d.data().cells || {}; planCache[d.id] = out[d.id]; });
+  return out;
+}
+$("hGo").addEventListener("click", async () => {
+  const fk = $("hFk").value, from = $("hFrom").value, to = $("hTo").value;
+  if (!from || !to || from > to) { toast("Podaj poprawny zakres dat."); return; }
+  if ((new Date(to) - new Date(from)) / 864e5 > 92) { toast("Maksymalnie 3 miesiące naraz."); return; }
+  $("hist").replaceChildren(el("p", { class: "sub", text: "Wczytywanie…" }));
+  try {
+    const days = await loadRange(from, to);
+    const rows = [];
+    for (const date of Object.keys(days).sort()) for (const [k, c] of Object.entries(days[date])) {
+      const [f, i] = k.split("|");
+      if (!c || (fk && f !== fk)) continue;
+      rows.push({ date, f, shift: state.shifts[+i] || `Zmiana ${+i + 1}`, name: c.name, dmg: state.damages.filter(d => d.forklift === f && d.date === date).length });
+    }
+    rows.sort((a, b) => a.date.localeCompare(b.date) || a.f.localeCompare(b.f, "pl", { numeric: true }) || a.shift.localeCompare(b.shift));
+    $("hTitle").textContent = `${fk ? "Wózek " + fk : "Wszystkie wózki"} · ${fmtDate(from)} – ${fmtDate(to)}`;
+    if (!rows.length) { $("hist").replaceChildren(el("p", { class: "sub", text: "Brak wpisów w rozpiskach dla tego zakresu." })); return; }
+    $("hist").replaceChildren(el("div", { class: "tablewrap" }, el("table", { class: "plan" },
+      el("thead", {}, el("tr", {}, el("th", { text: "Data" }), fk ? null : el("th", { text: "Wózek" }), el("th", { text: "Zmiana" }), el("th", { text: "Pracownik" }), el("th", { text: "Zgłoszenia uszkodzeń" }))),
+      el("tbody", {}, rows.map(r => el("tr", {},
+        el("td", { class: "mono", text: `${fmtDate(r.date)}` }), fk ? null : el("td", { text: r.f }), el("td", { text: r.shift }), el("td", { text: r.name }),
+        el("td", { text: r.dmg ? `${r.dmg}` : "—" })))))));
+  } catch (e) { console.error(e); $("hist").replaceChildren(el("p", { class: "notice err", text: "Nie udało się wczytać historii." })); }
+});
+$("hPrint").addEventListener("click", () => printPart("hist"));
+
+/* hints on the report form and cards */
+const pendingPlanDates = new Set();
+function planFor(date, cb) {
+  if (date in planCache) return planCache[date];
+  if (!db || pendingPlanDates.has(date)) return undefined;
+  pendingPlanDates.add(date);
+  db.collection("schedule").doc(date).get().then(s => { planCache[date] = s.exists ? (s.data().cells || {}) : {}; cb && cb(); })
+    .catch(() => { planCache[date] = {}; }).finally(() => pendingPlanDates.delete(date));
+  return undefined;
+}
+function usersOf(cells, fk) {
+  return state.shifts.map((sh, i) => ({ sh, c: cells[cellKey(fk, i)] })).filter(x => x.c);
+}
+function renderPlanHint() {
+  const box = $("nPlanHint"); if (!box) return;
+  const fk = $("nForklift").value, date = $("nDate").value;
+  if (!fk || !date) { box.hidden = true; return; }
+  const cells = planFor(date, renderPlanHint);
+  if (cells === undefined) { box.hidden = true; return; }
+  const us = usersOf(cells, fk);
+  box.hidden = false;
+  if (!us.length) { box.replaceChildren(el("span", { text: `Rozpiska: brak przydziału wózka ${fk} na ${fmtDate(date)}.` })); return; }
+  box.replaceChildren(el("span", { text: `Wg rozpiski na ${fmtDate(date)}:` }), ...us.map(({ sh, c }) => {
+    const e = state.employees.find(x => x.id === c.employeeId);
+    return el("span", {}, `${sh} – `, el("b", { text: c.name }), " ", e && e.active !== false ? el("button", { class: "btn small", type: "button", onclick: () => pickEmp(e) }, "Wybierz") : null);
+  }));
+}
+$("nForklift").addEventListener("change", renderPlanHint);
+$("nDate").addEventListener("change", renderPlanHint);
+function planLine(d) {
+  const cells = planFor(d.date, () => { clearTimeout(renderT); renderT = setTimeout(renderList, 50); });
+  if (!cells) return null;
+  const us = usersOf(cells, d.forklift);
+  if (!us.length) return null;
+  return el("div", { class: "plan-line", text: "Wg rozpiski tego dnia: " + us.map(({ sh, c }) => `${sh} – ${c.name}`).join(" · ") });
 }
 
 /* ---------- writes ---------- */
@@ -733,8 +1017,15 @@ function subscribeAll() {
     applyRole();
   }, (e) => { console.error(e); state.isMod = false; applyRole(); }));
   unsubs.push(db.collection("settings").doc("mail").onSnapshot((s) => { state.mail = s.exists ? s.data() : {}; renderSettings(); }, (e) => console.error(e)));
+  unsubs.push(db.collection("settings").doc("schedule").onSnapshot((s) => {
+    const sh = s.exists && Array.isArray(s.data().shifts) ? s.data().shifts.filter(Boolean) : [];
+    state.shifts = sh.length ? sh : ["I zmiana", "II zmiana"];
+    if (document.activeElement !== $("shNames")) $("shNames").value = state.shifts.join(", ");
+    renderPlan();
+  }, (e) => console.error(e)));
+  openPlanDay(state.planDate || today());
 }
-function unsubscribeAll() { unsubs.forEach(u => u()); unsubs = []; }
+function unsubscribeAll() { unsubs.forEach(u => u()); unsubs = []; if (planUnsub) { planUnsub(); planUnsub = null; } }
 
 /* ---------- auth ---------- */
 $("loginForm").addEventListener("submit", async (e) => {

@@ -37,5 +37,8 @@ Zaloguj się i w **Ustawieniach**:
 - **Import z Excela** — wklej kolumny „Imię i nazwisko / Dział” (Pracownicy) oraz „Nr wózka / Typ” (Wózki).
 - **Rodzaje uderzeń** — kliknij „Dodaj domyślne rodzaje uderzeń” albo dodaj własne.
 
+## Rozpiska wózków
+Zakładka **Rozpiska**: dzienny przydział pracowników do wózków na zmiany (nazwy zmian ustawia moderator w Ustawieniach). Moderator układa rozpiskę w tabeli, kopiuje ją z poprzedniego dnia albo wkleja z Excela (`nr wózka; nazwisko; zmiana`). Każdy może ją wydrukować. Sekcja „Kto korzystał z wózka” pokazuje i drukuje historię dla wózka i zakresu dat. Przy nowym zgłoszeniu i na liście zgłoszeń aplikacja podpowiada, kto wg rozpiski jeździł tym wózkiem w dniu zdarzenia.
+
 ## Mail do serwisu
 Po zapisaniu zgłoszenia i po każdej zmianie statusu pojawia się przycisk **„Wyślij mail do serwisu”**, który otwiera Outlooka (lub domyślny program pocztowy) z wypełnionym adresem, tematem i treścią. Opcja „od razu otwórz Outlooka” w ustawieniach otwiera maila automatycznie po zapisaniu zgłoszenia. Mail wysyła osoba zgłaszająca ze swojej skrzynki.
