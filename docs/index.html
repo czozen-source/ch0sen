@@ -195,7 +195,7 @@ table.slots .clash, table.slots .clash:hover { border-color: var(--bad); backgro
 .plwarn div { font-size: .86rem; padding: 6px 10px; border-radius: var(--r); background: var(--warn-bg); color: var(--warn); }
 .plwarn div.bad { background: var(--bad-bg); color: var(--bad); }
 .print-head, .sign, .print-only, .pagehead, .pagesign { display: none; }
-section[role="tabpanel"] > *, .panel > * { min-width: 0; }
+section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
 .planhint { font-size: .86rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
 .planhint b { color: var(--fg); font-weight: 600; }
 .card .plan-line { grid-column: 2; font-size: .82rem; color: var(--muted); }
@@ -204,12 +204,14 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
   @page { size: A4 portrait; margin: 9mm 10mm; }
   :root { --bg: #fff; --surface: #fff; --surface-2: #fff; --fg: #000; --muted: #333; --line: #000; --head: #fff; --head-fg: #000; color-scheme: light; }
   body { background: #fff !important; color: #000; font-size: 9pt; padding: 0 !important; }
-  body::before, header.top, .no-print, #toast, #noConfig, #login, section[role="tabpanel"]:not(#p-plan) { display: none !important; }
+  body::before, header.top, .no-print, #toast, #noConfig, #login, section[role="tabpanel"] { display: none !important; }
   .wrap { max-width: none; padding: 0 !important; }
   main { padding: 0 !important; }
-  #p-plan { display: block !important; }
-  body[data-print="plan"] #histPanel, body[data-print="hist"] #plArea, #plImport, #plWarn { display: none !important; }
-  #histPanel { border: 0; padding: 0; }
+  body[data-print="plan"] #p-plan, body[data-print="hist"] #p-hist { display: block !important; }
+  #plImport, #plWarn { display: none !important; }
+  #p-hist h3 { font-size: 12pt; margin: 10px 0 4px; }
+  #p-hist .summary { grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  #p-hist .stat { border: 1px solid #000; padding: 4px 8px; }
   .print-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
   .print-head h2 { font-size: 14pt; }
   .print-head p { margin: 0; font-size: 12pt; font-weight: 600; }
@@ -280,6 +282,7 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
       <button role="tab" id="tab-fleet" aria-controls="p-fleet" aria-selected="true">Flota</button>
       <button role="tab" id="tab-list" aria-controls="p-list" aria-selected="false">Zgłoszenia<span class="count" id="openCount">0</span></button>
       <button role="tab" id="tab-plan" aria-controls="p-plan" aria-selected="false">Rozpiska</button>
+      <button role="tab" id="tab-hist" aria-controls="p-hist" aria-selected="false">Historia wózka</button>
       <button role="tab" id="tab-new" aria-controls="p-new" aria-selected="false">+ Nowe zgłoszenie</button>
       <button role="tab" id="tab-settings" aria-controls="p-settings" aria-selected="false" hidden>Ustawienia</button>
     </nav>
@@ -311,7 +314,7 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
     <div class="summary" id="summary"></div>
     <div class="row between">
       <h2>Stan wózków</h2>
-      <p class="sub">Kliknij wózek, aby zobaczyć jego zgłoszenia.</p>
+      <p class="sub">Kliknij wózek, aby zobaczyć jego historię.</p>
     </div>
     <div class="fleet" id="fleet"><div class="empty">Ładowanie listy wózków…</div></div>
   </section>
@@ -340,7 +343,7 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
         <input id="fText" type="search" placeholder="np. widły, regał C4">
       </label>
     </div>
-    <div class="row between"><h2 id="listTitle">Zgłoszenia</h2><span class="counts" id="listCount"></span></div>
+    <div class="row between"><h2 id="listTitle">Zgłoszenia</h2><span class="row"><span class="counts" id="listCount"></span><button class="btn small" type="button" id="lXlsx">Eksport do Excela</button></span></div>
     <div class="list" id="list"></div>
   </section>
 
@@ -370,33 +373,48 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
       <div class="sign"><span>Sporządził: ______________________</span><span>Podpis specjalisty zmiany: ______________________</span></div>
     </div>
 
-    <div class="panel" id="histPanel">
-      <h3 class="no-print">Sprawdź wózek – kto jeździł i co się działo</h3>
-      <div class="filters no-print" style="border:0;padding:0">
-        <label class="field">Wózek
-          <select id="hFk"><option value="">Wszystkie wózki</option></select>
-        </label>
-        <label class="field">Od
-          <input type="date" id="hFrom">
-        </label>
-        <label class="field">Do
-          <input type="date" id="hTo">
-        </label>
-        <div class="row" style="align-self:end"><button class="btn primary small" type="button" id="hGo">Pokaż</button><button class="btn small" type="button" id="hPrint">Drukuj</button></div>
-      </div>
-      <p class="sub no-print" style="font-size:.82rem;margin:0">Kolumna „Usterki” liczy zgłoszenia tego wózka z danego dnia i z dnia następnego — uszkodzenie często wychodzi dopiero przy przejęciu wózka przez kolejną zmianę. Zmiana III liczy się do daty jej rozpoczęcia.</p>
-      <div id="histArea">
-        <div class="print-head"><h2>Użytkowanie wózków</h2><p id="hTitle"></p></div>
-        <div id="hist"><p class="sub">Wybierz wózek i zakres dat, a potem kliknij „Pokaż”.</p></div>
-      </div>
-    </div>
-
     <div class="panel no-print" id="plImport">
       <h3>Wczytaj rozpiski z pliku Excel</h3>
       <p class="sub" style="font-size:.84rem">Plik w układzie „Rozpiska i kontrola wózków”: każda karta nazwana datą (np. „15.10.2026”), zmiany obok siebie, stanowiska z kolumnami Imię i nazwisko / Wózek / Uwagi. Wczytane zostaną karty, w których ktoś jest wpisany.</p>
       <label class="check"><input type="checkbox" id="plImpOver"><span>Nadpisz dni, które mają już rozpiskę w aplikacji</span></label>
       <div class="row"><input type="file" id="plImpFile" accept=".xlsx,.xlsm,.xls" aria-label="Plik Excel z rozpiskami" style="width:auto;flex:1 1 220px"><button class="btn primary small" type="button" id="plImpGo">Wczytaj</button></div>
       <div id="plImpMsg" hidden></div>
+    </div>
+  </section>
+
+  <!-- HISTORIA WÓZKA -->
+  <section role="tabpanel" id="p-hist" aria-labelledby="tab-hist" hidden>
+    <h2 class="no-print">Historia wózka</h2>
+    <div class="filters no-print">
+      <label class="field">Wózek
+        <select id="hFk"><option value="">Wszystkie wózki</option></select>
+      </label>
+      <label class="field">Od
+        <input type="date" id="hFrom">
+      </label>
+      <label class="field">Do
+        <input type="date" id="hTo">
+      </label>
+      <div class="row" style="align-self:end">
+        <button class="btn small" type="button" data-range="7">7 dni</button>
+        <button class="btn small" type="button" data-range="30">30 dni</button>
+        <button class="btn small" type="button" data-range="90">90 dni</button>
+        <button class="btn small" type="button" data-range="month">Ten miesiąc</button>
+      </div>
+    </div>
+    <div class="row no-print">
+      <button class="btn primary small" type="button" id="hXlsx">Eksport do Excela</button>
+      <button class="btn small" type="button" id="hPrint">Drukuj</button>
+      <span class="sub" id="hInfo" style="font-size:.84rem"></span>
+    </div>
+    <div id="histArea" class="list">
+      <div class="print-head"><h2>Historia wózka</h2><p id="hTitle"></p></div>
+      <div class="summary" id="hSummary"></div>
+      <h3>Kto jeździł</h3>
+      <p class="sub no-print" style="font-size:.82rem;margin:0">Z rozpisek. Kolumna „Usterki” pokazuje zgłoszenia z tego dnia i z dnia następnego — uszkodzenie często wychodzi przy przejęciu wózka przez kolejną zmianę. Zmiana III liczy się do daty jej rozpoczęcia.</p>
+      <div id="hUses"></div>
+      <h3>Usterki i uszkodzenia</h3>
+      <div id="hDmg"></div>
     </div>
   </section>
 
@@ -557,9 +575,10 @@ function errMsg(e) {
 function onWriteError(e) { console.error(e); toast(errMsg(e)); }
 
 /* ---------- tabs ---------- */
-const tabs = ["fleet", "list", "plan", "new", "settings"];
+const tabs = ["fleet", "list", "plan", "hist", "new", "settings"];
 function showTab(name) {
   for (const t of tabs) { $("tab-" + t).setAttribute("aria-selected", t === name); $("p-" + t).hidden = t !== name; }
+  if (name === "hist" && db) runHist();
   try { localStorage.setItem("tab", name); } catch {}
 }
 tabs.forEach(t => $("tab-" + t).addEventListener("click", () => showTab(t)));
@@ -633,7 +652,7 @@ function mailBox(d, intro) {
 }
 
 /* ---------- render ---------- */
-function render() { renderFleet(); renderFilters(); renderList(); renderForm(); renderSettings(); renderPlan(); renderPlanHint(); }
+function render() { renderFleet(); renderFilters(); renderList(); renderForm(); renderSettings(); renderPlan(); renderPlanHint(); if (histData && !$("p-hist").hidden) renderHist(); }
 
 function renderFleet() {
   const fl = activeForklifts();
@@ -641,7 +660,7 @@ function renderFleet() {
   const plates = fl.map(f => {
     const { s, open } = forkliftState(f.no); counts[s]++;
     const last = open.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
-    return el("button", { class: "plate", "data-state": s, type: "button", "aria-label": `Wózek ${f.no}, ${FLEET_STATE[s].label}`, onclick: () => { $("fForklift").value = f.no; $("fStatus").value = "open"; renderList(); showTab("list"); } },
+    return el("button", { class: "plate", "data-state": s, type: "button", "aria-label": `Wózek ${f.no}, ${FLEET_STATE[s].label}`, onclick: () => { $("hFk").value = f.no; showTab("hist"); } },
       el("div", { class: "plate-head" },
         el("div", {}, el("div", { class: "plate-no", text: f.no }), el("div", { class: "plate-type", text: f.type || "" })),
         el("span", { class: "pill " + s, text: FLEET_STATE[s].label })),
@@ -676,6 +695,7 @@ function renderList() {
     (!fk || d.forklift === fk) && (!em || d.employeeId === em) &&
     (!q || [d.description, d.impact, empName(d), d.forklift].join(" ").toLowerCase().includes(q))
   ).sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || "").localeCompare(a.createdAt || ""));
+  state.listRows = rows;
   $("listTitle").textContent = fk ? `Zgłoszenia — wózek ${fk}` : "Zgłoszenia";
   const n = rows.length;
   $("listCount").textContent = `${n} ${n === 1 ? "pozycja" : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "pozycje" : "pozycji")}`;
@@ -789,7 +809,7 @@ function applyRole() {
 const DEFAULT_SHIFTS = [{ name: "I", hours: "06:00–14:00" }, { name: "II", hours: "14:00–22:00" }, { name: "III", hours: "22:00–06:00" }];
 const DEFAULT_SECTIONS = [
   { id: "rozladunek-zwrotow", name: "Rozładunek zwrotów", rows: 6 },
-  { id: "sprawdzanie-zwrotow", name: "Sprawdzanie zwrotów", rows: 14 },
+  { id: "sprawdzanie-zwrotow", name: "Sprawdzanie zwrotów", rows: 8 },
   { id: "opakowania", name: "Opakowania", rows: 4 },
   { id: "zadania-dodatkowe", name: "Zadania dodatkowe", rows: 4 },
   { id: "biuro", name: "Biuro", rows: 8 },
@@ -1051,37 +1071,108 @@ $("plImpGo").addEventListener("click", async () => {
   } catch (e) { console.error(e); say("err", e.code ? errMsg(e) : (e.message || "Nie udało się odczytać pliku.")); }
 });
 
-/* Sprawdź wózek: who used which forklift */
+/* Historia wózka: usage from schedules + damage reports, export to Excel */
+let histData = null, histSeq = 0;
 async function loadRange(from, to) {
   const snap = await db.collection("schedule").where("date", ">=", from).where("date", "<=", to).get();
   const out = {}; snap.docs.forEach(d => { out[d.id] = d.data().slots || {}; planCache[d.id] = out[d.id]; });
   return out;
 }
-$("hGo").addEventListener("click", async () => {
+const shiftText = (i) => `${state.shifts[i]?.name || i + 1}${state.shifts[i]?.hours ? " · " + state.shifts[i].hours : ""}`;
+function setHistRange(kind) {
+  const t = today();
+  if (kind === "month") { $("hFrom").value = t.slice(0, 8) + "01"; $("hTo").value = t; }
+  else { $("hFrom").value = addDays(t, -(+kind - 1)); $("hTo").value = t; }
+  runHist();
+}
+document.querySelectorAll("[data-range]").forEach(b => b.addEventListener("click", () => setHistRange(b.dataset.range)));
+["hFk", "hFrom", "hTo"].forEach(id => $(id).addEventListener("change", () => runHist()));
+async function runHist() {
   const fk = $("hFk").value, from = $("hFrom").value, to = $("hTo").value;
-  if (!from || !to || from > to) { toast("Podaj poprawny zakres dat."); return; }
-  if ((new Date(to) - new Date(from)) / 864e5 > 92) { toast("Maksymalnie 3 miesiące naraz."); return; }
-  $("hist").replaceChildren(el("p", { class: "sub", text: "Wczytywanie…" }));
+  if (!from || !to || from > to) { $("hInfo").textContent = "Podaj poprawny zakres dat."; return; }
+  if ((new Date(to) - new Date(from)) / 864e5 > 366) { $("hInfo").textContent = "Maksymalnie rok naraz."; return; }
+  const seq = ++histSeq;
+  $("hInfo").textContent = "Wczytywanie…";
   try {
     const days = await loadRange(from, to);
-    const rows = [];
-    for (const date of Object.keys(days).sort()) for (const u of usesOf(days[date], fk)) {
-      const dmg = state.damages.filter(d => d.forklift === u.forklift && (d.date === date || d.date === addDays(date, 1)));
-      rows.push({ date, ...u, dmg });
-    }
-    rows.sort((a, b) => a.date.localeCompare(b.date) || a.shift - b.shift || a.forklift.localeCompare(b.forklift, "pl", { numeric: true }));
-    $("hTitle").textContent = `${fk ? "Wózek " + fk : "Wszystkie wózki"} · ${fmtDate(from)} – ${fmtDate(to)}`;
-    if (!rows.length) { $("hist").replaceChildren(el("p", { class: "sub", text: "Brak wpisów z wózkiem w rozpiskach dla tego zakresu." })); return; }
-    $("hist").replaceChildren(el("div", { class: "tablewrap" }, el("table", { class: "plan" },
-      el("thead", {}, el("tr", {}, el("th", { text: "Data" }), fk ? null : el("th", { text: "Wózek" }), el("th", { text: "Zmiana" }), el("th", { text: "Operator" }), el("th", { text: "Stanowisko" }), el("th", { text: "Uwagi" }), el("th", { text: "Usterki (dzień / następny)" }))),
-      el("tbody", {}, rows.map(r => el("tr", {},
-        el("td", { class: "mono", text: fmtDate(r.date) }), fk ? null : el("td", { text: r.forklift }),
-        el("td", { text: `${state.shifts[r.shift]?.name || r.shift + 1}${state.shifts[r.shift]?.hours ? " · " + state.shifts[r.shift].hours : ""}` }),
-        el("td", { text: r.name }), el("td", { text: sectionName(r.section) }), el("td", { text: r.note || "" }),
-        el("td", { text: r.dmg.length ? r.dmg.map(d => `${fmtDate(d.date)}: ${d.part || d.impact}`).join("; ") : "—" })))))));
-  } catch (e) { console.error(e); $("hist").replaceChildren(el("p", { class: "notice err", text: "Nie udało się wczytać historii." })); }
-});
+    if (seq !== histSeq) return;   // a newer request is running
+    histData = { fk, from, to, days };
+    renderHist();
+  } catch (e) { console.error(e); $("hInfo").textContent = "Nie udało się wczytać historii."; }
+}
+function histRows(h) {   // derived on every render, so live damage updates show without re-reading schedules
+  const { fk, from, to, days } = h;
+  const uses = [];
+  for (const date of Object.keys(days).sort()) for (const u of usesOf(days[date], fk)) {
+    const dmg = state.damages.filter(d => d.forklift === u.forklift && (d.date === date || d.date === addDays(date, 1)));
+    uses.push({ date, ...u, dmg });
+  }
+  uses.sort((a, b) => b.date.localeCompare(a.date) || a.shift - b.shift || a.forklift.localeCompare(b.forklift, "pl", { numeric: true }));
+  const dmg = state.damages.filter(d => (!fk || d.forklift === fk) && d.date >= from && d.date <= to)
+    .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || "").localeCompare(a.createdAt || ""))
+    .map(d => ({ d, planned: usesOf(days[d.date] || {}, d.forklift) }));
+  return { uses, dmg };
+}
+function renderHist() {
+  const h = histData; if (!h) return;
+  const { fk, from, to } = h, { uses, dmg } = histRows(h);
+  $("hTitle").textContent = `${fk ? "Wózek " + fk : "Wszystkie wózki"} · ${fmtDate(from)} – ${fmtDate(to)}`;
+  $("hInfo").textContent = `${fk ? "Wózek " + fk : "Wszystkie wózki"}, ${fmtDate(from)} – ${fmtDate(to)}`;
+  const stat = (cls, n, label) => el("div", { class: "stat " + cls }, el("b", { text: n }), el("span", { text: label }));
+  const workDays = new Set(uses.map(u => u.date)).size, people = new Set(uses.map(u => norm(u.name))).size;
+  const open = dmg.filter(x => STATUS[x.d.status]?.open).length;
+  $("hSummary").replaceChildren(stat("", workDays, "Dni w rozpiskach"), stat("", people, "Różnych operatorów"), stat("warn", dmg.length, "Usterek w okresie"), stat(open ? "bad" : "ok", open, "Otwartych usterek"));
+  $("hUses").replaceChildren(uses.length ? el("div", { class: "tablewrap" }, el("table", { class: "plan" },
+    el("thead", {}, el("tr", {}, el("th", { text: "Data" }), fk ? null : el("th", { text: "Wózek" }), el("th", { text: "Zmiana" }), el("th", { text: "Operator" }), el("th", { text: "Stanowisko" }), el("th", { text: "Uwagi" }), el("th", { text: "Usterki (dzień / następny)" }))),
+    el("tbody", {}, uses.map(r => el("tr", {},
+      el("td", { class: "mono", text: fmtDate(r.date) }), fk ? null : el("td", { text: r.forklift }), el("td", { text: shiftText(r.shift) }),
+      el("td", { text: r.name }), el("td", { text: sectionName(r.section) }), el("td", { text: r.note || "" }),
+      el("td", { class: r.dmg.length ? "flag" : "", text: r.dmg.length ? r.dmg.map(d => `${fmtDate(d.date)}: ${d.part || d.impact}`).join("; ") : "—" }))))))
+    : el("p", { class: "sub", text: "Brak wpisów z tym wózkiem w rozpiskach dla tego okresu." }));
+  $("hDmg").replaceChildren(dmg.length ? el("div", { class: "tablewrap" }, el("table", { class: "plan" },
+    el("thead", {}, el("tr", {}, ["Data", fk ? null : "Wózek", "Zmiana", "Uderzenie", "Co uszkodzone", "Kiedy powstało", "Operator", "Wg rozpiski", "Status", "Opis"].filter(Boolean).map(t => el("th", { text: t })))),
+    el("tbody", {}, dmg.map(({ d, planned }) => el("tr", {},
+      el("td", { class: "mono", text: fmtDate(d.date) }), fk ? null : el("td", { text: d.forklift }), el("td", { text: d.shift || "—" }),
+      el("td", { text: d.impact || "" }), el("td", { text: d.part || "" }), el("td", { text: d.when || "" }), el("td", { text: empName(d) }),
+      el("td", { text: planned.map(u => `${state.shifts[u.shift]?.name || u.shift + 1}: ${u.name}`).join(", ") || "—" }),
+      el("td", {}, el("span", { class: "pill " + (STATUS[d.status]?.cls || "warn"), text: STATUS[d.status]?.label || d.status })),
+      el("td", { text: d.description || "" }))))))
+    : el("p", { class: "sub", text: "Brak zgłoszonych usterek w tym okresie." }));
+}
 $("hPrint").addEventListener("click", () => printPart("hist"));
+
+async function saveXlsx(filename, sheets) {
+  try {
+    const XLSX = await loadXlsx();
+    const wb = XLSX.utils.book_new();
+    for (const { name, rows } of sheets) {
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws["!cols"] = rows[0].map((_, c) => ({ wch: Math.min(60, Math.max(8, ...rows.map(r => String(r[c] ?? "").length + 2))) }));
+      XLSX.utils.book_append_sheet(wb, ws, name);
+    }
+    XLSX.writeFile(wb, filename);
+    toast("Pobrano plik Excel");
+  } catch (e) { console.error(e); toast("Nie udało się utworzyć pliku Excel."); }
+}
+const damageRow = (d, planned) => [fmtDate(d.date), d.forklift, d.shift || "", d.impact || "", d.part || "", d.when || "", empName(d),
+  (planned || []).map(u => `${state.shifts[u.shift]?.name || u.shift + 1}: ${u.name}`).join(", "), STATUS[d.status]?.label || d.status,
+  d.outOfService && STATUS[d.status]?.open ? "TAK" : "NIE", d.description || "", d.reportedByName || "", d.createdAt ? fmtStamp(d.createdAt) : ""];
+const DAMAGE_HEAD = ["Data", "Wózek", "Zmiana", "Uderzenie", "Co uszkodzone", "Kiedy powstało", "Operator", "Wg rozpiski", "Status", "Wyłączony z pracy", "Opis", "Zgłosił", "Utworzono"];
+$("hXlsx").addEventListener("click", () => {
+  if (!histData) { toast("Najpierw wybierz wózek i okres."); return; }
+  const h = { ...histData, ...histRows(histData) };
+  saveXlsx(`historia_${h.fk ? "wozka_" + h.fk : "wozkow"}_${h.from}_${h.to}.xlsx`, [
+    { name: "Kto jeździł", rows: [["Data", "Wózek", "Zmiana", "Godziny", "Operator", "Stanowisko", "Uwagi", "Usterki (dzień / następny)"],
+      ...h.uses.map(r => [fmtDate(r.date), r.forklift, state.shifts[r.shift]?.name || r.shift + 1, state.shifts[r.shift]?.hours || "", r.name, sectionName(r.section), r.note || "",
+        r.dmg.map(d => `${fmtDate(d.date)}: ${d.part || d.impact}`).join("; ")])] },
+    { name: "Usterki", rows: [DAMAGE_HEAD, ...h.dmg.map(({ d, planned }) => damageRow(d, planned))] },
+  ]);
+});
+$("lXlsx").addEventListener("click", () => {
+  const rows = state.listRows || [];
+  if (!rows.length) { toast("Brak zgłoszeń do eksportu."); return; }
+  saveXlsx(`zgloszenia_${today()}.xlsx`, [{ name: "Zgłoszenia", rows: [DAMAGE_HEAD, ...rows.map(d => damageRow(d, usesOf(planCache[d.date] || {}, d.forklift)))] }]);
+});
 
 /* hints on the report form and cards */
 const pendingPlanDates = new Set();
@@ -1240,6 +1331,7 @@ function subscribeAll() {
   unsubs.push(db.collection("settings").doc("mail").onSnapshot((s) => { state.mail = s.exists ? s.data() : {}; renderSettings(); }, (e) => console.error(e)));
   unsubs.push(db.collection("settings").doc("schedule").onSnapshot((s) => applyScheduleSettings(s.exists ? s.data() : null), (e) => { console.error(e); applyScheduleSettings(null); }));
   openPlanDay(state.planDate || today());
+  if (!$("p-hist").hidden) runHist();
 }
 function unsubscribeAll() { unsubs.forEach(u => u()); unsubs = []; if (planUnsub) { planUnsub(); planUnsub = null; } }
 
