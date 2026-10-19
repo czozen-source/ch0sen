@@ -161,38 +161,72 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
 
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--head); color: var(--head-fg); padding: 10px 16px; border-radius: var(--r); font-size: .9rem; z-index: 20; border-left: 4px solid var(--accent); max-width: calc(100% - 32px); }
 
-/* Rozpiska */
+/* Rozpiska — 3 shifts side by side, sections stacked (mirrors the Excel day sheet) */
 .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
 table.plan { width: 100%; border-collapse: collapse; font-size: .92rem; }
 table.plan th, table.plan td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: middle; }
 table.plan th { font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
-table.plan td.fk { font-family: var(--f-display); font-weight: 700; font-size: 1.35rem; white-space: nowrap; }
-table.plan td.fk small { display: block; font-family: var(--f-body); font-size: .68rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-table.plan td input { min-width: 180px; }
 table.plan tr:last-child td { border-bottom: 0; }
+.plgrid { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: 12px; align-items: start; }
+.shiftcol { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.shifthead { background: var(--head); color: var(--head-fg); padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; border-bottom: 3px solid var(--accent); }
+.shifthead b { font-family: var(--f-display); font-size: 1.3rem; letter-spacing: .04em; text-transform: uppercase; }
+.shifthead span { font-family: var(--f-mono); font-size: .8rem; color: #b8c4d1; }
+.specrow { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: .8rem; color: var(--muted); }
+.specrow input { padding: 5px 8px; font-size: .88rem; }
+.sec h4 { margin: 0; padding: 6px 10px; font-family: var(--f-display); font-size: .98rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; background: var(--surface-2); border-bottom: 1px solid var(--line); border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+.sec:first-of-type h4 { border-top: 0; }
+.sec h4 small { font-family: var(--f-mono); font-size: .72rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+table.slots { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.slots td { border-bottom: 1px solid var(--line); padding: 3px 4px; vertical-align: middle; }
+table.slots td.n { width: 26px; text-align: right; color: var(--muted); font-family: var(--f-mono); font-size: .76rem; padding-right: 6px; }
+table.slots td.f { width: 78px; }
+table.slots td.u { width: 22%; }
+table.slots th { font-size: .66rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--line); }
+table.slots th:first-child { width: 26px; }
+table.slots input, table.slots select { padding: 4px 6px; font-size: .86rem; border-color: transparent; background: transparent; }
+table.slots input:hover, table.slots select:hover { border-color: var(--line); }
+table.slots input:focus, table.slots select:focus { background: var(--surface-2); border-color: var(--line); }
+table.slots tr.filled td.nm input { font-weight: 600; }
+table.slots .clash, table.slots .clash:hover { border-color: var(--bad); background: var(--bad-bg); color: var(--bad); }
+.addrow { width: 100%; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: .8rem; padding: 5px; cursor: pointer; text-align: left; padding-left: 36px; }
+.addrow:hover { color: var(--fg); background: var(--surface-2); }
+.plwarn { display: grid; gap: 4px; }
+.plwarn div { font-size: .86rem; padding: 6px 10px; border-radius: var(--r); background: var(--warn-bg); color: var(--warn); }
+.plwarn div.bad { background: var(--bad-bg); color: var(--bad); }
 .print-head, .sign, .print-only { display: none; }
 section[role="tabpanel"] > *, .panel > * { min-width: 0; }
 .planhint { font-size: .86rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
 .planhint b { color: var(--fg); font-weight: 600; }
 .card .plan-line { grid-column: 2; font-size: .82rem; color: var(--muted); }
+@media (max-width: 980px) { .plgrid { grid-template-columns: minmax(0, 1fr); } }
 @media print {
-  @page { margin: 14mm; }
-  :root { --bg: #fff; --surface: #fff; --surface-2: #fff; --fg: #000; --muted: #333; --line: #000; color-scheme: light; }
-  body { background: #fff !important; color: #000; font-size: 11pt; padding: 0 !important; }
+  @page { size: A4 landscape; margin: 8mm; }
+  :root { --bg: #fff; --surface: #fff; --surface-2: #fff; --fg: #000; --muted: #333; --line: #000; --head: #fff; --head-fg: #000; color-scheme: light; }
+  body { background: #fff !important; color: #000; font-size: 9pt; padding: 0 !important; }
   body::before, header.top, .no-print, #toast, #noConfig, #login, section[role="tabpanel"]:not(#p-plan) { display: none !important; }
   .wrap { max-width: none; padding: 0 !important; }
   main { padding: 0 !important; }
   #p-plan { display: block !important; }
-  body[data-print="plan"] #histPanel, body[data-print="hist"] #plArea { display: none !important; }
+  body[data-print="plan"] #histPanel, body[data-print="hist"] #plArea, #plImport, #plWarn { display: none !important; }
   #histPanel { border: 0; padding: 0; }
-  .print-head { display: block; margin-bottom: 8px; }
-  .print-head h2 { font-size: 18pt; }
-  .print-head p { margin: 2px 0 0; font-size: 12pt; }
-  .sign { display: flex; gap: 40px; margin-top: 28px; font-size: 10pt; }
+  .print-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .print-head h2 { font-size: 14pt; }
+  .print-head p { margin: 0; font-size: 12pt; font-weight: 600; }
+  .sign { display: flex; gap: 40px; margin-top: 10px; font-size: 9pt; }
   .print-only { display: inline; }
-  table.plan td input { display: none; }
+  .plgrid { grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)) !important; gap: 4mm; }
+  .shiftcol { border: 1px solid #000; border-radius: 0; break-inside: avoid; }
+  .shifthead { border-bottom: 1px solid #000; padding: 3px 6px; }
+  .shifthead b { font-size: 11pt; }
+  .shifthead span { color: #000; font-size: 8pt; }
+  .specrow { padding: 2px 6px; color: #000; border-bottom: 1px solid #000; }
+  .sec h4 { padding: 2px 6px; font-size: 8.5pt; border-color: #000; background: #e6e6e6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.slots td { border-bottom: 1px solid #999; padding: 1px 4px; height: 15pt; font-size: 8.5pt; }
+  table.slots td.n { color: #000; }
+  table.slots input, table.slots select, .specrow input, .addrow { display: none !important; }
   .tablewrap { overflow: visible; border: 0; }
-  table.plan th, table.plan td { border: 1px solid #000 !important; padding: 6px 8px; color: #000; }
+  table.plan th, table.plan td { border: 1px solid #000 !important; padding: 4px 6px; color: #000; }
   table.plan th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 @media (max-width: 860px) {
@@ -311,21 +345,20 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
     </div>
     <div class="row no-print">
       <button class="btn primary small" type="button" id="plPrint">Drukuj rozpiskę</button>
-      <span class="row" id="plModTools">
-        <button class="btn small" type="button" id="plCopy">Kopiuj z poprzedniego dnia</button>
-        <button class="btn small danger" type="button" id="plClear">Wyczyść dzień</button>
-      </span>
+      <button class="btn small" type="button" id="plCopy">Kopiuj z poprzedniego dnia</button>
+      <button class="btn small danger" type="button" id="plClear">Wyczyść dzień</button>
       <span class="sub" id="plInfo" style="font-size:.84rem"></span>
     </div>
+    <div class="plwarn no-print" id="plWarn"></div>
     <div id="plArea">
       <div class="print-head"><h2>Rozpiska wózków</h2><p id="plTitleDate"></p></div>
-      <div class="tablewrap"><table class="plan" id="plTable"></table></div>
+      <div class="plgrid" id="plGrid"></div>
       <p class="sub no-print" id="plMeta" style="font-size:.82rem;margin-top:6px"></p>
-      <div class="sign"><span>Sporządził: ______________________</span><span>Data i podpis: ______________________</span></div>
+      <div class="sign"><span>Sporządził: ______________________</span><span>Podpis specjalisty zmiany: ______________________</span></div>
     </div>
 
     <div class="panel" id="histPanel">
-      <h3 class="no-print">Kto korzystał z wózka</h3>
+      <h3 class="no-print">Sprawdź wózek – kto jeździł i co się działo</h3>
       <div class="filters no-print" style="border:0;padding:0">
         <label class="field">Wózek
           <select id="hFk"><option value="">Wszystkie wózki</option></select>
@@ -338,6 +371,7 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
         </label>
         <div class="row" style="align-self:end"><button class="btn primary small" type="button" id="hGo">Pokaż</button><button class="btn small" type="button" id="hPrint">Drukuj</button></div>
       </div>
+      <p class="sub no-print" style="font-size:.82rem;margin:0">Kolumna „Usterki” liczy zgłoszenia tego wózka z danego dnia i z dnia następnego — uszkodzenie często wychodzi dopiero przy przejęciu wózka przez kolejną zmianę. Zmiana III liczy się do daty jej rozpoczęcia.</p>
       <div id="histArea">
         <div class="print-head"><h2>Użytkowanie wózków</h2><p id="hTitle"></p></div>
         <div id="hist"><p class="sub">Wybierz wózek i zakres dat, a potem kliknij „Pokaż”.</p></div>
@@ -345,10 +379,11 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
     </div>
 
     <div class="panel no-print" id="plImport">
-      <h3>Wklej rozpiskę z Excela</h3>
-      <p class="sub" style="font-size:.84rem">Na wybrany dzień. Każdy wiersz: <b>nr wózka; nazwisko i imię; zmiana</b> (zmiana opcjonalnie: 1, 2, 3 albo nazwa). Kolumny z Excela wklejają się tak samo.</p>
-      <textarea id="plImpText" aria-label="Rozpiska do importu" placeholder="101;ADAMOWSKI DARIUSZ;1&#10;102;BOSEK MARCIN;2"></textarea>
-      <div><button class="btn primary small" type="button" id="plImpGo">Wczytaj na wybrany dzień</button></div>
+      <h3>Wczytaj rozpiski z pliku Excel</h3>
+      <p class="sub" style="font-size:.84rem">Plik w układzie „Rozpiska i kontrola wózków”: każda karta nazwana datą (np. „15.10.2026”), zmiany obok siebie, stanowiska z kolumnami Imię i nazwisko / Wózek / Uwagi. Wczytane zostaną karty, w których ktoś jest wpisany.</p>
+      <label class="check"><input type="checkbox" id="plImpOver"><span>Nadpisz dni, które mają już rozpiskę w aplikacji</span></label>
+      <div class="row"><input type="file" id="plImpFile" accept=".xlsx,.xlsm,.xls" aria-label="Plik Excel z rozpiskami" style="width:auto;flex:1 1 220px"><button class="btn primary small" type="button" id="plImpGo">Wczytaj</button></div>
+      <div id="plImpMsg" hidden></div>
     </div>
   </section>
 
@@ -363,6 +398,9 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
         <label class="field">Data zdarzenia *
           <input id="nDate" type="date" required>
         </label>
+        <label class="field">Zmiana
+          <select id="nShift"></select>
+        </label>
         <div class="field picker">
           <label class="field" for="nEmpSearch">Pracownik (operator) *</label>
           <input id="nEmpSearch" type="text" autocomplete="off" placeholder="Wpisz min. 2 litery nazwiska" role="combobox" aria-autocomplete="list" aria-controls="nEmpList" aria-expanded="false">
@@ -373,6 +411,12 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
         <div class="planhint" id="nPlanHint" hidden style="grid-column:1 / -1"></div>
         <label class="field">Rodzaj uderzenia *
           <select id="nImpact" required></select>
+        </label>
+        <label class="field">Co uszkodzone
+          <select id="nPart"></select>
+        </label>
+        <label class="field">Kiedy powstało
+          <select id="nWhen"></select>
         </label>
       </div>
       <label class="field">Opis zdarzenia *
@@ -392,12 +436,15 @@ section[role="tabpanel"] > *, .panel > * { min-width: 0; }
     </div>
     <div class="settings">
       <div class="panel">
-        <h3>Zmiany w rozpisce</h3>
+        <h3>Rozpiska: zmiany i stanowiska</h3>
         <form class="list" id="shiftForm">
-          <label class="field">Nazwy zmian (oddziel przecinkiem)
-            <input id="shNames" type="text" placeholder="I zmiana, II zmiana">
+          <label class="field">Zmiany — każda w osobnym wierszu: nazwa; godziny
+            <textarea id="shLines" rows="3" style="min-height:0" placeholder="I;06:00–14:00"></textarea>
           </label>
-          <div><button class="btn primary small" type="submit">Zapisz zmiany</button></div>
+          <label class="field">Stanowiska — każde w osobnym wierszu: nazwa; liczba wierszy
+            <textarea id="secLines" rows="5" style="min-height:0" placeholder="Rozładunek zwrotów;6"></textarea>
+          </label>
+          <div><button class="btn primary small" type="submit">Zapisz</button></div>
         </form>
       </div>
       <div class="panel">
@@ -469,7 +516,7 @@ const FLEET_STATE = {
 };
 const DEFAULT_IMPACTS = ["Uderzenie w regał", "Uderzenie w bramę / drzwi", "Uderzenie w ścianę / słup", "Kolizja z innym wózkiem", "Uderzenie w paletę / ładunek", "Najechanie na przeszkodę / próg", "Inne"];
 
-const state = { forklifts: [], employees: [], impacts: [], damages: [], mail: {}, loaded: {}, uid: null, email: "", isMod: false, shifts: ["I zmiana", "II zmiana"], plan: null, planDate: "" };
+const state = { forklifts: [], employees: [], impacts: [], damages: [], mail: {}, loaded: {}, uid: null, email: "", isMod: false, shifts: [], sections: [], plan: null, planDate: "" };
 let db = null, auth = null, unsubs = [];
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, ...kids) => {
@@ -537,8 +584,10 @@ function mailFor(d) {
     isNew ? "Zgłoszenie uszkodzenia wózka do naprawy." : "Zmiana statusu zgłoszenia uszkodzenia wózka.",
     "",
     `Wózek: ${d.forklift}${f?.type ? " (" + f.type + ")" : ""}`,
-    `Data zdarzenia: ${fmtDate(d.date)}`,
+    `Data zdarzenia: ${fmtDate(d.date)}${d.shift ? ", zmiana " + d.shift : ""}`,
     `Rodzaj uderzenia: ${d.impact}`,
+    d.part ? `Co uszkodzone: ${d.part}` : null,
+    d.when ? `Kiedy powstało: ${d.when}` : null,
     `Pracownik: ${empName(d)}${e?.dept ? " (" + e.dept + ")" : ""}`,
     `Status: ${S.label}`,
     `Wyłączony z pracy: ${stop ? "TAK" : "NIE"}`,
@@ -649,7 +698,10 @@ function cardFor(d) {
       el("span", { class: "pill " + S.cls, text: S.label }),
       d.outOfService && S.open ? el("span", { class: "flag", text: "⛔ Wyłączony z pracy" }) : null,
       el("span", {}, "Data: ", el("strong", { class: "mono", text: fmtDate(d.date) })),
+      d.shift ? el("span", {}, "Zmiana: ", el("strong", { text: d.shift })) : null,
       el("span", {}, "Uderzenie: ", el("strong", { text: d.impact || "—" })),
+      d.part ? el("span", {}, "Uszkodzone: ", el("strong", { text: d.part })) : null,
+      d.when ? el("span", {}, el("strong", { text: d.when })) : null,
       el("span", {}, "Pracownik: ", el("strong", { text: empName(d) }))),
     el("p", { class: "desc", text: d.description || "" }),
     planLine(d),
@@ -661,6 +713,9 @@ function cardFor(d) {
 function renderForm() {
   fillSelect($("nForklift"), activeForklifts().map(f => [f.no, `${f.no} — ${f.type || ""}`]), "Wybierz wózek");
   fillSelect($("nImpact"), activeImpacts().map(i => [i.name, i.name]), "Wybierz rodzaj");
+  fillSelect($("nShift"), state.shifts.map((x, i) => [String(i), `${x.name}${x.hours ? " (" + x.hours + ")" : ""}`]), "—");
+  fillSelect($("nPart"), DAMAGE_PARTS.map(x => [x, x]), "—");
+  fillSelect($("nWhen"), DAMAGE_WHEN.map(x => [x, x]), "—");
   if (!$("nDate").value) $("nDate").value = today();
 }
 
@@ -717,29 +772,52 @@ function applyRole() {
 }
 
 /* ---------- rozpiska ---------- */
-const planCache = {};          // date -> cells (from reads), for hints on reports
-let planUnsub = null;
+// Day document schedule/<YYYY-MM-DD>: { date, slots: { "<shift>|<section>|<n>": {employeeId, name, forklift, note} | null }, specialists: { "<shift>": "name" } }
+const DEFAULT_SHIFTS = [{ name: "I", hours: "06:00–14:00" }, { name: "II", hours: "14:00–22:00" }, { name: "III", hours: "22:00–06:00" }];
+const DEFAULT_SECTIONS = [
+  { id: "rozladunek-zwrotow", name: "Rozładunek zwrotów", rows: 6 },
+  { id: "sprawdzanie-zwrotow", name: "Sprawdzanie zwrotów", rows: 14 },
+  { id: "opakowania", name: "Opakowania", rows: 4 },
+  { id: "zadania-dodatkowe", name: "Zadania dodatkowe", rows: 4 },
+  { id: "biuro", name: "Biuro", rows: 8 },
+];
+const DAMAGE_PARTS = ["Widły / platforma", "Maszt / łańcuchy / hydraulika", "Hamulce", "Układ kierowniczy", "Koła / opony", "Oświetlenie / sygnał", "Pas / kabina", "Akumulator / ładowanie", "Obudowa / osłony", "Inne"];
+const DAMAGE_WHEN = ["Zgłoszone przez sprawcę", "Zastane przy przejęciu"];
+const planCache = {};          // date -> slots, for hints on reports and history
+const extraRows = {};          // "<shift>|<section>" -> rows added on screen beyond the configured count
+let planUnsub = null, planDirty = false;
 const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 const weekday = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("pl-PL", { weekday: "long" });
-const cellKey = (fk, i) => `${fk}|${i}`;
+const slotKey = (s, sec, n) => `${s}|${sec}|${n}`;
+const shiftLabel = (i) => { const s = state.shifts[i]; return s ? `Zmiana ${s.name}` : `Zmiana ${i + 1}`; };
+const sectionName = (id) => state.sections.find(x => x.id === id)?.name || id;
+const outOfService = (fk) => state.damages.some(d => d.forklift === fk && STATUS[d.status]?.open && d.outOfService);
+
 function openPlanDay(date) {
   if (!db || !date) return;
   state.planDate = date; $("plDate").value = date;
   if (planUnsub) planUnsub();
   state.plan = null; renderPlan();
   planUnsub = db.collection("schedule").doc(date).onSnapshot((s) => {
-    state.plan = s.exists ? s.data() : { date, cells: {} };
-    planCache[date] = state.plan.cells || {};
+    state.plan = s.exists ? s.data() : { date, slots: {}, specialists: {} };
+    planCache[date] = state.plan.slots || {};
     renderPlan(); renderPlanHint();
   }, (e) => { console.error(e); $("plInfo").textContent = "Nie udało się wczytać rozpiski."; });
 }
-function findEmpByLabel(txt) {
-  const t = norm(txt.trim());
-  if (!t) return null;
-  return activeEmployees().find(e => norm(empLabel(e)) === t) || activeEmployees().find(e => norm(e.name) === t) || null;
+
+// usage of a forklift on one day: [{shift, section, name, note}]
+function usesOf(slots, fk) {
+  const out = [];
+  for (const [k, v] of Object.entries(slots || {})) {
+    if (!v || !v.forklift || (fk && v.forklift !== fk)) continue;
+    const [s, sec] = k.split("|");
+    out.push({ shift: +s, section: sec, name: v.name || "(bez nazwiska)", note: v.note || "", forklift: v.forklift });
+  }
+  return out.sort((a, b) => a.shift - b.shift);
 }
-function planCellPicker(fk, i, sh, c) {
-  const inp = el("input", { type: "text", autocomplete: "off", id: `pl-${fk}-${i}`, "aria-label": `Wózek ${fk}, ${sh}`, placeholder: "wpisz 2 litery…", value: c ? c.name : "" });
+
+function searchPicker({ id, value, placeholder, label, onPick, onClear }) {
+  const inp = el("input", { type: "text", autocomplete: "off", id, "aria-label": label, placeholder, value: value || "" });
   const ul = el("ul", { class: "suggest", role: "listbox", hidden: true });
   let hits = [];
   const show = () => {
@@ -748,56 +826,97 @@ function planCellPicker(fk, i, sh, c) {
     hits = activeEmployees().filter(e => norm(e.name).split(/\s+/).some(w => w.startsWith(q)) || norm(e.name).includes(q)).slice(0, 8);
     ul.replaceChildren(...(hits.length ? hits.map((e, k) => el("li", { role: "option", class: k === 0 ? "active" : "", onmousedown: (ev) => { ev.preventDefault(); pick(e); } }, empLabel(e)))
       : [el("li", { class: "none", text: "Brak pasującej osoby" })]));
-    const r = inp.getBoundingClientRect();   // fixed, so the scrolling table wrapper doesn't clip it
+    const r = inp.getBoundingClientRect();   // fixed, so scrolling wrappers don't clip it
     Object.assign(ul.style, { position: "fixed", left: r.left + "px", top: (r.bottom + 4) + "px", right: "auto", width: Math.max(r.width, 240) + "px" });
     ul.hidden = false;
   };
-  const pick = (e) => { ul.hidden = true; inp.value = e.name; setPlanCell(fk, i, e); inp.blur(); };
+  const pick = (e) => { ul.hidden = true; inp.value = e.name; onPick(e); inp.blur(); };
   inp.addEventListener("input", show);
   inp.addEventListener("keydown", (ev) => {
     if (ev.key === "Enter") { ev.preventDefault(); if (hits.length && !ul.hidden) pick(hits[0]); }
-    if (ev.key === "Escape") { ul.hidden = true; inp.value = c ? c.name : ""; inp.blur(); }
+    if (ev.key === "Escape") { ul.hidden = true; inp.value = value || ""; inp.blur(); }
   });
   inp.addEventListener("blur", () => setTimeout(() => {
     ul.hidden = true;
-    if (!inp.value.trim() && c) setPlanCell(fk, i, null);        // emptied = remove assignment
-    else if (inp.value.trim() !== (c ? c.name : "")) inp.value = c ? c.name : "";  // unconfirmed typing = revert
+    if (!inp.value.trim() && value) onClear();                         // emptied = remove
+    else if (inp.value.trim() !== (value || "")) inp.value = value || ""; // unconfirmed typing = revert
     if (planDirty) { planDirty = false; renderPlan(); }
   }, 150));
   return el("div", { class: "picker" }, inp, ul);
 }
-let planDirty = false;
+
 function renderPlan() {
-  const tbl = $("plTable"); if (!tbl) return;
-  if (tbl.contains(document.activeElement)) { planDirty = true; return; }  // don't disrupt typing
+  const grid = $("plGrid"); if (!grid) return;
+  if (grid.contains(document.activeElement)) { planDirty = true; return; }  // don't disrupt typing
   const date = state.planDate || today();
   $("plTitleDate").textContent = `${fmtDate(date)} (${weekday(date)})`;
-  if (!state.plan) { tbl.replaceChildren(el("tbody", {}, el("tr", {}, el("td", { text: "Ładowanie rozpiski…" })))); return; }
-  const cells = state.plan.cells || {};
-  const fls = activeForklifts();
-  const head = el("thead", {}, el("tr", {}, el("th", { text: "Wózek" }), state.shifts.map(sh => el("th", { text: sh }))));
-  const body = el("tbody", {}, fls.map(f => el("tr", {},
-    el("td", { class: "fk" }, f.no, el("small", { text: f.type || "" })),
-    state.shifts.map((sh, i) => {
-      const c = cells[cellKey(f.no, i)];
-      return el("td", {}, planCellPicker(f.no, i, sh, c), el("span", { class: "print-only", text: c?.name || "—" }));
+  if (!state.plan) { grid.replaceChildren(el("div", { class: "empty", text: "Ładowanie rozpiski…" })); return; }
+  const slots = state.plan.slots || {}, specs = state.plan.specialists || {};
+  const fks = activeForklifts();
+  grid.style.setProperty("--cols", state.shifts.length);
+
+  // clashes per shift: one forklift for two people, one person twice
+  const clashFk = new Set(), clashName = new Set(), warns = [];
+  state.shifts.forEach((sh, s) => {
+    const byFk = {}, byName = {};
+    for (const [k, v] of Object.entries(slots)) {
+      if (!v || !k.startsWith(s + "|")) continue;
+      if (v.forklift) (byFk[v.forklift] = byFk[v.forklift] || []).push(k);
+      if (v.name) (byName[norm(v.name)] = byName[norm(v.name)] || []).push(k);
+    }
+    for (const [fk, ks] of Object.entries(byFk)) {
+      if (ks.length > 1) { ks.forEach(k => clashFk.add(k)); warns.push({ bad: true, t: `${shiftLabel(s)}: wózek ${fk} przypisany ${ks.length} osobom.` }); }
+      if (outOfService(fk)) warns.push({ bad: true, t: `${shiftLabel(s)}: wózek ${fk} jest wyłączony z pracy (otwarte zgłoszenie uszkodzenia).` });
+    }
+    for (const ks of Object.values(byName)) if (ks.length > 1) { ks.forEach(k => clashName.add(k)); warns.push({ t: `${shiftLabel(s)}: ${slots[ks[0]].name} wpisany ${ks.length} razy.` }); }
+  });
+  $("plWarn").replaceChildren(...warns.map(w => el("div", { class: w.bad ? "bad" : "", text: "⚠ " + w.t })));
+
+  grid.replaceChildren(...state.shifts.map((sh, s) => el("div", { class: "shiftcol" },
+    el("div", { class: "shifthead" }, el("b", { text: `Zmiana ${sh.name}` }), el("span", { text: sh.hours || "" })),
+    el("div", { class: "specrow" }, el("span", { text: "Specjalista zmiany:" }),
+      el("input", { type: "text", id: `spec-${s}`, "aria-label": `Specjalista zmiany ${sh.name}`, value: specs[s] || "", placeholder: "imię i nazwisko",
+        onchange: (e) => saveSpecialist(s, e.target.value.trim()) }),
+      el("span", { class: "print-only", text: specs[s] || "" })),
+    state.sections.map(sec => {
+      const used = Object.keys(slots).filter(k => slots[k] && k.startsWith(`${s}|${sec.id}|`)).map(k => +k.split("|")[2]);
+      const rows = Math.max(sec.rows, used.length ? Math.max(...used) + 1 : 0) + (extraRows[`${s}|${sec.id}`] || 0);
+      const filled = used.length;
+      return el("div", { class: "sec" },
+        el("h4", {}, sec.name, el("small", { text: filled ? `${filled} os.` : "" })),
+        el("table", { class: "slots" }, el("thead", {}, el("tr", {}, el("th", { text: "" }), el("th", { text: "Imię i nazwisko" }), el("th", { class: "f", text: "Wózek", style: "width:78px" }), el("th", { text: "Uwagi", style: "width:22%" }))), el("tbody", {}, Array.from({ length: rows }, (_, n) => {
+          const k = slotKey(s, sec.id, n), v = slots[k] || null;
+          const fkSel = el("select", { id: `fk-${k}`, "aria-label": `Wózek, ${sec.name} ${n + 1}, zmiana ${sh.name}`, class: clashFk.has(k) ? "clash" : "",
+            onchange: (e) => saveSlot(k, { ...(v || {}), forklift: e.target.value }) },
+            el("option", { value: "", text: "—" }),
+            fks.map(f => el("option", { value: f.no, text: f.no + (outOfService(f.no) ? " ⛔" : ""), selected: v?.forklift === f.no })),
+            v?.forklift && !fks.some(f => f.no === v.forklift) ? el("option", { value: v.forklift, text: v.forklift, selected: true }) : null);
+          return el("tr", { class: v?.name ? "filled" : "" },
+            el("td", { class: "n", text: n + 1 }),
+            el("td", { class: "nm" + (clashName.has(k) ? " clash" : "") },
+              searchPicker({ id: `nm-${k}`, value: v?.name, placeholder: "", label: `${sec.name} ${n + 1}, zmiana ${sh.name}`,
+                onPick: (e) => saveSlot(k, { ...(v || {}), employeeId: e.id, name: e.name }),
+                onClear: () => saveSlot(k, v?.forklift || v?.note ? { ...v, employeeId: null, name: "" } : null) }),
+              el("span", { class: "print-only", text: v?.name || "" })),
+            el("td", { class: "f" }, fkSel, el("span", { class: "print-only", text: v?.forklift || "" })),
+            el("td", { class: "u" }, el("input", { type: "text", id: `nt-${k}`, "aria-label": `Uwagi, ${sec.name} ${n + 1}`, value: v?.note || "", placeholder: "uwagi",
+              onchange: (e) => saveSlot(k, { ...(v || {}), note: e.target.value.trim() }) }), el("span", { class: "print-only", text: v?.note || "" })));
+        }))),
+        el("button", { class: "addrow no-print", type: "button", onclick: () => { extraRows[`${s}|${sec.id}`] = (extraRows[`${s}|${sec.id}`] || 0) + 1; renderPlan(); } }, "+ wiersz"));
     }))));
-  tbl.replaceChildren(head, body);
-  const filled = Object.values(cells).filter(Boolean).length;
-  $("plInfo").textContent = filled ? `Przydziałów: ${filled}` : "Brak rozpiski na ten dzień — wpisz pracowników w tabeli albo skopiuj z poprzedniego dnia.";
+
+  const people = Object.values(slots).filter(v => v && v.name).length, withFk = Object.values(slots).filter(v => v && v.forklift).length;
+  $("plInfo").textContent = people ? `Osób: ${people} · z wózkiem: ${withFk}` : "Brak rozpiski na ten dzień — wpisz osoby albo skopiuj z poprzedniego dnia.";
   $("plMeta").textContent = state.plan.updatedAt ? `Ostatnia zmiana: ${fmtStamp(state.plan.updatedAt)}${state.plan.updatedBy ? " · " + state.plan.updatedBy : ""}` : "";
 }
-async function savePlan(cells) {
-  const date = state.planDate;
-  try { await db.collection("schedule").doc(date).set({ date, cells, updatedAt: new Date().toISOString(), updatedBy: state.email }); }
+
+async function writePlan(data, merge) {
+  try { await db.collection("schedule").doc(state.planDate).set({ date: state.planDate, ...data, updatedAt: new Date().toISOString(), updatedBy: state.email }, merge ? { merge: true } : undefined); }
   catch (e) { onWriteError(e); renderPlan(); }
 }
-async function setPlanCell(fk, i, e) {
-  const cells = { ...(state.plan?.cells || {}) };
-  if (!e) delete cells[cellKey(fk, i)];
-  else cells[cellKey(fk, i)] = { employeeId: e.id, name: e.name };
-  await savePlan(cells);
-}
+const saveSlot = (k, v) => writePlan({ slots: { [k]: v && (v.name || v.forklift || v.note) ? { employeeId: v.employeeId || null, name: v.name || "", forklift: v.forklift || "", note: v.note || "" } : null } }, true);
+const saveSpecialist = (s, name) => writePlan({ specialists: { [s]: name } }, true);
+
 $("plDate").addEventListener("change", (e) => e.target.value && openPlanDay(e.target.value));
 $("plPrev").addEventListener("click", () => openPlanDay(addDays(state.planDate || today(), -1)));
 $("plNext").addEventListener("click", () => openPlanDay(addDays(state.planDate || today(), 1)));
@@ -805,50 +924,114 @@ $("plToday").addEventListener("click", () => openPlanDay(today()));
 function printPart(part) { document.body.dataset.print = part; setTimeout(() => { window.print(); }, 50); }
 window.addEventListener("afterprint", () => { delete document.body.dataset.print; });
 $("plPrint").addEventListener("click", () => printPart("plan"));
-$("plCopy").addEventListener("click", async () => {
-  const prev = addDays(state.planDate, -1);
-  try {
-    const s = await db.collection("schedule").doc(prev).get();
-    const cells = s.exists ? (s.data().cells || {}) : {};
-    if (!Object.keys(cells).length) { toast(`Brak rozpiski na ${fmtDate(prev)}.`); return; }
-    await savePlan({ ...cells }); toast(`Skopiowano rozpiskę z ${fmtDate(prev)}`);
-  } catch (e) { onWriteError(e); }
+const planHasData = () => Object.values(state.plan?.slots || {}).some(Boolean);
+function armed(btn, label, run) {
+  if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = label; return run(); }
+  btn.dataset.armed = "1"; btn.textContent = "Na pewno? Kliknij jeszcze raz";
+  setTimeout(() => { delete btn.dataset.armed; btn.textContent = label; }, 4000);
+}
+$("plCopy").addEventListener("click", () => {
+  const go = async () => {
+    const prev = addDays(state.planDate, -1);
+    try {
+      const s = await db.collection("schedule").doc(prev).get();
+      const d = s.exists ? s.data() : {};
+      if (!Object.values(d.slots || {}).some(Boolean)) { toast(`Brak rozpiski na ${fmtDate(prev)}.`); return; }
+      await writePlan({ slots: d.slots, specialists: d.specialists || {} }, false); toast(`Skopiowano rozpiskę z ${fmtDate(prev)}`);
+    } catch (e) { onWriteError(e); }
+  };
+  planHasData() ? armed($("plCopy"), "Kopiuj z poprzedniego dnia", go) : go();
 });
-let clearArmed = false;
-$("plClear").addEventListener("click", async () => {
-  if (!clearArmed) { clearArmed = true; $("plClear").textContent = "Na pewno wyczyścić?"; setTimeout(() => { clearArmed = false; $("plClear").textContent = "Wyczyść dzień"; }, 4000); return; }
-  clearArmed = false; $("plClear").textContent = "Wyczyść dzień";
-  await savePlan({}); toast("Rozpiska wyczyszczona");
-});
-$("plImpGo").addEventListener("click", async () => {
-  const cells = { ...(state.plan?.cells || {}) };
-  const bad = []; let n = 0;
-  for (const line of $("plImpText").value.split(/\r?\n/)) {
-    const [fk, who, sh = ""] = line.split(/\t|;/).map(c => (c || "").trim());
-    if (!fk || /^nr/i.test(fk)) continue;
-    if (!state.forklifts.some(f => f.no === fk)) { bad.push(`wózek ${fk}`); continue; }
-    const e = findEmpByLabel(who) || activeEmployees().find(x => norm(x.name).includes(norm(who)) && norm(who).length > 3);
-    if (!e) { bad.push(who || "(puste nazwisko)"); continue; }
-    let i = 0;
-    if (sh) { const k = parseInt(sh, 10); i = !isNaN(k) ? k - 1 : state.shifts.findIndex(x => norm(x) === norm(sh)); }
-    if (i < 0 || i >= state.shifts.length) { bad.push(`zmiana „${sh}”`); continue; }
-    cells[cellKey(fk, i)] = { employeeId: e.id, name: e.name }; n++;
-  }
-  if (!n) { toast(bad.length ? "Nie rozpoznano: " + bad.slice(0, 3).join(", ") : "Brak danych do wczytania."); return; }
-  await savePlan(cells); $("plImpText").value = "";
-  toast(`Wczytano ${n}${bad.length ? " · pominięto: " + bad.slice(0, 3).join(", ") : ""}`);
-});
+$("plClear").addEventListener("click", () => armed($("plClear"), "Wyczyść dzień", async () => { await writePlan({ slots: {}, specialists: {} }, false); toast("Rozpiska wyczyszczona"); }));
+
 $("shiftForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const shifts = $("shNames").value.split(",").map(x => x.trim()).filter(Boolean).slice(0, 6);
-  if (!shifts.length) { toast("Podaj co najmniej jedną zmianę."); return; }
-  try { await db.collection("settings").doc("schedule").set({ shifts }); toast("Zapisano zmiany"); } catch (err) { onWriteError(err); }
+  const shifts = $("shLines").value.split(/\r?\n/).map(l => l.split(";").map(x => x.trim())).filter(r => r[0]).slice(0, 4).map(([name, hours = ""]) => ({ name, hours }));
+  const sections = $("secLines").value.split(/\r?\n/).map(l => l.split(";").map(x => x.trim())).filter(r => r[0]).slice(0, 12)
+    .map(([name, rows]) => ({ id: slug(name), name, rows: Math.min(Math.max(parseInt(rows, 10) || 4, 1), 30) }));
+  if (!shifts.length || !sections.length) { toast("Podaj co najmniej jedną zmianę i jedno stanowisko."); return; }
+  try { await db.collection("settings").doc("schedule").set({ shifts, sections }); toast("Zapisano ustawienia rozpiski"); } catch (err) { onWriteError(err); }
+});
+function applyScheduleSettings(d) {
+  const sh = Array.isArray(d?.shifts) ? d.shifts.map(x => typeof x === "string" ? { name: x.replace(/\s*zmiana\s*/i, "") || x, hours: "" } : x).filter(x => x && x.name) : [];
+  const sec = Array.isArray(d?.sections) ? d.sections.filter(x => x && x.id && x.name) : [];
+  state.shifts = sh.length ? sh : DEFAULT_SHIFTS;
+  state.sections = sec.length ? sec : DEFAULT_SECTIONS;
+  if (!$("shiftForm").contains(document.activeElement)) {
+    $("shLines").value = state.shifts.map(x => `${x.name};${x.hours || ""}`).join("\n");
+    $("secLines").value = state.sections.map(x => `${x.name};${x.rows}`).join("\n");
+  }
+  renderPlan(); renderForm();
+}
+
+/* import day sheets from the Excel workbook */
+function loadXlsx() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  return new Promise((res, rej) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    sc.onload = () => res(window.XLSX); sc.onerror = () => rej(new Error("Nie udało się załadować czytnika Excela."));
+    document.head.append(sc);
+  });
+}
+function parseDaySheet(rows) {
+  // columns per shift: A–D, E–H, I–L … : [nr | imię i nazwisko | wózek | uwagi]
+  const slots = {}, unknown = new Set(); let people = 0;
+  const cell = (r, c) => { const v = rows[r]?.[c]; return v == null ? "" : String(v).replace(/ /g, " ").trim(); };
+  for (let s = 0; s < state.shifts.length; s++) {
+    const base = s * 4; let sec = null, n = 0;
+    for (let r = 0; r < rows.length; r++) {
+      const a = cell(r, base);
+      if (a && !/^\d+$/.test(a)) {                       // section header row, e.g. "ROZŁADUNEK ZWROTÓW"
+        const hit = state.sections.find(x => norm(x.name) === norm(a));
+        if (hit) { sec = hit.id; n = 0; } else if (!/^zmiana/i.test(a)) { sec = null; }
+        continue;
+      }
+      if (!sec || !/^\d+$/.test(a)) continue;
+      const name = cell(r, base + 1).replace(/\s+/g, " "), fk = cell(r, base + 2), note = cell(r, base + 3);
+      const slotN = n++;
+      if (!name && !fk) continue;
+      const emp = name ? (activeEmployees().find(e => norm(e.name) === norm(name)) || state.employees.find(e => norm(e.name) === norm(name))) : null;
+      if (name && !emp) unknown.add(name);
+      slots[slotKey(s, sec, slotN)] = { employeeId: emp?.id || null, name: emp?.name || name, forklift: fk.replace(/\.0$/, ""), note };
+      if (name) people++;
+    }
+  }
+  return { slots, people, unknown };
+}
+$("plImpGo").addEventListener("click", async () => {
+  const file = $("plImpFile").files[0], msg = $("plImpMsg");
+  const say = (cls, text) => { msg.className = "notice " + cls; msg.textContent = text; msg.hidden = false; };
+  if (!file) { say("err", "Wybierz plik Excel."); return; }
+  try {
+    say("info", "Wczytywanie pliku…");
+    const XLSX = await loadXlsx();
+    const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+    const days = [];
+    for (const name of wb.SheetNames) {
+      const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(name.trim());
+      if (!m) continue;
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: "", raw: false });
+      const p = parseDaySheet(rows);
+      if (Object.keys(p.slots).length) days.push({ date: `${m[3]}-${m[2]}-${m[1]}`, ...p });
+    }
+    if (!days.length) { say("err", "W pliku nie ma wypełnionych kart rozpiski (karty nazwane datą, np. 15.10.2026)."); return; }
+    const over = $("plImpOver").checked; let saved = 0, skipped = 0; const unknown = new Set();
+    for (const d of days) {
+      if (!over) { const ex = await db.collection("schedule").doc(d.date).get(); if (ex.exists && Object.values(ex.data().slots || {}).some(Boolean)) { skipped++; continue; } }
+      await db.collection("schedule").doc(d.date).set({ date: d.date, slots: d.slots, specialists: {}, updatedAt: new Date().toISOString(), updatedBy: state.email + " (import z Excela)" });
+      d.unknown.forEach(u => unknown.add(u)); saved++;
+    }
+    say("ok", `Wczytano dni: ${saved}${skipped ? ` · pominięto ${skipped} (już mają rozpiskę)` : ""}${unknown.size ? ` · osoby spoza listy pracowników: ${[...unknown].slice(0, 5).join(", ")}${unknown.size > 5 ? "…" : ""}` : ""}.`);
+    $("plImpFile").value = "";
+    if (days.some(d => d.date === state.planDate)) openPlanDay(state.planDate);
+  } catch (e) { console.error(e); say("err", e.code ? errMsg(e) : (e.message || "Nie udało się odczytać pliku.")); }
 });
 
-/* history: who used which forklift */
+/* Sprawdź wózek: who used which forklift */
 async function loadRange(from, to) {
   const snap = await db.collection("schedule").where("date", ">=", from).where("date", "<=", to).get();
-  const out = {}; snap.docs.forEach(d => { out[d.id] = d.data().cells || {}; planCache[d.id] = out[d.id]; });
+  const out = {}; snap.docs.forEach(d => { out[d.id] = d.data().slots || {}; planCache[d.id] = out[d.id]; });
   return out;
 }
 $("hGo").addEventListener("click", async () => {
@@ -859,19 +1042,20 @@ $("hGo").addEventListener("click", async () => {
   try {
     const days = await loadRange(from, to);
     const rows = [];
-    for (const date of Object.keys(days).sort()) for (const [k, c] of Object.entries(days[date])) {
-      const [f, i] = k.split("|");
-      if (!c || (fk && f !== fk)) continue;
-      rows.push({ date, f, shift: state.shifts[+i] || `Zmiana ${+i + 1}`, name: c.name, dmg: state.damages.filter(d => d.forklift === f && d.date === date).length });
+    for (const date of Object.keys(days).sort()) for (const u of usesOf(days[date], fk)) {
+      const dmg = state.damages.filter(d => d.forklift === u.forklift && (d.date === date || d.date === addDays(date, 1)));
+      rows.push({ date, ...u, dmg });
     }
-    rows.sort((a, b) => a.date.localeCompare(b.date) || a.f.localeCompare(b.f, "pl", { numeric: true }) || a.shift.localeCompare(b.shift));
+    rows.sort((a, b) => a.date.localeCompare(b.date) || a.shift - b.shift || a.forklift.localeCompare(b.forklift, "pl", { numeric: true }));
     $("hTitle").textContent = `${fk ? "Wózek " + fk : "Wszystkie wózki"} · ${fmtDate(from)} – ${fmtDate(to)}`;
-    if (!rows.length) { $("hist").replaceChildren(el("p", { class: "sub", text: "Brak wpisów w rozpiskach dla tego zakresu." })); return; }
+    if (!rows.length) { $("hist").replaceChildren(el("p", { class: "sub", text: "Brak wpisów z wózkiem w rozpiskach dla tego zakresu." })); return; }
     $("hist").replaceChildren(el("div", { class: "tablewrap" }, el("table", { class: "plan" },
-      el("thead", {}, el("tr", {}, el("th", { text: "Data" }), fk ? null : el("th", { text: "Wózek" }), el("th", { text: "Zmiana" }), el("th", { text: "Pracownik" }), el("th", { text: "Zgłoszenia uszkodzeń" }))),
+      el("thead", {}, el("tr", {}, el("th", { text: "Data" }), fk ? null : el("th", { text: "Wózek" }), el("th", { text: "Zmiana" }), el("th", { text: "Operator" }), el("th", { text: "Stanowisko" }), el("th", { text: "Uwagi" }), el("th", { text: "Usterki (dzień / następny)" }))),
       el("tbody", {}, rows.map(r => el("tr", {},
-        el("td", { class: "mono", text: `${fmtDate(r.date)}` }), fk ? null : el("td", { text: r.f }), el("td", { text: r.shift }), el("td", { text: r.name }),
-        el("td", { text: r.dmg ? `${r.dmg}` : "—" })))))));
+        el("td", { class: "mono", text: fmtDate(r.date) }), fk ? null : el("td", { text: r.forklift }),
+        el("td", { text: `${state.shifts[r.shift]?.name || r.shift + 1}${state.shifts[r.shift]?.hours ? " · " + state.shifts[r.shift].hours : ""}` }),
+        el("td", { text: r.name }), el("td", { text: sectionName(r.section) }), el("td", { text: r.note || "" }),
+        el("td", { text: r.dmg.length ? r.dmg.map(d => `${fmtDate(d.date)}: ${d.part || d.impact}`).join("; ") : "—" })))))));
   } catch (e) { console.error(e); $("hist").replaceChildren(el("p", { class: "notice err", text: "Nie udało się wczytać historii." })); }
 });
 $("hPrint").addEventListener("click", () => printPart("hist"));
@@ -882,35 +1066,32 @@ function planFor(date, cb) {
   if (date in planCache) return planCache[date];
   if (!db || pendingPlanDates.has(date)) return undefined;
   pendingPlanDates.add(date);
-  db.collection("schedule").doc(date).get().then(s => { planCache[date] = s.exists ? (s.data().cells || {}) : {}; cb && cb(); })
+  db.collection("schedule").doc(date).get().then(s => { planCache[date] = s.exists ? (s.data().slots || {}) : {}; cb && cb(); })
     .catch(() => { planCache[date] = {}; }).finally(() => pendingPlanDates.delete(date));
   return undefined;
 }
-function usersOf(cells, fk) {
-  return state.shifts.map((sh, i) => ({ sh, c: cells[cellKey(fk, i)] })).filter(x => x.c);
-}
 function renderPlanHint() {
   const box = $("nPlanHint"); if (!box) return;
-  const fk = $("nForklift").value, date = $("nDate").value;
+  const fk = $("nForklift").value, date = $("nDate").value, sh = $("nShift").value;
   if (!fk || !date) { box.hidden = true; return; }
-  const cells = planFor(date, renderPlanHint);
-  if (cells === undefined) { box.hidden = true; return; }
-  const us = usersOf(cells, fk);
+  const slots = planFor(date, renderPlanHint);
+  if (slots === undefined) { box.hidden = true; return; }
+  const us = usesOf(slots, fk).filter(u => sh === "" || u.shift === +sh);
   box.hidden = false;
-  if (!us.length) { box.replaceChildren(el("span", { text: `Rozpiska: brak przydziału wózka ${fk} na ${fmtDate(date)}.` })); return; }
-  box.replaceChildren(el("span", { text: `Wg rozpiski na ${fmtDate(date)}:` }), ...us.map(({ sh, c }) => {
-    const e = state.employees.find(x => x.id === c.employeeId);
-    return el("span", {}, `${sh} – `, el("b", { text: c.name }), " ", e && e.active !== false ? el("button", { class: "btn small", type: "button", onclick: () => pickEmp(e) }, "Wybierz") : null);
+  if (!us.length) { box.replaceChildren(el("span", { text: `Rozpiska: nikt nie ma wpisanego wózka ${fk} na ${fmtDate(date)}${sh !== "" ? ", zmiana " + (state.shifts[+sh]?.name || "") : ""}.` })); return; }
+  box.replaceChildren(el("span", { text: `Wg rozpiski na ${fmtDate(date)}:` }), ...us.map(u => {
+    const e = state.employees.find(x => norm(x.name) === norm(u.name));
+    return el("span", {}, `zm. ${state.shifts[u.shift]?.name || u.shift + 1} – `, el("b", { text: u.name }), " ",
+      e && e.active !== false ? el("button", { class: "btn small", type: "button", onclick: () => { pickEmp(e); $("nShift").value = String(u.shift); renderPlanHint(); } }, "Wybierz") : null);
   }));
 }
-$("nForklift").addEventListener("change", renderPlanHint);
-$("nDate").addEventListener("change", renderPlanHint);
+["nForklift", "nDate", "nShift"].forEach(id => $(id).addEventListener("change", renderPlanHint));
 function planLine(d) {
-  const cells = planFor(d.date, () => { clearTimeout(renderT); renderT = setTimeout(renderList, 50); });
-  if (!cells) return null;
-  const us = usersOf(cells, d.forklift);
+  const slots = planFor(d.date, () => { clearTimeout(renderT); renderT = setTimeout(renderList, 50); });
+  if (!slots) return null;
+  const us = usesOf(slots, d.forklift);
   if (!us.length) return null;
-  return el("div", { class: "plan-line", text: "Wg rozpiski tego dnia: " + us.map(({ sh, c }) => `${sh} – ${c.name}`).join(" · ") });
+  return el("div", { class: "plan-line", text: "Wg rozpiski tego dnia: " + us.map(u => `zm. ${state.shifts[u.shift]?.name || u.shift + 1} – ${u.name}`).join(" · ") });
 }
 
 /* ---------- writes ---------- */
@@ -939,7 +1120,8 @@ async function toggleActive(coll, item) {
 $("newForm").addEventListener("submit", async (ev) => {
   ev.preventDefault();
   const msg = $("newMsg");
-  const v = { forklift: $("nForklift").value, date: $("nDate").value, employeeId: $("nEmployee").value, impact: $("nImpact").value, description: $("nDesc").value.trim() };
+  const v = { forklift: $("nForklift").value, date: $("nDate").value, employeeId: $("nEmployee").value, impact: $("nImpact").value, description: $("nDesc").value.trim(),
+    shift: $("nShift").value === "" ? null : state.shifts[+$("nShift").value]?.name || null, part: $("nPart").value, when: $("nWhen").value };
   const missing = [!v.forklift && "wózek", !v.date && "datę", !v.employeeId && "pracownika (wybierz z podpowiedzi)", !v.impact && "rodzaj uderzenia", !v.description && "opis"].filter(Boolean);
   if (missing.length) { msg.className = "notice err"; msg.textContent = "Uzupełnij: " + missing.join(", ") + "."; msg.hidden = false; return; }
   const now = new Date().toISOString();
@@ -1033,12 +1215,7 @@ function subscribeAll() {
     applyRole();
   }, (e) => { console.error(e); state.isMod = false; applyRole(); }));
   unsubs.push(db.collection("settings").doc("mail").onSnapshot((s) => { state.mail = s.exists ? s.data() : {}; renderSettings(); }, (e) => console.error(e)));
-  unsubs.push(db.collection("settings").doc("schedule").onSnapshot((s) => {
-    const sh = s.exists && Array.isArray(s.data().shifts) ? s.data().shifts.filter(Boolean) : [];
-    state.shifts = sh.length ? sh : ["I zmiana", "II zmiana"];
-    if (document.activeElement !== $("shNames")) $("shNames").value = state.shifts.join(", ");
-    renderPlan();
-  }, (e) => console.error(e)));
+  unsubs.push(db.collection("settings").doc("schedule").onSnapshot((s) => applyScheduleSettings(s.exists ? s.data() : null), (e) => { console.error(e); applyScheduleSettings(null); }));
   openPlanDay(state.planDate || today());
 }
 function unsubscribeAll() { unsubs.forEach(u => u()); unsubs = []; if (planUnsub) { planUnsub(); planUnsub = null; } }
@@ -1065,6 +1242,7 @@ $("lReset").addEventListener("click", async () => {
 $("logout").addEventListener("click", () => auth.signOut());
 
 (function start() {
+  applyScheduleSettings(null);
   render();
   const cfg = window.FIREBASE_CONFIG;
   if (!window.firebase || !cfg || !cfg.apiKey || /WSTAW/.test(cfg.apiKey)) { $("noConfig").hidden = false; $("liveText").textContent = "Offline"; return; }

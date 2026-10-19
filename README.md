@@ -38,7 +38,12 @@ Zaloguj się i w **Ustawieniach**:
 - **Rodzaje uderzeń** — kliknij „Dodaj domyślne rodzaje uderzeń” albo dodaj własne.
 
 ## Rozpiska wózków
-Zakładka **Rozpiska**: dzienny przydział pracowników do wózków na zmiany (nazwy zmian ustawia moderator w Ustawieniach). Każdy zalogowany układa rozpiskę w tabeli (nazwisko wyszukuje się po 2 literach), kopiuje ją z poprzedniego dnia albo wkleja z Excela (`nr wózka; nazwisko; zmiana`). Każdy może ją wydrukować. Sekcja „Kto korzystał z wózka” pokazuje i drukuje historię dla wózka i zakresu dat. Przy nowym zgłoszeniu i na liście zgłoszeń aplikacja podpowiada, kto wg rozpiski jeździł tym wózkiem w dniu zdarzenia.
+Zakładka **Rozpiska** odwzorowuje arkusz „Rozpiska i kontrola wózków”: na każdy dzień 3 zmiany obok siebie (godziny i specjalista zmiany), a w nich stanowiska — Rozładunek zwrotów, Sprawdzanie zwrotów, Opakowania, Zadania dodatkowe, Biuro — z kolumnami Imię i nazwisko / Wózek / Uwagi. Uzupełnia każdy zalogowany (nazwisko wyszukuje się po 2 literach); aplikacja ostrzega, gdy jeden wózek ma dwie osoby na tej samej zmianie albo gdy wózek jest wyłączony z pracy.
+- **Drukuj rozpiskę** — A4 poziomo, trzy zmiany obok siebie, miejsce na podpisy.
+- **Wczytaj rozpiski z pliku Excel** — karty nazwane datą (np. `15.10.2026`) z pliku w tym układzie.
+- **Sprawdź wózek** — kto jeździł danym wózkiem w zakresie dat, na jakiej zmianie i stanowisku, oraz usterki z tego dnia i dnia następnego.
+- Zmiany (nazwy, godziny) i stanowiska (nazwy, liczba wierszy) ustawia moderator w Ustawieniach.
+- Zgłoszenie uszkodzenia ma pola z rejestru: zmiana, co uszkodzone, kiedy powstało (zgłoszone przez sprawcę / zastane przy przejęciu); operatora podpowiada rozpiska.
 
 ## Mail do serwisu
 Po zapisaniu zgłoszenia i po każdej zmianie statusu pojawia się przycisk **„Wyślij mail do serwisu”**, który otwiera Outlooka (lub domyślny program pocztowy) z wypełnionym adresem, tematem i treścią. Opcja „od razu otwórz Outlooka” w ustawieniach otwiera maila automatycznie po zapisaniu zgłoszenia. Mail wysyła osoba zgłaszająca ze swojej skrzynki.
