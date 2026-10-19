@@ -32,6 +32,11 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if isMod();
     }
+    // Rozpiska wózków (dokument na dzień): czytają zalogowani, układa moderator.
+    match /schedule/{day} {
+      allow read: if signedIn();
+      allow write: if isMod();
+    }
     // Zgłoszenia: każdy zalogowany dodaje i zmienia status, usuwa tylko moderator.
     match /damages/{id} {
       allow read, create, update: if signedIn();
