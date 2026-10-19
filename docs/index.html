@@ -173,6 +173,13 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
+/* Employee search */
+.picker { position: relative; }
+.suggest { position: absolute; z-index: 6; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: 0 8px 24px rgba(0,0,0,.18); max-height: 280px; overflow: auto; }
+.suggest li { padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: .95rem; font-weight: 400; text-transform: none; letter-spacing: normal; color: var(--fg); }
+.suggest li:hover, .suggest li.active { background: var(--surface-2); }
+.suggest li.none { color: var(--muted); cursor: default; }
+.picked { font-size: .8rem; font-weight: 500; text-transform: none; letter-spacing: normal; color: var(--ok); }
 /* Login + mail */
 .login { max-width: 420px; margin: 40px auto 0; }
 .who { font-size: .8rem; color: #b8c4d1; display: inline-flex; gap: 10px; align-items: center; }
@@ -193,7 +200,7 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
       <button role="tab" id="tab-fleet" aria-controls="p-fleet" aria-selected="true">Flota</button>
       <button role="tab" id="tab-list" aria-controls="p-list" aria-selected="false">Zgłoszenia<span class="count" id="openCount">0</span></button>
       <button role="tab" id="tab-new" aria-controls="p-new" aria-selected="false">+ Nowe zgłoszenie</button>
-      <button role="tab" id="tab-settings" aria-controls="p-settings" aria-selected="false">Ustawienia</button>
+      <button role="tab" id="tab-settings" aria-controls="p-settings" aria-selected="false" hidden>Ustawienia</button>
     </nav>
   </div>
 </header>
@@ -267,9 +274,13 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
         <label class="field">Data zdarzenia *
           <input id="nDate" type="date" required>
         </label>
-        <label class="field">Pracownik (operator) *
-          <select id="nEmployee" required></select>
-        </label>
+        <div class="field picker">
+          <label class="field" for="nEmpSearch">Pracownik (operator) *</label>
+          <input id="nEmpSearch" type="text" autocomplete="off" placeholder="Wpisz min. 2 litery nazwiska" role="combobox" aria-autocomplete="list" aria-controls="nEmpList" aria-expanded="false">
+          <input type="hidden" id="nEmployee">
+          <ul id="nEmpList" class="suggest" role="listbox" hidden></ul>
+          <span class="picked" id="nEmpPicked" hidden></span>
+        </div>
         <label class="field">Rodzaj uderzenia *
           <select id="nImpact" required></select>
         </label>
@@ -286,8 +297,8 @@ button.link { font: inherit; background: none; border: 0; padding: 0; color: var
   <!-- USTAWIENIA -->
   <section role="tabpanel" id="p-settings" aria-labelledby="tab-settings" hidden>
     <div>
-      <h2>Ustawienia</h2>
-      <p class="sub">Listy używane w formularzu zgłoszenia. Usunięcie pracownika lub wózka ukrywa go w formularzu, ale zachowuje historię zgłoszeń.</p>
+      <h2>Ustawienia moderatora</h2>
+      <p class="sub">Ta zakładka jest widoczna tylko dla moderatorów. Listy używane w formularzu zgłoszenia. Usunięcie pracownika lub wózka ukrywa go w formularzu, ale zachowuje historię zgłoszeń.</p>
     </div>
     <div class="settings">
       <div class="panel">
@@ -359,7 +370,7 @@ const FLEET_STATE = {
 };
 const DEFAULT_IMPACTS = ["Uderzenie w regał", "Uderzenie w bramę / drzwi", "Uderzenie w ścianę / słup", "Kolizja z innym wózkiem", "Uderzenie w paletę / ładunek", "Najechanie na przeszkodę / próg", "Inne"];
 
-const state = { forklifts: [], employees: [], impacts: [], damages: [], mail: {}, loaded: {}, uid: null, email: "" };
+const state = { forklifts: [], employees: [], impacts: [], damages: [], mail: {}, loaded: {}, uid: null, email: "", isMod: false };
 let db = null, auth = null, unsubs = [];
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, ...kids) => {
@@ -393,7 +404,7 @@ function showTab(name) {
   try { localStorage.setItem("tab", name); } catch {}
 }
 tabs.forEach(t => $("tab-" + t).addEventListener("click", () => showTab(t)));
-try { const t = localStorage.getItem("tab"); if (tabs.includes(t)) showTab(t); } catch {}
+try { const t = localStorage.getItem("tab"); if (tabs.includes(t) && t !== "settings") showTab(t); } catch {}
 
 /* ---------- derived ---------- */
 const activeForklifts = () => state.forklifts.filter(f => f.active !== false).sort((a, b) => a.no.localeCompare(b.no, "pl", { numeric: true }));
@@ -490,7 +501,8 @@ function fillSelect(sel, items, placeholder) {
 }
 function renderFilters() {
   fillSelect($("fForklift"), state.forklifts.slice().sort((a, b) => a.no.localeCompare(b.no, "pl", { numeric: true })).map(f => [f.no, `${f.no} — ${f.type || ""}`]), "Wszystkie wózki");
-  fillSelect($("fEmployee"), state.employees.slice().sort((a, b) => a.name.localeCompare(b.name, "pl")).map(e => [e.id, e.name]), "Wszyscy");
+  const inReports = new Map(state.damages.map(d => [d.employeeId, empName(d)]));
+  fillSelect($("fEmployee"), [...inReports].sort((a, b) => a[1].localeCompare(b[1], "pl")), "Wszyscy");
 }
 
 const drafts = {}; // per-card drafts survive live re-renders
@@ -524,7 +536,7 @@ function cardFor(d) {
     el("button", { class: "btn small primary", type: "button", onclick: () => changeStatus(d, dr) }, "Zmień status"),
     el("label", { class: "check", style: "font-size:.84rem" }, stopChk, el("span", { text: "Wyłączony z pracy" })),
     el("button", { class: "btn small", type: "button", "aria-expanded": dr.mail ? "true" : "false", onclick: () => { dr.mail = !dr.mail; renderList(); } }, "✉ Mail"),
-    dr.confirmDel
+    !state.isMod ? null : dr.confirmDel
       ? el("span", { class: "row" }, el("span", { class: "flag", text: "Usunąć na stałe?" }),
           el("button", { class: "btn small danger", type: "button", onclick: () => removeDamage(d) }, "Tak, usuń"),
           el("button", { class: "btn small", type: "button", onclick: () => { dr.confirmDel = false; renderList(); } }, "Anuluj"))
@@ -546,7 +558,6 @@ function cardFor(d) {
 
 function renderForm() {
   fillSelect($("nForklift"), activeForklifts().map(f => [f.no, `${f.no} — ${f.type || ""}`]), "Wybierz wózek");
-  fillSelect($("nEmployee"), activeEmployees().map(e => [e.id, e.dept ? `${e.name} (${e.dept})` : e.name]), activeEmployees().length ? "Wybierz pracownika" : "Najpierw dodaj pracowników w Ustawieniach");
   fillSelect($("nImpact"), activeImpacts().map(i => [i.name, i.name]), "Wybierz rodzaj");
   if (!$("nDate").value) $("nDate").value = today();
 }
@@ -568,6 +579,39 @@ function renderSettings() {
 
 ["fStatus", "fForklift", "fEmployee"].forEach(id => $(id).addEventListener("change", renderList));
 let qT; $("fText").addEventListener("input", () => { clearTimeout(qT); qT = setTimeout(renderList, 150); });
+
+/* ---------- employee search ---------- */
+const norm = (s) => (s || "").toLowerCase().replace(/ł/g, "l").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const empLabel = (e) => e.dept ? `${e.name} (${e.dept})` : e.name;
+let empHits = [];
+function renderEmpSuggest() {
+  const box = $("nEmpList"), q = norm($("nEmpSearch").value.trim());
+  if (q.length < 2 || $("nEmployee").value) { box.hidden = true; $("nEmpSearch").setAttribute("aria-expanded", "false"); return; }
+  empHits = activeEmployees().filter(e => norm(e.name).split(/\s+/).some(w => w.startsWith(q)) || norm(e.name).includes(q)).slice(0, 8);
+  box.replaceChildren(...(empHits.length
+    ? empHits.map((e, i) => el("li", { role: "option", class: i === 0 ? "active" : "", onmousedown: (ev) => { ev.preventDefault(); pickEmp(e); } }, empLabel(e)))
+    : [el("li", { class: "none", text: activeEmployees().length ? "Brak pasującej osoby" : "Lista pracowników jest pusta — poproś moderatora o jej uzupełnienie" })]));
+  box.hidden = false; $("nEmpSearch").setAttribute("aria-expanded", "true");
+}
+function pickEmp(e) {
+  $("nEmployee").value = e.id; $("nEmpSearch").value = empLabel(e);
+  $("nEmpPicked").textContent = "✓ Wybrano"; $("nEmpPicked").hidden = false;
+  renderEmpSuggest();
+}
+function clearEmp() { $("nEmployee").value = ""; $("nEmpSearch").value = ""; $("nEmpPicked").hidden = true; renderEmpSuggest(); }
+$("nEmpSearch").addEventListener("input", () => { $("nEmployee").value = ""; $("nEmpPicked").hidden = true; renderEmpSuggest(); });
+$("nEmpSearch").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !$("nEmpList").hidden && empHits.length) { e.preventDefault(); pickEmp(empHits[0]); }
+  if (e.key === "Escape") $("nEmpList").hidden = true;
+});
+$("nEmpSearch").addEventListener("blur", () => setTimeout(() => { $("nEmpList").hidden = true; }, 120));
+
+/* ---------- roles ---------- */
+function applyRole() {
+  $("tab-settings").hidden = !state.isMod;
+  if (!state.isMod && $("tab-settings").getAttribute("aria-selected") === "true") showTab("fleet");
+  renderList();
+}
 
 /* ---------- writes ---------- */
 async function changeStatus(d, dr) {
@@ -596,7 +640,7 @@ $("newForm").addEventListener("submit", async (ev) => {
   ev.preventDefault();
   const msg = $("newMsg");
   const v = { forklift: $("nForklift").value, date: $("nDate").value, employeeId: $("nEmployee").value, impact: $("nImpact").value, description: $("nDesc").value.trim() };
-  const missing = [!v.forklift && "wózek", !v.date && "datę", !v.employeeId && "pracownika", !v.impact && "rodzaj uderzenia", !v.description && "opis"].filter(Boolean);
+  const missing = [!v.forklift && "wózek", !v.date && "datę", !v.employeeId && "pracownika (wybierz z podpowiedzi)", !v.impact && "rodzaj uderzenia", !v.description && "opis"].filter(Boolean);
   if (missing.length) { msg.className = "notice err"; msg.textContent = "Uzupełnij: " + missing.join(", ") + "."; msg.hidden = false; return; }
   const now = new Date().toISOString();
   const doc = { ...v, description: v.description.slice(0, 4000), employeeName: state.employees.find(e => e.id === v.employeeId)?.name || "", status: "zgloszona", outOfService: $("nStop").checked, createdAt: now, updatedAt: now, reportedBy: state.uid, reportedByName: state.email, log: [{ at: now, status: "zgloszona", note: "Zgłoszenie utworzone", byName: state.email }] };
@@ -613,7 +657,7 @@ $("newForm").addEventListener("submit", async (ev) => {
   } catch (e) { msg.className = "notice err"; msg.textContent = errMsg(e); msg.hidden = false; onWriteError(e); }
   finally { $("nSubmit").disabled = false; }
 });
-$("newForm").addEventListener("reset", () => { $("newMsg").hidden = true; setTimeout(() => { $("nDate").value = today(); }, 0); });
+$("newForm").addEventListener("reset", () => { $("newMsg").hidden = true; setTimeout(() => { $("nDate").value = today(); clearEmp(); }, 0); });
 
 $("mailForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -683,6 +727,11 @@ function subscribeAll() {
   subscribe("employees", "employees");
   subscribe("impacts", "impacts");
   subscribe("damages", "damages");
+  unsubs.push(db.collection("config").doc("roles").onSnapshot((s) => {
+    const mods = (s.exists && Array.isArray(s.data().moderators) ? s.data().moderators : []).map(x => String(x).trim().toLowerCase());
+    state.isMod = mods.includes((state.email || "").toLowerCase());
+    applyRole();
+  }, (e) => { console.error(e); state.isMod = false; applyRole(); }));
   unsubs.push(db.collection("settings").doc("mail").onSnapshot((s) => { state.mail = s.exists ? s.data() : {}; renderSettings(); }, (e) => console.error(e)));
 }
 function unsubscribeAll() { unsubs.forEach(u => u()); unsubs = []; }
@@ -719,7 +768,7 @@ $("logout").addEventListener("click", () => auth.signOut());
     unsubscribeAll();
     const inside = !!u;
     $("login").hidden = inside; $("app").hidden = !inside; $("tabs").hidden = !inside; $("who").hidden = !inside;
-    if (!inside) { state.uid = null; state.email = ""; $("liveText").textContent = "Wylogowano"; $("live").classList.remove("on"); return; }
+    if (!inside) { state.uid = null; state.email = ""; state.isMod = false; applyRole(); $("liveText").textContent = "Wylogowano"; $("live").classList.remove("on"); return; }
     state.uid = u.uid; state.email = u.email || "";
     $("whoEmail").textContent = state.email;
     $("liveText").textContent = "Łączenie…";
