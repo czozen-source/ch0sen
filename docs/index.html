@@ -201,7 +201,9 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
 .card .plan-line { grid-column: 2; font-size: .82rem; color: var(--muted); }
 @media (max-width: 980px) { .plgrid { grid-template-columns: minmax(0, 1fr); } }
 @media print {
-  @page { size: A4 portrait; margin: 9mm 10mm; }
+  /* zero page margin = the browser has no room for its header/footer (page URL, title, date);
+     the white margin is drawn by padding instead, cloned onto every page the block spans */
+  @page { size: A4 portrait; margin: 0; }
   :root { --bg: #fff; --surface: #fff; --surface-2: #fff; --fg: #000; --muted: #333; --line: #000; --head: #fff; --head-fg: #000; color-scheme: light; }
   body { background: #fff !important; color: #000; font-size: 9pt; padding: 0 !important; }
   body::before, header.top, .no-print, #toast, #noConfig, #login, section[role="tabpanel"] { display: none !important; }
@@ -209,6 +211,7 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
   main { padding: 0 !important; }
   body[data-print="plan"] #p-plan, body[data-print="hist"] #p-hist { display: block !important; }
   #plImport, #plWarn { display: none !important; }
+  .shiftcol, #histArea { padding: 9mm 10mm !important; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
   #p-hist h3 { font-size: 12pt; margin: 10px 0 4px; }
   #p-hist .summary { grid-template-columns: repeat(4, 1fr); gap: 4px; }
   #p-hist .stat { border: 1px solid #000; padding: 4px 8px; }
@@ -410,11 +413,11 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
     <div id="histArea" class="list">
       <div class="print-head"><h2>Historia wózka</h2><p id="hTitle"></p></div>
       <div class="summary" id="hSummary"></div>
+      <h3>Usterki i uszkodzenia</h3>
+      <div id="hDmg"></div>
       <h3>Kto jeździł</h3>
       <p class="sub no-print" style="font-size:.82rem;margin:0">Z rozpisek. Kolumna „Usterki” pokazuje zgłoszenia z tego dnia i z dnia następnego — uszkodzenie często wychodzi przy przejęciu wózka przez kolejną zmianę. Zmiana III liczy się do daty jej rozpoczęcia.</p>
       <div id="hUses"></div>
-      <h3>Usterki i uszkodzenia</h3>
-      <div id="hDmg"></div>
     </div>
   </section>
 
@@ -1118,7 +1121,7 @@ function renderHist() {
   const stat = (cls, n, label) => el("div", { class: "stat " + cls }, el("b", { text: n }), el("span", { text: label }));
   const workDays = new Set(uses.map(u => u.date)).size, people = new Set(uses.map(u => norm(u.name))).size;
   const open = dmg.filter(x => STATUS[x.d.status]?.open).length;
-  $("hSummary").replaceChildren(stat("", workDays, "Dni w rozpiskach"), stat("", people, "Różnych operatorów"), stat("warn", dmg.length, "Usterek w okresie"), stat(open ? "bad" : "ok", open, "Otwartych usterek"));
+  $("hSummary").replaceChildren(stat("warn", dmg.length, "Usterek w okresie"), stat(open ? "bad" : "ok", open, "Otwartych usterek"), stat("", workDays, "Dni w rozpiskach"), stat("", people, "Różnych operatorów"));
   $("hUses").replaceChildren(uses.length ? el("div", { class: "tablewrap" }, el("table", { class: "plan" },
     el("thead", {}, el("tr", {}, el("th", { text: "Data" }), fk ? null : el("th", { text: "Wózek" }), el("th", { text: "Zmiana" }), el("th", { text: "Operator" }), el("th", { text: "Stanowisko" }), el("th", { text: "Uwagi" }), el("th", { text: "Usterki (dzień / następny)" }))),
     el("tbody", {}, uses.map(r => el("tr", {},
