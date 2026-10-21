@@ -110,6 +110,9 @@ section.sec.done { box-shadow: inset 4px 0 0 var(--ok); }
 .prog .track i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
 pre.rep { font: 500 .78rem/1.5 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border-radius: var(--r); padding: 12px; margin: 0; max-height: 420px; overflow: auto; }
 .addr { font-family: var(--f-mono); font-size: .82rem; overflow-wrap: anywhere; }
+.hfilt { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: end; }
+.hfilt .check { display: flex; gap: 8px; align-items: center; font-size: .86rem; font-weight: 600; color: var(--fg); padding-bottom: 8px; }
+.hfilt .check input { width: auto; margin: 0; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
 .stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; }
 .stat b { display: block; font-family: var(--f-mono); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
@@ -662,6 +665,75 @@ $("#btn-send").onclick = async () => {
 };
 
 /* ---------- history ---------- */
+const isOwnerAcc = () => email.toLowerCase() === OWNER;
+const repName = (r) => r.name || (r.v && r.v.spec) || r.by || "?";
+// owner-only history filters; kept across live re-renders
+const HF = { from: "", to: "", spec: "", shift: "", status: "", flags: false, q: "" };
+function histMatch(r) {
+  const v = r.v || {};
+  if (HF.from && (v.date || "") < HF.from) return false;
+  if (HF.to && (v.date || "") > HF.to) return false;
+  if (HF.spec && repName(r) !== HF.spec) return false;
+  if (HF.shift && v.shift !== HF.shift) return false;
+  if (HF.status && r.status !== HF.status) return false;
+  if (HF.flags && !r.flags) return false;
+  if (HF.q && !(repName(r) + " " + (r.text || "")).toLowerCase().includes(HF.q.toLowerCase())) return false;
+  return true;
+}
+function histFilterBar() {
+  const specs = [...new Set(reports.map(repName))].sort((a, b) => a.localeCompare(b, "pl"));
+  const opt = (val, label, cur) => '<option value="' + esc(val) + '"' + (val === cur ? " selected" : "") + ">" + esc(label) + "</option>";
+  return '<div class="panel"><h2>Szukaj w raportach</h2><div class="hfilt">' +
+    '<label class="field">Od <input type="date" id="hf-from" value="' + esc(HF.from) + '"></label>' +
+    '<label class="field">Do <input type="date" id="hf-to" value="' + esc(HF.to) + '"></label>' +
+    '<label class="field">Specjalista <select id="hf-spec">' + opt("", "Wszyscy", HF.spec) + specs.map(x => opt(x, x, HF.spec)).join("") + "</select></label>" +
+    '<label class="field">Zmiana <select id="hf-shift">' + opt("", "Wszystkie", HF.shift) + ["I", "II", "III"].map(x => opt(x, x, HF.shift)).join("") + "</select></label>" +
+    '<label class="field">Status <select id="hf-status">' + opt("", "Wszystkie", HF.status) + Object.values(STATUS).map(x => opt(x[0], x[1], HF.status)).join("") + "</select></label>" +
+    '<label class="field">Szukaj w treści <input type="search" id="hf-q" placeholder="np. złom, brama 92, nazwisko" value="' + esc(HF.q) + '"></label>' +
+    '<label class="check"><input type="checkbox" id="hf-flags"' + (HF.flags ? " checked" : "") + "> Tylko z uwagami</label>" +
+    '</div><div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="hf-xlsx">Eksport do Excela</button><button class="btn" type="button" id="hf-clear">Wyczyść filtry</button><span class="sub" id="hf-count"></span></div></div>';
+}
+function bindHistFilters() {
+  const map = { from: "hf-from", to: "hf-to", spec: "hf-spec", shift: "hf-shift", status: "hf-status", q: "hf-q" };
+  Object.entries(map).forEach(([k, id]) => $("#" + id).addEventListener("input", (e) => { HF[k] = e.target.value; renderHistList(); }));
+  $("#hf-flags").addEventListener("change", (e) => { HF.flags = e.target.checked; renderHistList(); });
+  $("#hf-clear").addEventListener("click", () => { Object.assign(HF, { from: "", to: "", spec: "", shift: "", status: "", flags: false, q: "" }); renderHist(); });
+  $("#hf-xlsx").addEventListener("click", exportHist);
+}
+function loadXlsx() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  return new Promise((res, rej) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    sc.onload = () => res(window.XLSX); sc.onerror = () => rej(new Error("Nie udało się załadować modułu Excela."));
+    document.head.append(sc);
+  });
+}
+// one row per report, one column per form field (raw values, numbers as numbers)
+async function exportHist() {
+  const list = reports.filter(histMatch);
+  if (!list.length) { toast("Brak raportów dla wybranych filtrów"); return; }
+  let XLSX; try { XLSX = await loadXlsx(); } catch (e) { toast(e.message); return; }
+  const skip = ["date", "shift", "status"];
+  const cols = [];
+  S.forEach(sec => sec.f.forEach(f => { if (f.k && !skip.includes(f.k)) cols.push({ k: f.k, t: f.t, h: sec.title + ": " + (typeof f.l === "string" ? f.l : f.k) }); }));
+  const head = ["Data zmiany", "Zmiana", "Specjalista", "Status", "Do uwagi", "Wysłano", "Konto", ...cols.map(c => c.h)];
+  const toDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s || "") ? new Date(s + "T12:00:00") : (s || "");
+  const rowsX = list.map(r => { const v = r.v || {};
+    return [toDate(v.date), v.shift || "", repName(r), (STATUS[r.status] || ["", ""])[1], r.flags || 0, r.createdAt ? new Date(r.createdAt) : "", r.by || "",
+      ...cols.map(c => { const x = v[c.k]; if (x == null || x === "") return ""; return c.t === "num" && !isNaN(+x) ? +x : String(x); })]; });
+  const ws = XLSX.utils.aoa_to_sheet([head, ...rowsX], { cellDates: true });
+  rowsX.forEach((_, i) => {   // dots quoted: SheetJS reads a bare "." after seconds as a fraction
+    const d = ws[XLSX.utils.encode_cell({ r: i + 1, c: 0 })], t = ws[XLSX.utils.encode_cell({ r: i + 1, c: 5 })];
+    if (d && d.t === "d") d.z = 'dd"."mm"."yyyy';
+    if (t && t.t === "d") t.z = 'dd"."mm"."yyyy hh:mm';
+  });
+  ws["!cols"] = head.map((h, i) => ({ wch: i < 7 ? [12, 7, 24, 10, 9, 17, 26][i] : Math.min(40, Math.max(12, h.length * 0.6)) }));
+  ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: rowsX.length, c: head.length - 1 } }) };
+  ws["!freeze"] = { xSplit: 3, ySplit: 1 };
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Raporty zmian");
+  XLSX.writeFile(wb, "raporty-zmian" + (HF.from ? "-od-" + HF.from : "") + (HF.to ? "-do-" + HF.to : "") + ".xlsx");
+}
 function renderHist() {
   const v = $("#p-hist");
   if (!reports.length) { v.innerHTML = '<div class="notice info">Brak raportów. Pierwszy pojawi się tutaj po wysłaniu formularza.</div>'; return; }
@@ -672,14 +744,25 @@ function renderHist() {
   const ks = Object.keys(by);
   if (ks.length) h += '<div class="panel"><h2>Specjaliści – ostatnie 7 dni</h2><div class="tablewrap"><table class="t"><tr><th>Specjalista</th><th>Raporty</th><th>Na czerwono</th><th>Do uwagi</th><th>Zakwestionował poprzednika</th></tr>' +
     ks.map(k => "<tr><td>" + esc(k) + '</td><td class="n">' + by[k].n + '</td><td class="n">' + by[k].r + '</td><td class="n">' + by[k].f + '</td><td class="n">' + by[k].m + "</td></tr>").join("") + "</table></div></div>";
-  h += reports.map((r, i) => { const v = r.v || {}, st = STATUS[r.status] || ["", "—", ""];
+  if (isOwnerAcc()) h += histFilterBar();
+  h += '<div id="hList" style="display:grid;gap:10px"></div>';
+  v.innerHTML = h;
+  if (isOwnerAcc()) bindHistFilters();
+  renderHistList();
+}
+function renderHistList() {
+  const v = $("#hList"); if (!v) return;
+  const list = isOwnerAcc() ? reports.filter(histMatch) : reports;
+  if ($("#hf-count")) $("#hf-count").textContent = "Pokazano " + list.length + " z " + reports.length + " raportów";
+  if (!list.length) { v.innerHTML = '<div class="notice info">Brak raportów dla wybranych filtrów.</div>'; return; }
+  const h = list.map((r, i) => { const v = r.v || {}, st = STATUS[r.status] || ["", "—", ""];
     return '<details class="hi" data-i="' + i + '"><summary><span class="dot ' + st[0] + '"></span><b>' + esc(r.name || v.spec || r.by) + '</b><span class="meta">' + esc(v.date) + " · zm. " + esc(v.shift) + "</span>" + (r.flags ? '<span class="pill bad">' + r.flags + " do uwagi</span>" : '<span class="pill">bez uwag</span>') + '</summary><div class="hb" style="margin-top:10px"></div></details>'; }).join("");
   v.innerHTML = h;
   v.querySelectorAll("details.hi").forEach(d => d.addEventListener("toggle", () => {
-    const b = d.querySelector(".hb"); if (!d.open || b.childElementCount) return; const r = reports[+d.dataset.i];
+    const b = d.querySelector(".hb"); if (!d.open || b.childElementCount) return; const r = list[+d.dataset.i];
     if (r.html) { const p = document.createElement("div"); p.className = "preview"; p.innerHTML = r.html; b.appendChild(p); }
     else { const p = document.createElement("pre"); p.className = "rep"; p.textContent = r.text || ""; b.appendChild(p); }
-    if (email.toLowerCase() === OWNER) {
+    if (isOwnerAcc()) {
       const row = document.createElement("div"); row.className = "row"; row.style.marginTop = "10px";
       const del = document.createElement("button"); del.type = "button"; del.className = "btn"; del.style.color = "var(--bad)"; del.textContent = "Usuń raport";
       let armedT = null;
@@ -744,7 +827,7 @@ function subscribe() {
     if (!isMod && !$("#p-set").hidden) showTab("form");
   }, e => console.error(e)));
   unsubs.push(db.collection("settings").doc("shiftReport").onSnapshot(s => { cfg = s.exists ? s.data() : {}; }, e => console.error(e)));
-  unsubs.push(db.collection("shift_reports").orderBy("createdAt", "desc").limit(90).onSnapshot(s => {
+  unsubs.push(db.collection("shift_reports").orderBy("createdAt", "desc").limit(email.toLowerCase() === OWNER ? 2000 : 90).onSnapshot(s => {
     $("#dbErr").hidden = true;
     reports = s.docs.map(d => Object.assign({ id: d.id }, d.data())); prev = reports[0] || null; update(); if (!$("#p-hist").hidden) renderHist();
   }, showDbErr));
