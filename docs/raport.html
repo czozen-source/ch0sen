@@ -680,6 +680,18 @@ function renderHist() {
     const b = d.querySelector(".hb"); if (!d.open || b.childElementCount) return; const r = reports[+d.dataset.i];
     if (r.html) { const p = document.createElement("div"); p.className = "preview"; p.innerHTML = r.html; b.appendChild(p); }
     else { const p = document.createElement("pre"); p.className = "rep"; p.textContent = r.text || ""; b.appendChild(p); }
+    if (email.toLowerCase() === OWNER) {
+      const row = document.createElement("div"); row.className = "row"; row.style.marginTop = "10px";
+      const del = document.createElement("button"); del.type = "button"; del.className = "btn"; del.style.color = "var(--bad)"; del.textContent = "Usuń raport";
+      let armedT = null;
+      del.onclick = async () => {
+        if (!armedT) { del.textContent = "Na pewno? Kliknij jeszcze raz, żeby usunąć"; armedT = setTimeout(() => { armedT = null; del.textContent = "Usuń raport"; }, 4000); return; }
+        clearTimeout(armedT); armedT = null; del.disabled = true; del.textContent = "Usuwanie…";
+        try { await db.collection("shift_reports").doc(r.id).delete(); toast("Raport usunięty"); }
+        catch (e) { console.error(e); toast(dbMsg(e)); del.disabled = false; del.textContent = "Usuń raport"; }
+      };
+      row.appendChild(del); b.appendChild(row);
+    }
   }));
 }
 
@@ -732,7 +744,7 @@ function subscribe() {
   unsubs.push(db.collection("settings").doc("shiftReport").onSnapshot(s => { cfg = s.exists ? s.data() : {}; }, e => console.error(e)));
   unsubs.push(db.collection("shift_reports").orderBy("createdAt", "desc").limit(90).onSnapshot(s => {
     $("#dbErr").hidden = true;
-    reports = s.docs.map(d => d.data()); prev = reports[0] || null; update(); if (!$("#p-hist").hidden) renderHist();
+    reports = s.docs.map(d => Object.assign({ id: d.id }, d.data())); prev = reports[0] || null; update(); if (!$("#p-hist").hidden) renderHist();
   }, showDbErr));
   subscribeRL();
 }
