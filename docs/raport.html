@@ -687,10 +687,13 @@ function renderHist() {
       del.onclick = async () => {
         if (!armedT) { del.textContent = "Na pewno? Kliknij jeszcze raz, żeby usunąć"; armedT = setTimeout(() => { armedT = null; del.textContent = "Usuń raport"; }, 4000); return; }
         clearTimeout(armedT); armedT = null; del.disabled = true; del.textContent = "Usuwanie…";
+        msg.textContent = "";
         try { await db.collection("shift_reports").doc(r.id).delete(); toast("Raport usunięty"); }
-        catch (e) { console.error(e); toast(dbMsg(e)); del.disabled = false; del.textContent = "Usuń raport"; }
+        catch (e) { console.error(e); msg.textContent = dbMsg(e); del.disabled = false; del.textContent = "Usuń raport"; }
       };
-      row.appendChild(del); b.appendChild(row);
+      const msg = document.createElement("div"); msg.className = "notice err"; msg.style.flexBasis = "100%";
+      new MutationObserver(() => { msg.hidden = !msg.textContent; }).observe(msg, { childList: true, characterData: true, subtree: true }); msg.hidden = true;
+      row.appendChild(del); row.appendChild(msg); b.appendChild(row);
     }
   }));
 }
