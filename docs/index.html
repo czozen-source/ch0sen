@@ -296,7 +296,7 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
 </header>
 
 <main class="wrap">
-  <div id="noAccess" class="notice info" hidden style="margin-top:20px">Aplikacja jest w przygotowaniu i nie jest jeszcze dostępna dla tego konta.</div>
+  <div id="noAccess" class="notice info" hidden style="margin-top:20px">Rejestr wózków jest w przygotowaniu i nie jest jeszcze dostępny dla tego konta. Przechodzę do <a href="raport.html">raportu zmiany</a>…</div>
   <div id="noConfig" class="notice err" hidden>Aplikacja nie jest jeszcze połączona z bazą danych. Administrator musi uzupełnić plik <code>firebase-config.js</code> (instrukcja w README).</div>
 
   <!-- LOGOWANIE -->
@@ -1375,8 +1375,8 @@ $("logout").addEventListener("click", () => auth.signOut());
     if (!inside) { $("navReport").hidden = true; $("noAccess").hidden = true; state.uid = null; state.email = ""; state.isMod = false; applyRole(); $("liveText").textContent = "Wylogowano"; $("live").classList.remove("on"); return; }
     state.uid = u.uid; state.email = u.email || "";
     $("whoEmail").textContent = state.email;
-    // Wersja testowa: cała aplikacja tylko dla właściciela. Żeby otworzyć dla zespołu, usuń ten warunek (i zmień signedIn() w firestore.rules).
-    if (state.email.toLowerCase() !== "czozen@gmail.com") { $("app").hidden = true; $("tabs").hidden = true; $("navReport").hidden = true; $("noAccess").hidden = false; $("liveText").textContent = "Niedostępne"; return; }
+    // Wersja testowa: rejestr wózków tylko dla właściciela, pozostali trafiają do raportu zmiany. Żeby otworzyć rejestr dla zespołu, usuń ten warunek (i isOwner() przy kolekcjach rejestru w firestore.rules).
+    if (state.email.toLowerCase() !== "czozen@gmail.com") { $("app").hidden = true; $("tabs").hidden = true; $("navReport").hidden = true; $("noAccess").hidden = false; $("liveText").textContent = "Niedostępne"; location.replace("raport.html"); return; }
     $("noAccess").hidden = true; $("navReport").hidden = false;
     $("liveText").textContent = "Łączenie…";
     subscribeAll();
