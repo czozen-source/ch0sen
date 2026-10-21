@@ -49,12 +49,14 @@ Zakładka **Rozpiska** odwzorowuje arkusz „Rozpiska i kontrola wózków”: na
 Po zapisaniu zgłoszenia i po każdej zmianie statusu pojawia się przycisk **„Wyślij mail do serwisu”**, który otwiera Outlooka (lub domyślny program pocztowy) z wypełnionym adresem, tematem i treścią. Opcja „od razu otwórz Outlooka” w ustawieniach otwiera maila automatycznie po zapisaniu zgłoszenia. Mail wysyła osoba zgłaszająca ze swojej skrzynki.
 
 ## Raport zmiany (`docs/raport.html`)
+**Wersja testowa: strona, link w rejestrze i dane widoczne tylko dla konta czozen@gmail.com** (stała `OWNER` w `docs/raport.html`, warunek w `docs/index.html` i `isOwner()` w `firestore.rules`).
+
 Formularz raportu po zmianie dla specjalistów: `https://czozen-source.github.io/ch0sen/raport.html` (link „Raport zmiany →” jest też w nagłówku rejestru). Logowanie tym samym kontem co rejestr.
 
 - Nie da się wysłać raportu z pustym polem; „ok”, „brak” itp. nie przechodzą jako odpowiedź.
 - Bilans naczep i butelek liczy się sam; gdy się nie zgadza, trzeba podać powód.
 - Sekcja 0 pokazuje, co zostawił poprzednik. Gdy stan na start różni się od jego stanu na koniec, specjalista musi opisać różnicę.
-- Podpis w mailu: imię i nazwisko wpisywane raz, zapisuje się w koncie.
+- Nadawca (adres e-mail konta) jest u góry raportu. Po zapisaniu formularz się czyści.
 - Redlink: tygodniowy licznik palet przerzutów (pon–nd), każdy dopisuje swoje palety, limit 15 palet na dzień.
 - Mail jest kolorowy: zielone = OK, czerwone = do uwagi. Temat ma [CZERWONY]/[ŻÓŁTY] przy takim statusie zmiany.
 - Raporty: kolekcja `shift_reports`, plan Redlink: kolekcja `redlink`. Historia: wszystkie raporty i podsumowanie 7 dni na specjalistę.

@@ -6,6 +6,11 @@ service cloud.firestore {
     }
     // Moderatorzy: dokument config/roles, pole "moderators" (tablica adresów e-mail, małymi literami).
     // Ten dokument zmienia się tylko w konsoli Firebase.
+    // Właściciel: raport zmiany jest w wersji testowej i widzi go tylko to konto.
+    function isOwner() {
+      return signedIn() && request.auth.token.email != null
+        && request.auth.token.email.lower() == 'czozen@gmail.com';
+    }
     function isMod() {
       return signedIn() && request.auth.token.email != null
         && request.auth.token.email.lower() in get(/databases/$(database)/documents/config/roles).data.moderators;
@@ -36,14 +41,13 @@ service cloud.firestore {
     match /schedule/{day} {
       allow read, write: if signedIn();
     }
-    // Raporty zmian: każdy zalogowany czyta i dodaje raport, poprawia i usuwa tylko moderator.
+    // Raporty zmian i plan Redlink: wersja testowa – tylko właściciel.
+    // Po testach zamień isOwner() na signedIn() (a update/delete raportów na isMod()).
     match /shift_reports/{id} {
-      allow read, create: if signedIn();
-      allow update, delete: if isMod();
+      allow read, write: if isOwner();
     }
-    // Plan przerzutów Redlink (dokument na tydzień): czytają i dopisują wszyscy zalogowani.
     match /redlink/{week} {
-      allow read, write: if signedIn();
+      allow read, write: if isOwner();
     }
     // Zgłoszenia: każdy zalogowany dodaje i zmienia status, usuwa tylko moderator.
     match /damages/{id} {

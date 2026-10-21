@@ -281,7 +281,7 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
     <div class="brand">
       <h1>Rejestr uszkodzeń wózków</h1>
       <span class="live" id="live"><i></i><span id="liveText">Łączenie…</span></span>
-      <a class="navlink" href="raport.html">Raport zmiany →</a>
+      <a class="navlink" id="navReport" href="raport.html" hidden>Raport zmiany →</a>
     </div>
     <span class="who" id="who" hidden><span id="whoEmail"></span><button type="button" id="logout">Wyloguj</button></span>
     <nav class="tabs" role="tablist" aria-label="Sekcje" id="tabs" hidden>
@@ -1371,9 +1371,10 @@ $("logout").addEventListener("click", () => auth.signOut());
     unsubscribeAll();
     const inside = !!u;
     $("login").hidden = inside; $("app").hidden = !inside; $("tabs").hidden = !inside; $("who").hidden = !inside;
-    if (!inside) { state.uid = null; state.email = ""; state.isMod = false; applyRole(); $("liveText").textContent = "Wylogowano"; $("live").classList.remove("on"); return; }
+    if (!inside) { $("navReport").hidden = true; state.uid = null; state.email = ""; state.isMod = false; applyRole(); $("liveText").textContent = "Wylogowano"; $("live").classList.remove("on"); return; }
     state.uid = u.uid; state.email = u.email || "";
     $("whoEmail").textContent = state.email;
+    $("navReport").hidden = state.email.toLowerCase() !== "czozen@gmail.com"; // raport zmiany w wersji testowej – tylko dla właściciela
     $("liveText").textContent = "Łączenie…";
     subscribeAll();
   });

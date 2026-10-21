@@ -170,6 +170,7 @@ table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 <main class="wrap">
   <div id="noConfig" class="notice err" hidden>Aplikacja nie jest połączona z bazą danych (plik <code>firebase-config.js</code>).</div>
   <div id="dbErr" class="notice err" hidden></div>
+  <div id="noAccess" class="notice info" hidden>Ta strona jest w przygotowaniu i nie jest jeszcze dostępna. Wróć do <a href="./">rejestru wózków</a>.</div>
 
   <section id="login" class="panel login" hidden>
     <h2>Zaloguj się</h2>
@@ -190,8 +191,8 @@ table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
         <li>Bilans naczep i butelek musi się zgadzać. Jeśli się nie zgadza, wyjaśnij dlaczego.</li>
       </ul>
     </div>
-    <div id="form" style="display:grid;gap:14px"></div>
     <div id="out" class="panel" hidden></div>
+    <div id="form" style="display:grid;gap:14px"></div>
   </section>
 
   <section role="tabpanel" id="p-rl" hidden>
@@ -243,6 +244,7 @@ function dbMsg(e) {
 let db = null, auth = null, user = null, unsubs = [];
 let email = "", myName = "", isMod = false, prev = null, reports = [], cfg = {};
 let V = {}, showErr = false;
+const OWNER = "czozen@gmail.com"; // wersja testowa: strona tylko dla właściciela
 let rlWeek = monday(today()), rlDoc = { days: {} }, rlUnsub = null;
 
 /* ---------- field model ---------- */
@@ -250,7 +252,6 @@ const n = (k) => { const x = V[k]; return (x === "" || x == null || isNaN(+x)) ?
 const filled = (k) => V[k] != null && String(V[k]).trim() !== "";
 const S = [
  { no: "·", title: "Dane zmiany", f: [
-  { k: "sig", l: "Twoje imię i nazwisko (podpis w mailu, wpisujesz raz)", t: "text", wide: 1, reason: 1, need: () => !myName },
   { k: "date", l: "Data", t: "date" },
   { k: "shift", l: "Zmiana", t: "shift" },
   { k: "ppl_op", l: "Ludzie – opakowania", t: "num" },
@@ -368,7 +369,6 @@ function errOf(f) {
   if (f.t === "num") return (isNaN(+v) || +v < 0 || !Number.isInteger(+v)) ? "Wpisz liczbę całkowitą" : null;
   if (f.t === "text" || f.t === "area") {
     if (BAD_WORDS.includes(v.toLowerCase())) return "„" + v + "” to nie jest odpowiedź";
-    if (f.k === "sig") return v.split(/\s+/).length < 2 ? "Wpisz imię i nazwisko" : null;
     if (f.reason && v.length < 8) return "Napisz konkretnie (min. kilka słów)";
   }
   return null;
@@ -411,7 +411,6 @@ function renderForm() {
       g.appendChild(w);
     });
     if (s.rl) { const r = document.createElement("div"); r.id = "rlBox"; sec.appendChild(r); }
-    if (si === 0) { const sg = document.createElement("div"); sg.className = "sig sub"; sg.id = "sigline"; sec.appendChild(sg); }
     root.appendChild(sec);
   });
   update(); renderRL();
@@ -438,8 +437,6 @@ function update() {
     const sec = $("#sec-" + si); sec.querySelector(".cnt").textContent = (sTot - sErr) + "/" + sTot;
     sec.classList.toggle("has-err", showErr && sErr > 0); sec.classList.toggle("done", sErr === 0);
   });
-  const sl = $("#sigline"); if (sl) sl.innerHTML = myName ? "Podpis w mailu: <b>" + esc(myName) + '</b> · <button class="link" type="button" id="sigEdit">zmień</button>' : "";
-  const se = $("#sigEdit"); if (se) se.onclick = () => { myName = ""; V.sig = ""; update(); $("#i-sig").focus(); };
   renderPrev();
   $("#prog-t").textContent = ok === tot ? "Wszystko wypełnione" : "Wypełnione " + ok + " z " + tot + " pól";
   $("#prog-i").style.width = (tot ? ok / tot * 100 : 0) + "%";
@@ -489,7 +486,7 @@ async function rlAdd(day, p, msg) {
       const s = await tx.get(ref), d = s.exists ? s.data() : { days: {} }, list = (d.days && d.days[day]) || [];
       const sum = list.reduce((a, e) => a + (+e.p || 0), 0);
       if (sum + p > RL_MAX) throw { code: "limit", left: RL_MAX - sum };
-      const entry = { id: Date.now().toString(36), p, by: email, name: myName || email, at: new Date().toISOString() };
+      const entry = { id: Date.now().toString(36), p, by: email, name: email, at: new Date().toISOString() };
       tx.set(ref, { week: monday(day), days: Object.assign({}, d.days || {}, { [day]: list.concat([entry]) }) });
     });
     msg.textContent = "Dodano " + p + " pal. na " + dm(day) + ".";
@@ -583,20 +580,19 @@ function rows() {
 }
 function header() {
   const st = STATUS[V.status] || ["", "—", "", "#5b6878"];
-  return { title: "RAPORT ZMIANY – " + (V.date || "") + " – zmiana " + (V.shift || ""), st, people: "Ludzie: opakowania " + (V.ppl_op ?? "—") + ", strefa " + (V.ppl_st ?? "—") };
+  return { title: "RAPORT ZMIANY – " + (V.date || "") + " – zmiana " + (V.shift || ""), st, people: "Ludzie: opakowania " + (V.ppl_op ?? "—") + ", strefa " + (V.ppl_st ?? "—"), from: "Raport wysłał: " + email };
 }
-const signer = () => myName || (V.sig || "").trim() || email;
+const signer = () => email;
 function buildText(R) {
-  const h = header(), L = [h.title, "STATUS ZMIANY: " + h.st[1].toUpperCase() + " (" + h.st[2] + ")", h.people];
+  const h = header(), L = [h.title, h.from, "STATUS ZMIANY: " + h.st[1].toUpperCase() + " (" + h.st[2] + ")", h.people];
   R.forEach(s => { L.push("", s.t.toUpperCase()); s.items.forEach(i => L.push("- " + (i.s === "bad" ? "[!] " : i.s === "ok" ? "[OK] " : "") + i.l + ": " + i.v + (i.note ? " – " + i.note : ""))); });
-  L.push("", "Pozdrawiam,", signer(), email);
   return L.join("\n");
 }
 function buildHtml(R) {
   const h = header(), C = { ok: ["#e2f4ea", "#1f8a4c", "OK"], bad: ["#fbe4e2", "#c0332b", "DO UWAGI"], "": ["#ffffff", "#5b6878", ""] };
   const td = "padding:6px 10px;border-bottom:1px solid #e3e7ec;vertical-align:top;font-size:14px;";
   let out = '<div style="font-family:Segoe UI,Arial,sans-serif;color:#17202b;max-width:720px">' +
-    '<div style="background:#1d2733;color:#ffffff;padding:12px 14px;border-bottom:4px solid #e8a200"><div style="font-size:18px;font-weight:700;letter-spacing:.02em">' + esc(h.title) + "</div>" +
+    '<div style="background:#1d2733;color:#ffffff;padding:12px 14px;border-bottom:4px solid #e8a200"><div style="font-size:18px;font-weight:700;letter-spacing:.02em">' + esc(h.title) + "</div>" + '<div style="font-size:13px;color:#d5dbe2;margin-top:2px">' + esc(h.from) + "</div>" +
     '<div style="margin-top:6px"><span style="display:inline-block;background:' + h.st[3] + ';color:#ffffff;font-weight:700;padding:3px 10px;border-radius:12px;font-size:13px">STATUS: ' + esc(h.st[1].toUpperCase()) + " – " + esc(h.st[2]) + '</span> <span style="font-size:13px;color:#d5dbe2">' + esc(h.people) + "</span></div></div>" +
     '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;margin-top:6px">';
   R.forEach(s => {
@@ -605,7 +601,7 @@ function buildHtml(R) {
       out += '<tr style="background:' + c[0] + '"><td style="' + td + 'width:46%">' + esc(i.l) + '</td><td style="' + td + 'font-weight:600">' + esc(i.v) + (i.note ? '<div style="font-weight:400;color:' + (i.s === "bad" ? "#c0332b" : "#5b6878") + ';font-size:13px;margin-top:2px">' + esc(i.note) + "</div>" : "") +
         '</td><td style="' + td + 'width:90px;text-align:right;font-size:11px;font-weight:700;color:' + c[1] + '">' + c[2] + "</td></tr>"; });
   });
-  out += '</table><p style="margin-top:16px;font-size:14px">Pozdrawiam,<br><b>' + esc(signer()) + '</b><br><span style="color:#5b6878">' + esc(email) + "</span></p></div>";
+  out += "</table></div>";
   return out;
 }
 function flagCount(R) { return R.reduce((a, s) => a + s.items.filter(i => i.s === "bad").length, 0); }
@@ -639,7 +635,6 @@ $("#btn-send").onclick = async () => {
   }
   if (!splitAddr(cfg.to).length) { toast("Kierownik nie ustawił jeszcze adresu odbiorcy raportów (Ustawienia)."); return; }
   const btn = $("#btn-send"); btn.disabled = true; btn.textContent = "Wysyłanie…";
-  if (!myName && filled("sig")) { const nm = V.sig.trim(); try { await user.updateProfile({ displayName: nm }); } catch (e) { console.error(e); } myName = nm; }
   const R = rows(), text = buildText(R), html = buildHtml(R), flags = flagCount(R);
   const subject = (V.status === "r" ? "[CZERWONY] " : V.status === "y" ? "[ŻÓŁTY] " : "") + "Raport zmiany – " + V.date + " – zmiana " + V.shift + " – " + signer();
   const out = $("#out"); out.hidden = false;
@@ -652,19 +647,19 @@ $("#btn-send").onclick = async () => {
   const owa = "https://outlook.office.com/mail/deeplink/compose?to=" + encodeURIComponent(splitAddr(cfg.to).join(";")) + (cfg.cc ? "&cc=" + encodeURIComponent(splitAddr(cfg.cc).join(";")) : "") + "&subject=" + encodeURIComponent(subject);
   out.innerHTML =
     "<h2>Raport " + (mailed ? "wysłany" : "gotowy") + "</h2>" +
-    (saved ? '<div class="notice ok">Raport zapisany w historii.</div>' : '<div class="notice err">Raport NIE zapisał się w historii. ' + esc(saveErr) + "</div>") +
+    (saved ? '<div class="notice ok"><b>Raport zapisany.</b> Formularz został wyczyszczony – raport jest w zakładce Historia.</div>' : '<div class="notice err"><b>Raport NIE zapisał się.</b> ' + esc(saveErr) + " Dane w formularzu zostały – spróbuj wysłać ponownie.</div>") +
     (mailed ? '<div class="notice ok">Mail wysłany do: ' + esc(splitAddr(cfg.to).join(", ")) + (cfg.cc ? "<br>DW: " + esc(splitAddr(cfg.cc).join(", ")) : "") + "</div>"
       : '<div class="notice warn">' + (mailErr ? "Automatyczna wysyłka nie zadziałała: " + esc(mailErr) + "<br>" : "Automatyczna wysyłka nie jest jeszcze włączona. ") +
         "Skopiuj kolorowy raport, otwórz nowego maila w Outlooku i wklej (Ctrl+V).</div>" +
         '<div class="addr">Do: ' + esc(splitAddr(cfg.to).join(", ")) + "<br>DW: " + esc(splitAddr(cfg.cc).join(", ") || "—") + "<br>Temat: " + esc(subject) + "</div>" +
         '<div class="row"><button class="btn primary" id="copy-b" type="button">Kopiuj raport z kolorami</button><a class="btn" href="' + esc(owa) + '" target="_blank" rel="noopener">Otwórz nowy mail w Outlooku (przeglądarka)</a></div>') +
-    '<div class="row"><button class="btn" id="new-b" type="button">Nowy raport</button></div>' +
+    '<div class="row"><button class="btn" id="new-b" type="button">Zamknij</button></div>' +
     '<div class="preview" id="preview">' + html + "</div>";
   const cb = $("#copy-b"); if (cb) cb.onclick = () => copyRich(html, text, cb);
-  $("#new-b").onclick = () => { V = { date: today() }; LS.set("rz-draft", V); showErr = false; out.hidden = true; renderForm(); window.scrollTo(0, 0); };
-  if (saved) LS.set("rz-draft", {});
+  $("#new-b").onclick = () => { out.hidden = true; window.scrollTo(0, 0); };
+  if (saved) { V = { date: today() }; LS.set("rz-draft", {}); showErr = false; renderForm(); }
   btn.disabled = false; btn.textContent = "Wyślij raport";
-  out.scrollIntoView({ behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
 /* ---------- history ---------- */
@@ -753,8 +748,10 @@ function subscribe() {
     unsubs.forEach(x => x()); unsubs = []; if (rlUnsub) { rlUnsub(); rlUnsub = null; }
     user = u; const inside = !!u;
     $("#login").hidden = inside; $("#tabs").hidden = !inside; $("#who").hidden = !inside;
-    if (!inside) { TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; return; }
-    email = u.email || ""; myName = u.displayName || ""; $("#whoEmail").textContent = myName ? myName + " · " + email : email;
+    if (!inside) { TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = true; return; }
+    email = u.email || ""; $("#whoEmail").textContent = email;
+    if (email.toLowerCase() !== OWNER) { $("#tabs").hidden = true; TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = false; return; }
+    $("#noAccess").hidden = true;
     showTab("form"); update(); subscribe();
   });
 })();
