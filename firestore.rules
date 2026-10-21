@@ -1,15 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // WERSJA TESTOWA: cała aplikacja (rejestr wózków i raport zmiany) tylko dla konta czozen@gmail.com.
-    // Żeby otworzyć dla zespołu, w signedIn() zostaw tylko: return request.auth != null;
+    // WERSJA TESTOWA: rejestr wózków tylko dla konta czozen@gmail.com (isOwner()),
+    // raport zmiany dla wszystkich zalogowanych.
     function signedIn() {
-      return request.auth != null && request.auth.token.email != null
-        && request.auth.token.email.lower() == 'czozen@gmail.com';
+      return request.auth != null;
     }
     // Moderatorzy: dokument config/roles, pole "moderators" (tablica adresów e-mail, małymi literami).
     // Ten dokument zmienia się tylko w konsoli Firebase.
-    // Właściciel: raport zmiany jest w wersji testowej i widzi go tylko to konto.
+    // Właściciel: tylko to konto widzi rejestr wózków i usuwa raporty zmian.
     function isOwner() {
       return signedIn() && request.auth.token.email != null
         && request.auth.token.email.lower() == 'czozen@gmail.com';
@@ -23,39 +22,36 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if false;
     }
-    // Listy (pracownicy, wózki, rodzaje uderzeń) i ustawienia maila: czytają zalogowani, zmienia tylko moderator.
+    // Rejestr wózków (listy, rozpiska, zgłoszenia): wersja testowa – tylko właściciel.
+    // Po testach: odczyt i rozpiska/zgłoszenia signedIn(), zmiana list isMod(), usuwanie zgłoszeń isMod().
     match /employees/{id} {
-      allow read: if signedIn();
-      allow write: if isMod();
+      allow read, write: if isOwner();
     }
     match /forklifts/{id} {
-      allow read: if signedIn();
-      allow write: if isMod();
+      allow read, write: if isOwner();
     }
     match /impacts/{id} {
-      allow read: if signedIn();
-      allow write: if isMod();
-    }
-    match /settings/{id} {
-      allow read: if signedIn();
-      allow write: if isMod();
-    }
-    // Rozpiska wózków (dokument na dzień): czytają i uzupełniają wszyscy zalogowani.
-    match /schedule/{day} {
-      allow read, write: if signedIn();
-    }
-    // Raporty zmian i plan Redlink: wersja testowa – tylko właściciel.
-    // Po testach zamień isOwner() na signedIn() (a update/delete raportów na isMod()).
-    match /shift_reports/{id} {
       allow read, write: if isOwner();
+    }
+    // Ustawienia: settings/shiftReport należy do raportu zmiany (czytają wszyscy, zmienia moderator),
+    // pozostałe dokumenty (mail, rozpiska) do rejestru wózków.
+    match /settings/{id} {
+      allow read: if (id == 'shiftReport' && signedIn()) || isOwner();
+      allow write: if (id == 'shiftReport' && isMod()) || isOwner();
+    }
+    match /schedule/{day} {
+      allow read, write: if isOwner();
+    }
+    // Raporty zmian i plan Redlink: wszyscy zalogowani; raport usuwa tylko właściciel.
+    match /shift_reports/{id} {
+      allow read, create: if signedIn();
+      allow update, delete: if isOwner();
     }
     match /redlink/{week} {
-      allow read, write: if isOwner();
+      allow read, write: if signedIn();
     }
-    // Zgłoszenia: każdy zalogowany dodaje i zmienia status, usuwa tylko moderator.
     match /damages/{id} {
-      allow read, create, update: if signedIn();
-      allow delete: if isMod();
+      allow read, write: if isOwner();
     }
   }
 }

@@ -156,7 +156,7 @@ table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 <body>
 <header class="top">
   <div class="wrap">
-    <div class="brand"><h1>Raport zmiany</h1><a href="./">← Rejestr wózków</a></div>
+    <div class="brand"><h1>Raport zmiany</h1><a href="./" id="navReg" hidden>← Rejestr wózków</a></div>
     <span class="who" id="who" hidden><span id="whoEmail"></span><button type="button" id="logout">Wyloguj</button></span>
     <nav class="tabs" role="tablist" aria-label="Sekcje" id="tabs" hidden>
       <button role="tab" id="tab-form" aria-controls="p-form" aria-selected="true">Nowy raport</button>
@@ -244,7 +244,7 @@ function dbMsg(e) {
 let db = null, auth = null, user = null, unsubs = [];
 let email = "", myName = "", isMod = false, prev = null, reports = [], cfg = {};
 let V = {}, showErr = false;
-const OWNER = "czozen@gmail.com"; // wersja testowa: strona tylko dla właściciela
+const OWNER = "czozen@gmail.com"; // wersja testowa: tylko właściciel widzi rejestr wózków i usuwa raporty
 let rlWeek = monday(today()), rlDoc = { days: {} }, rlUnsub = null;
 
 /* ---------- field model ---------- */
@@ -765,7 +765,7 @@ function subscribe() {
     $("#login").hidden = inside; $("#tabs").hidden = !inside; $("#who").hidden = !inside;
     if (!inside) { TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = true; return; }
     email = u.email || ""; $("#whoEmail").textContent = email;
-    if (email.toLowerCase() !== OWNER) { $("#tabs").hidden = true; TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = false; return; }
+    $("#navReg").hidden = email.toLowerCase() !== OWNER;
     $("#noAccess").hidden = true;
     showTab("form"); update(); subscribe();
   });
