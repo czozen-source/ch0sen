@@ -277,16 +277,16 @@ const S = [
   { k: "r_left", l: "Remonty pozostało", t: "num" },
   { k: "r_why", l: "Status pozostałych remontów", t: "area", wide: 1, reason: 1, need: () => n("r_left") > 0 },
   { k: "s_eur", l: "Wysłane naczepy z PUL EUR", t: "num" },
-  { k: "s_dhp", l: "Wysłane naczepy z DHP", t: "num" },
-  { k: "s_eur_desc", l: "Opis naczep z PUL EUR (nr naczepy, kierunek)", t: "text", wide: 1, reason: 1, need: () => n("s_eur") > 0 },
-  { k: "s_dhp_desc", l: "Opis naczep z DHP (nr naczepy, kierunek)", t: "text", wide: 1, reason: 1, need: () => n("s_dhp") > 0 }
+  { k: "s_dhp", l: "Wysłane naczepy z DHP", t: "num" }
  ]},
  { no: "2", title: "Higiena naczep", f: [
   { k: "sw", l: "Naczepy zamiecione", t: "num" },
   { k: "wash_req", l: "Zgłoszone do mycia", t: "num" },
   { k: "washed", l: "Umyte na myjni", t: "num" },
   { k: "night", l: "Myjnia na nockę wydrukowana + dokumenty na nocne odbiory", t: "yn", wide: 1 },
-  { k: "night_why", l: "Dlaczego nie?", t: "text", wide: 1, reason: 1, need: () => V.night === "NIE" }
+  { k: "night_why", l: "Dlaczego nie?", t: "text", wide: 1, reason: 1, need: () => V.night === "NIE" },
+  { k: "next_spec", l: "Czy jest specjalista na kolejną zmianę?", t: "yn", wide: 1 },
+  { k: "wash_lists", l: "Czy przygotowane listy z naczepami do mycia?", t: "yn", wide: 1, reason: 1, need: () => V.next_spec === "NIE" }
  ]},
  { no: "3", title: "Palety", f: [
   { k: "p_ret", l: "Przyjęte ze zwrotem", t: "num" },
@@ -302,7 +302,7 @@ const S = [
  ]},
  { no: "4", title: "Butelki (palety)", f: [
   { k: "b_start", l: "Na start", t: "num" },
-  { k: "b_in", l: "Przyjęte", t: "num" },
+  { k: "b_in", l: "Przyjechało", t: "num" },
   { k: "b_done", l: "Przerobione", t: "num" },
   { k: "b_end", l: "Na koniec", t: "num" },
   { calc: "b" },
@@ -423,7 +423,7 @@ function update() {
     s.f.forEach(f => {
       if (f.calc) {
         const el = $("#calc-" + f.calc), r = bal(f.calc), a = balVals(f.calc);
-        if (r == null) { el.className = "calc f wide"; el.textContent = f.calc === "n" ? "Bilans: start + przyjechały − rozładowane = koniec" : "Bilans: start + przyjęte − przerobione = koniec"; }
+        if (r == null) { el.className = "calc f wide"; el.textContent = f.calc === "n" ? "Bilans: start + przyjechały − rozładowane = koniec" : "Bilans: start + przyjechało − przerobione = koniec"; }
         else { el.className = "calc f wide " + (r ? "ok" : "bad"); el.textContent = a[0] + " + " + a[1] + " − " + a[2] + " = " + (a[0] + a[1] - a[2]) + (r ? " ✓ zgadza się" : " ≠ " + a[3] + " – bilans się nie zgadza"); }
         return;
       }
@@ -537,12 +537,14 @@ function rows() {
     it("Do rozładunku na koniec", T("n_end"), zero("n_end"), n("n_end") > 0 ? T("n_end_why") : ""),
     it("Bilans naczep", bal("n") ? "zgadza się" : "NIE ZGADZA SIĘ", bal("n") ? "ok" : "bad", bal("n") ? "" : T("n_bal_why")),
     it("Remonty (start / rozładowane / pozostało)", T("r_start") + " / " + T("r_unl") + " / " + T("r_left"), zero("r_left"), n("r_left") > 0 ? T("r_why") : ""),
-    it("Wysłane naczepy z PUL EUR", T("s_eur"), "", n("s_eur") > 0 ? T("s_eur_desc") : ""),
-    it("Wysłane naczepy z DHP", T("s_dhp"), "", n("s_dhp") > 0 ? T("s_dhp_desc") : "")
+    it("Wysłane naczepy z PUL EUR", T("s_eur")),
+    it("Wysłane naczepy z DHP", T("s_dhp"))
   ]);
   sec("2. Higiena naczep", [
     it("Zamiecione", T("sw")), it("Zgłoszone do mycia", T("wash_req")), it("Umyte na myjni", T("washed")),
-    it("Myjnia na nockę + dokumenty na nocne odbiory", T("night"), yn("night"), V.night === "NIE" ? T("night_why") : "")
+    it("Myjnia na nockę + dokumenty na nocne odbiory", T("night"), yn("night"), V.night === "NIE" ? T("night_why") : ""),
+    it("Specjalista na kolejną zmianę", T("next_spec")),
+    V.next_spec === "NIE" ? it("Przygotowane listy z naczepami do mycia", T("wash_lists"), yn("wash_lists")) : null
   ]);
   sec("3. Palety", [
     it("Przyjęte ze zwrotem", T("p_ret")), it("Utworzone palety combo", T("p_combo")), it("Utworzone palety utylizacji", T("p_util")), it("Green Office na koniec zmiany", T("p_go")),
@@ -550,7 +552,7 @@ function rows() {
     it("Złom posprzątany / zostało palet", T("scrap") + " / " + T("scrap_left"), V.scrap === "TAK" && n("scrap_left") === 0 ? "ok" : "bad", filled("scrap_why") && (V.scrap === "NIE" || n("scrap_left") > 0) ? T("scrap_why") : "")
   ]);
   sec("4. Butelki (palety)", [
-    it("Na start / przyjęte / przerobione / na koniec", T("b_start") + " / " + T("b_in") + " / " + T("b_done") + " / " + T("b_end")),
+    it("Na start / przyjechało / przerobione / na koniec", T("b_start") + " / " + T("b_in") + " / " + T("b_done") + " / " + T("b_end")),
     it("Bilans butelek", bal("b") ? "zgadza się" : "NIE ZGADZA SIĘ", bal("b") ? "ok" : "bad", bal("b") ? "" : T("b_bal_why"))
   ]);
   const dkmBad = V.prz === "NIE" || V.dkm === "NIE" || n("dkm_left") > 0;
