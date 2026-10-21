@@ -283,8 +283,6 @@ const S = [
   { k: "sw", l: "Naczepy zamiecione", t: "num" },
   { k: "wash_req", l: "Zgłoszone do mycia", t: "num" },
   { k: "washed", l: "Umyte na myjni", t: "num" },
-  { k: "night", l: "Myjnia na nockę wydrukowana + dokumenty na nocne odbiory", t: "yn", wide: 1 },
-  { k: "night_why", l: "Dlaczego nie?", t: "text", wide: 1, reason: 1, need: () => V.night === "NIE" },
   { k: "next_spec", l: "Czy jest specjalista na kolejną zmianę?", t: "yn", wide: 1 },
   { k: "wash_lists", l: "Czy przygotowane listy z naczepami do mycia?", t: "yn", wide: 1, reason: 1, need: () => V.next_spec === "NIE" }
  ]},
@@ -542,7 +540,6 @@ function rows() {
   ]);
   sec("2. Higiena naczep", [
     it("Zamiecione", T("sw")), it("Zgłoszone do mycia", T("wash_req")), it("Umyte na myjni", T("washed")),
-    it("Myjnia na nockę + dokumenty na nocne odbiory", T("night"), yn("night"), V.night === "NIE" ? T("night_why") : ""),
     it("Specjalista na kolejną zmianę", T("next_spec")),
     V.next_spec === "NIE" ? it("Przygotowane listy z naczepami do mycia", T("wash_lists"), yn("wash_lists")) : null
   ]);
