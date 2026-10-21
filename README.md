@@ -49,26 +49,28 @@ Zakładka **Rozpiska** odwzorowuje arkusz „Rozpiska i kontrola wózków”: na
 Po zapisaniu zgłoszenia i po każdej zmianie statusu pojawia się przycisk **„Wyślij mail do serwisu”**, który otwiera Outlooka (lub domyślny program pocztowy) z wypełnionym adresem, tematem i treścią. Opcja „od razu otwórz Outlooka” w ustawieniach otwiera maila automatycznie po zapisaniu zgłoszenia. Mail wysyła osoba zgłaszająca ze swojej skrzynki.
 
 ## Raport zmiany (`docs/raport.html`)
-Formularz raportu po zmianie dla specjalistów, pod adresem `https://czozen-source.github.io/ch0sen/raport.html` (link „Raport zmiany →” jest też w nagłówku rejestru). Logowanie tym samym kontem co rejestr.
+Formularz raportu po zmianie dla specjalistów: `https://czozen-source.github.io/ch0sen/raport.html` (link „Raport zmiany →” jest też w nagłówku rejestru). Logowanie tym samym kontem co rejestr.
 
 - Nie da się wysłać raportu z pustym polem; „ok”, „brak” itp. nie przechodzą jako odpowiedź.
 - Bilans naczep i butelek liczy się sam; gdy się nie zgadza, trzeba podać powód.
 - Sekcja 0 pokazuje, co zostawił poprzednik. Gdy stan na start różni się od jego stanu na koniec, specjalista musi opisać różnicę.
-- Raporty zapisują się w kolekcji `shift_reports`. Zakładka Historia: wszystkie raporty i podsumowanie 7 dni na specjalistę.
-- Moderator w zakładce Ustawienia wpisuje adres odbiorcy (Do) i DW.
+- Podpis w mailu: imię i nazwisko wpisywane raz, zapisuje się w koncie.
+- Redlink: tygodniowy licznik palet przerzutów (pon–nd), każdy dopisuje swoje palety, limit 15 palet na dzień.
+- Mail jest kolorowy: zielone = OK, czerwone = do uwagi. Temat ma [CZERWONY]/[ŻÓŁTY] przy takim statusie zmiany.
+- Raporty: kolekcja `shift_reports`, plan Redlink: kolekcja `redlink`. Historia: wszystkie raporty i podsumowanie 7 dni na specjalistę.
 
 ### Jednorazowo
-1. Firebase → Firestore Database → **Reguły** → wklej aktualny `firestore.rules` (doszła reguła `shift_reports`) → **Opublikuj**.
+1. Firebase → Firestore Database → **Reguły** → wklej aktualny `firestore.rules` (reguły `shift_reports` i `redlink`) → **Opublikuj**. Bez tego raporty się nie zapisują.
 2. Zaloguj się na `raport.html` jako moderator → **Ustawienia** → wpisz Do i DW.
 
-### Automatyczna wysyłka maila (EmailJS, darmowe do 200 maili/mies.)
-Bez tego po kliknięciu „Wyślij raport” otwiera się gotowy mail w Outlooku i specjalista klika Wyślij.
+### Automatyczna wysyłka kolorowego maila (EmailJS, darmowe do 200 maili/mies.)
+Bez tego po kliknięciu „Wyślij raport” jest przycisk „Kopiuj raport z kolorami” – wklejasz go do nowego maila w Outlooku.
 1. Załóż konto na https://www.emailjs.com.
-2. **Email Services → Add New Service** → podłącz skrzynkę, z której mają wychodzić raporty (np. Gmail/Outlook) → skopiuj **Service ID**.
+2. **Email Services → Add New Service** → podłącz skrzynkę, z której mają wychodzić raporty → skopiuj **Service ID**.
 3. **Email Templates → Create New Template**:
-   - To Email: `{{to_email}}`, CC (Bcc/CC w zakładce Settings szablonu): `{{cc_email}}`, Reply To: `{{reply_to}}`
+   - To Email: `{{to_email}}`, Cc: `{{cc_email}}`, Reply To: `{{reply_to}}`, From Name: `{{from_name}}`
    - Subject: `{{subject}}`
-   - Content: `{{message}}` (w edytorze przełącz na tryb tekstowy, żeby zachować układ linii)
+   - Content: przełącz edytor na **Code / HTML** i wpisz dokładnie `{{{html}}}` (trzy klamry – wtedy idą kolory)
    - zapisz i skopiuj **Template ID**.
 4. **Account → General** → skopiuj **Public Key**. W **Account → Security** dodaj domenę `czozen-source.github.io` do dozwolonych.
-5. W aplikacji → **Ustawienia** raportu → wpisz Service ID, Template ID i Public Key → Zapisz.
+5. Aplikacja → **Ustawienia** raportu → wpisz Service ID, Template ID i Public Key → Zapisz.
