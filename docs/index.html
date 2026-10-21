@@ -296,6 +296,7 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
 </header>
 
 <main class="wrap">
+  <div id="noAccess" class="notice info" hidden style="margin-top:20px">Aplikacja jest w przygotowaniu i nie jest jeszcze dostępna dla tego konta.</div>
   <div id="noConfig" class="notice err" hidden>Aplikacja nie jest jeszcze połączona z bazą danych. Administrator musi uzupełnić plik <code>firebase-config.js</code> (instrukcja w README).</div>
 
   <!-- LOGOWANIE -->
@@ -1371,10 +1372,12 @@ $("logout").addEventListener("click", () => auth.signOut());
     unsubscribeAll();
     const inside = !!u;
     $("login").hidden = inside; $("app").hidden = !inside; $("tabs").hidden = !inside; $("who").hidden = !inside;
-    if (!inside) { $("navReport").hidden = true; state.uid = null; state.email = ""; state.isMod = false; applyRole(); $("liveText").textContent = "Wylogowano"; $("live").classList.remove("on"); return; }
+    if (!inside) { $("navReport").hidden = true; $("noAccess").hidden = true; state.uid = null; state.email = ""; state.isMod = false; applyRole(); $("liveText").textContent = "Wylogowano"; $("live").classList.remove("on"); return; }
     state.uid = u.uid; state.email = u.email || "";
     $("whoEmail").textContent = state.email;
-    $("navReport").hidden = state.email.toLowerCase() !== "czozen@gmail.com"; // raport zmiany w wersji testowej – tylko dla właściciela
+    // Wersja testowa: cała aplikacja tylko dla właściciela. Żeby otworzyć dla zespołu, usuń ten warunek (i zmień signedIn() w firestore.rules).
+    if (state.email.toLowerCase() !== "czozen@gmail.com") { $("app").hidden = true; $("tabs").hidden = true; $("navReport").hidden = true; $("noAccess").hidden = false; $("liveText").textContent = "Niedostępne"; return; }
+    $("noAccess").hidden = true; $("navReport").hidden = false;
     $("liveText").textContent = "Łączenie…";
     subscribeAll();
   });

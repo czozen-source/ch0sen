@@ -49,7 +49,7 @@ Zakładka **Rozpiska** odwzorowuje arkusz „Rozpiska i kontrola wózków”: na
 Po zapisaniu zgłoszenia i po każdej zmianie statusu pojawia się przycisk **„Wyślij mail do serwisu”**, który otwiera Outlooka (lub domyślny program pocztowy) z wypełnionym adresem, tematem i treścią. Opcja „od razu otwórz Outlooka” w ustawieniach otwiera maila automatycznie po zapisaniu zgłoszenia. Mail wysyła osoba zgłaszająca ze swojej skrzynki.
 
 ## Raport zmiany (`docs/raport.html`)
-**Wersja testowa: strona, link w rejestrze i dane widoczne tylko dla konta czozen@gmail.com** (stała `OWNER` w `docs/raport.html`, warunek w `docs/index.html` i `isOwner()` w `firestore.rules`).
+**Wersja testowa: cała aplikacja (rejestr wózków i raport zmiany) jest dostępna tylko dla konta czozen@gmail.com** – warunek w `docs/index.html`, stała `OWNER` w `docs/raport.html` oraz `signedIn()` i `isOwner()` w `firestore.rules`.
 
 Formularz raportu po zmianie dla specjalistów: `https://czozen-source.github.io/ch0sen/raport.html` (link „Raport zmiany →” jest też w nagłówku rejestru). Logowanie tym samym kontem co rejestr.
 
