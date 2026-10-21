@@ -267,6 +267,8 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
 .picked { font-size: .8rem; font-weight: 500; text-transform: none; letter-spacing: normal; color: var(--ok); }
 /* Login + mail */
 .login { max-width: 420px; margin: 40px auto 0; }
+.navlink { color: var(--accent); font-size: .85rem; font-weight: 600; text-decoration: none; }
+.navlink:hover { text-decoration: underline; }
 .who { font-size: .8rem; color: #b8c4d1; display: inline-flex; gap: 10px; align-items: center; }
 .who button { font: inherit; background: transparent; color: #fff; border: 1px solid #4a5868; border-radius: var(--r); padding: 3px 9px; cursor: pointer; }
 .mailbox { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface-2); }
@@ -279,6 +281,7 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
     <div class="brand">
       <h1>Rejestr uszkodzeń wózków</h1>
       <span class="live" id="live"><i></i><span id="liveText">Łączenie…</span></span>
+      <a class="navlink" href="raport.html">Raport zmiany →</a>
     </div>
     <span class="who" id="who" hidden><span id="whoEmail"></span><button type="button" id="logout">Wyloguj</button></span>
     <nav class="tabs" role="tablist" aria-label="Sekcje" id="tabs" hidden>

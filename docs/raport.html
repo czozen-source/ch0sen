@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Raport zmiany</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: same header as the forklift register; one narrow clipboard column; sticky progress bar at the bottom of the form */
+:root {
+  --bg: #eef1f4; --surface: #ffffff; --surface-2: #f5f7f9; --line: #d5dbe2;
+  --fg: #17202b; --muted: #5b6878; --accent: #e8a200; --accent-ink: #1a1400;
+  --head: #1d2733; --head-fg: #f3f5f7;
+  --ok: #1f8a4c; --ok-bg: #e2f4ea; --warn: #b26b00; --warn-bg: #fff1d6;
+  --busy: #1f62b8; --bad: #c0332b; --bad-bg: #fbe4e2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11161c; --surface: #1a2129; --surface-2: #151b22; --line: #2e3844;
+  --fg: #e6eaef; --muted: #96a3b3; --accent: #f2b31d; --accent-ink: #1a1400;
+  --head: #0b0f14; --head-fg: #e6eaef;
+  --ok: #4cc47f; --ok-bg: #173323; --warn: #f0a63a; --warn-bg: #3a2a10;
+  --busy: #6ea6f0; --bad: #f07067; --bad-bg: #3e1a18; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #11161c; --surface: #1a2129; --surface-2: #151b22; --line: #2e3844;
+  --fg: #e6eaef; --muted: #96a3b3; --accent: #f2b31d; --accent-ink: #1a1400;
+  --head: #0b0f14; --head-fg: #e6eaef;
+  --ok: #4cc47f; --ok-bg: #173323; --warn: #f0a63a; --warn-bg: #3a2a10;
+  --busy: #6ea6f0; --bad: #f07067; --bad-bg: #3e1a18; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; padding-top: env(safe-area-inset-top, 0px); background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+[hidden] { display: none !important; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--head); }
+.wrap { max-width: 780px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--head); color: var(--head-fg); border-bottom: 3px solid var(--accent); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-block: 10px 0; }
+.brand { display: flex; align-items: baseline; gap: 12px; margin-right: auto; flex-wrap: wrap; }
+.brand h1 { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; letter-spacing: .02em; text-transform: uppercase; margin: 0; }
+.brand a { color: #b8c4d1; font-size: .82rem; }
+.who { font-size: .8rem; color: #b8c4d1; display: inline-flex; gap: 10px; align-items: center; }
+.who button { font: inherit; background: transparent; color: #fff; border: 1px solid #4a5868; border-radius: var(--r); padding: 3px 9px; cursor: pointer; }
+nav.tabs { display: flex; gap: 2px; width: 100%; overflow-x: auto; }
+nav.tabs button { font-family: var(--f-display); font-size: 1.05rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; background: transparent; color: #b8c4d1; border: 0; padding: 8px 14px 9px; cursor: pointer; border-radius: var(--r) var(--r) 0 0; white-space: nowrap; }
+nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+main { padding-block: 18px 130px; display: grid; gap: 14px; }
+h2 { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
+.sub { color: var(--muted); margin: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+input, select, textarea { font: inherit; font-size: .95rem; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 10px; width: 100%; min-width: 0; }
+input[type=number] { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+textarea { min-height: 58px; resize: vertical; }
+input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font: inherit; font-weight: 600; font-size: .9rem; border-radius: var(--r); padding: 9px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+button.link { font: inherit; background: none; border: 0; padding: 0; color: var(--busy); cursor: pointer; text-decoration: underline; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; }
+.notice { padding: 10px 12px; border-radius: var(--r); font-size: .9rem; }
+.notice.ok { background: var(--ok-bg); color: var(--ok); }
+.notice.err { background: var(--bad-bg); color: var(--bad); }
+.notice.warn { background: var(--warn-bg); color: var(--warn); }
+.notice.info { background: var(--surface-2); color: var(--muted); border: 1px dashed var(--line); }
+.notice ul { margin: 4px 0 0; padding-left: 18px; }
+.login { max-width: 420px; margin: 30px auto 0; }
+.field { display: grid; gap: 4px; font-size: .82rem; font-weight: 600; color: var(--muted); }
+
+section.sec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; }
+section.sec.has-err { box-shadow: inset 4px 0 0 var(--bad); }
+section.sec.done { box-shadow: inset 4px 0 0 var(--ok); }
+.sec h2 { display: flex; align-items: center; gap: 10px; }
+.sec h2 .no { font-family: var(--f-mono); font-size: .8rem; background: var(--accent); color: var(--accent-ink); padding: 2px 7px; border-radius: 4px; }
+.sec h2 .cnt { margin-left: auto; font: 500 .75rem var(--f-mono); color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.f { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.f.wide { grid-column: 1 / -1; }
+.f > label { font-size: .8rem; font-weight: 600; color: var(--muted); }
+.f.err input, .f.err select, .f.err textarea, .f.err .yn { border-color: var(--bad); }
+.f .msg { font-size: .78rem; color: var(--bad); }
+.f.reason { background: var(--warn-bg); border-radius: var(--r); padding: 8px; }
+.f.reason > label { color: var(--warn); }
+.yn { display: flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; width: max-content; max-width: 100%; }
+.yn button { font: 600 .9rem var(--f-body); border: 0; background: var(--surface-2); color: var(--fg); padding: 8px 16px; cursor: pointer; }
+.yn button + button { border-left: 1px solid var(--line); }
+.yn button.on[data-v="TAK"] { background: var(--ok); color: #fff; }
+.yn button.on[data-v="NIE"] { background: var(--bad); color: #fff; }
+.yn button.on[data-v="Nie było"] { background: var(--muted); color: var(--bg); }
+.calc { font: 500 .82rem var(--f-mono); padding: 7px 10px; border-radius: var(--r); background: var(--surface-2); color: var(--muted); }
+.calc.ok { background: var(--ok-bg); color: var(--ok); } .calc.bad { background: var(--bad-bg); color: var(--bad); }
+.prev { font-size: .88rem; background: var(--surface-2); border-radius: var(--r); padding: 10px 12px; }
+.prev b { font-family: var(--f-mono); font-weight: 500; }
+.prev ul { margin: 6px 0 0; padding-left: 18px; }
+.status-pick { display: flex; gap: 8px; flex-wrap: wrap; }
+.status-pick button { flex: 1 1 150px; font: 600 .9rem var(--f-body); text-align: left; border: 2px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: var(--r); padding: 9px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
+.status-pick button.on { border-color: var(--fg); }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.dot.g { background: var(--ok); } .dot.y { background: var(--warn); } .dot.r { background: var(--bad); }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding-top: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 6; }
+.bar .wrap { display: flex; align-items: center; gap: 12px; }
+.prog { flex: 1; min-width: 0; }
+.prog .t { font-size: .85rem; font-weight: 600; }
+.prog .track { height: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+.prog .track i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+pre.rep { font: 500 .78rem/1.5 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border-radius: var(--r); padding: 12px; margin: 0; max-height: 420px; overflow: auto; }
+.addr { font-family: var(--f-mono); font-size: .82rem; overflow-wrap: anywhere; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; }
+.stat b { display: block; font-family: var(--f-mono); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.stat span { font-size: .8rem; color: var(--muted); }
+details.hi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px; }
+details.hi summary { cursor: pointer; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; list-style: none; }
+details.hi summary::-webkit-details-marker { display: none; }
+.meta { font: 500 .8rem var(--f-mono); color: var(--muted); }
+.pill { font: 600 .7rem var(--f-body); padding: 2px 8px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); text-transform: uppercase; letter-spacing: .04em; }
+.pill.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+.tablewrap { overflow-x: auto; }
+table.t { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.t th, table.t td { text-align: left; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); }
+table.t th { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: var(--r); font-size: .9rem; z-index: 20; max-width: calc(100% - 32px); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><h1>Raport zmiany</h1><a href="./">← Rejestr wózków</a></div>
+    <span class="who" id="who" hidden><span id="whoEmail"></span><button type="button" id="logout">Wyloguj</button></span>
+    <nav class="tabs" role="tablist" aria-label="Sekcje" id="tabs" hidden>
+      <button role="tab" id="tab-form" aria-controls="p-form" aria-selected="true">Nowy raport</button>
+      <button role="tab" id="tab-hist" aria-controls="p-hist" aria-selected="false">Historia</button>
+      <button role="tab" id="tab-set" aria-controls="p-set" aria-selected="false" hidden>Ustawienia</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="noConfig" class="notice err" hidden>Aplikacja nie jest połączona z bazą danych (plik <code>firebase-config.js</code>).</div>
+
+  <section id="login" class="panel login" hidden>
+    <h2>Zaloguj się</h2>
+    <p class="sub">To samo konto co w rejestrze wózków.</p>
+    <form id="loginForm" class="panel" style="border:0;padding:0" novalidate>
+      <label class="field">E-mail <input id="lEmail" type="email" autocomplete="username" required></label>
+      <label class="field">Hasło <input id="lPass" type="password" autocomplete="current-password" required></label>
+      <div id="loginMsg" class="notice err" hidden></div>
+      <div class="row"><button class="btn primary" type="submit" id="lSubmit">Zaloguj</button></div>
+    </form>
+  </section>
+
+  <section role="tabpanel" id="p-form" hidden>
+    <div class="notice warn"><b>Zasady wypełniania</b>
+      <ul>
+        <li>Każde pole musi być wypełnione. Liczba albo powód – „ok” i „brak” nie przechodzą.</li>
+        <li>Stan na start musi zgadzać się z końcem poprzedniej zmiany. Jeśli się nie zgadza, opisz różnicę.</li>
+        <li>Bilans naczep i butelek musi się zgadzać. Jeśli się nie zgadza, wyjaśnij dlaczego.</li>
+      </ul>
+    </div>
+    <div id="form" style="display:grid;gap:14px"></div>
+    <div id="out" class="panel" hidden></div>
+  </section>
+
+  <section role="tabpanel" id="p-hist" hidden></section>
+  <section role="tabpanel" id="p-set" hidden></section>
+</main>
+
+<div class="bar" id="bar" hidden><div class="wrap">
+  <div class="prog"><div class="t" id="prog-t">Wypełnij raport</div><div class="track"><i id="prog-i"></i></div></div>
+  <button class="btn primary" id="btn-send" type="button">Wyślij raport</button>
+</div></div>
+<div id="toast" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(function(){
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const BAD_WORDS = ["ok", "okej", "brak", "-", "--", "nie wiem", "x", ".", "..", "nic", "jw", "j.w.", "to samo"];
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+let toastT;
+function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3200); }
+
+let db = null, auth = null, unsubs = [];
+let email = "", isMod = false, prev = null, reports = [], cfg = {};
+let V = {}, showErr = false, lastText = "";
+
+/* ---------- field model ---------- */
+const n = (k) => { const x = V[k]; return (x === "" || x == null || isNaN(+x)) ? null : +x; };
+const filled = (k) => V[k] != null && String(V[k]).trim() !== "";
+const S = [
+ { no: "·", title: "Dane zmiany", f: [
+  { k: "date", l: "Data", t: "date" },
+  { k: "shift", l: "Zmiana", t: "shift" },
+  { k: "spec", l: "Specjalista", t: "text" },
+  { k: "team", l: "Zespół na zmianie", t: "text", wide: 1 },
+  { k: "status", l: "Status zmiany", t: "status", wide: 1 }
+ ]},
+ { no: "0", title: "Przejęcie od poprzedniej zmiany", prev: 1, f: [
+  { k: "prev_ok", l: "Stan zastany zgodny z raportem poprzednika?", t: "yn", wide: 1 },
+  { k: "prev_diff", l: "Co się nie zgadza?", t: "area", wide: 1, reason: 1, need: () => V.prev_ok === "NIE" || prevMismatch().length > 0 },
+  { k: "prev_tasks", l: "Zadania przekazane przez poprzednika zamknięte?", t: "yn3", wide: 1 },
+  { k: "prev_tasks_why", l: "Które zadania nie są zamknięte i dlaczego?", t: "area", wide: 1, reason: 1, need: () => V.prev_tasks === "NIE" }
+ ]},
+ { no: "1", title: "Naczepy – bilans", f: [
+  { k: "n_start", l: "Do rozładunku na start", t: "num" },
+  { k: "n_in", l: "Przyjechały w trakcie zmiany", t: "num" },
+  { k: "n_unl", l: "Rozładowane na zmianie", t: "num" },
+  { k: "n_end", l: "Do rozładunku na koniec", t: "num" },
+  { calc: "n" },
+  { k: "n_bal_why", l: "Bilans się nie zgadza – wyjaśnij", t: "area", wide: 1, reason: 1, need: () => bal("n") === false },
+  { k: "n_end_why", l: "Dlaczego zostają naczepy do rozładunku?", t: "area", wide: 1, reason: 1, need: () => n("n_end") > 0 },
+  { k: "r_start", l: "Remonty na start", t: "num" },
+  { k: "r_unl", l: "Remonty rozładowane", t: "num" },
+  { k: "r_left", l: "Remonty pozostało", t: "num" },
+  { k: "r_why", l: "Status pozostałych remontów", t: "area", wide: 1, reason: 1, need: () => n("r_left") > 0 },
+  { k: "s_eur", l: "Wysłane pod komplet – Euro PUL", t: "num" },
+  { k: "s_dhp", l: "Wysłane pod komplet – DHP", t: "num" }
+ ]},
+ { no: "2", title: "Higiena naczep", f: [
+  { k: "sw", l: "Naczepy zamiecione", t: "num" },
+  { k: "wash_req", l: "Zgłoszone do mycia", t: "num" },
+  { k: "washed", l: "Umyte na myjni", t: "num" },
+  { k: "wash_nums", l: "Numery naczep zgłoszonych do mycia", t: "text", wide: 1, reason: 1, need: () => n("wash_req") > 0 },
+  { k: "night", l: "Myjnia na nockę wydrukowana + dokumenty na nocne odbiory", t: "yn", wide: 1 },
+  { k: "night_why", l: "Dlaczego nie?", t: "text", wide: 1, reason: 1, need: () => V.night === "NIE" }
+ ]},
+ { no: "3", title: "Palety", f: [
+  { k: "p_ret", l: "Przyjęte ze zwrotem", t: "num" },
+  { k: "p_combo", l: "Utworzone palety combo", t: "num" },
+  { k: "p_util", l: "Utworzone palety utylizacji", t: "num" },
+  { k: "p_go", l: "Green Office na koniec zmiany", t: "num" },
+  { k: "scrap", l: "Złom posprzątany?", t: "yn" },
+  { k: "scrap_left", l: "Złom – zostało palet", t: "num" },
+  { k: "scrap_why", l: "Dlaczego złom nie jest posprzątany?", t: "area", wide: 1, reason: 1, need: () => V.scrap === "NIE" || n("scrap_left") > 0 }
+ ]},
+ { no: "4", title: "Butelki", f: [
+  { k: "b_start", l: "Na start (palet)", t: "num" },
+  { k: "b_in", l: "Przyjęte (palet)", t: "num" },
+  { k: "b_in_szt", l: "Przyjęte (sztuk, dokładnie)", t: "num" },
+  { k: "b_done", l: "Przerobione (palet)", t: "num" },
+  { k: "b_end", l: "Na koniec (palet)", t: "num" },
+  { calc: "b" },
+  { k: "b_bal_why", l: "Bilans butelek się nie zgadza – wyjaśnij", t: "area", wide: 1, reason: 1, need: () => bal("b") === false }
+ ]},
+ { no: "5", title: "Przerzuty / DKM", f: [
+  { k: "dkm_done", l: "Zrobione naczepy", t: "num" },
+  { k: "dkm_left", l: "Na magazynie pozostało", t: "num" },
+  { k: "dkm_why", l: "Dlaczego nie zrobione?", t: "area", wide: 1, reason: 1, need: () => n("dkm_left") > 0 }
+ ]},
+ { no: "6", title: "Redlink", f: [
+  { k: "rl", l: "Odpowiedź na zapytanie udzielona?", t: "yn", wide: 1 },
+  { k: "rl_why", l: "Dlaczego nie?", t: "text", wide: 1, reason: 1, need: () => V.rl === "NIE" },
+  { k: "rl_plan", l: "Plan przerzutów (dzień – ilość palet)", t: "area", wide: 1, ph: "np. czw – 12 palet, pt – 8 palet" }
+ ]},
+ { no: "7", title: "Hala do przebrania (cel: 0)", f: [
+  { k: "h_start", l: "Palet na start", t: "num" },
+  { k: "h_end", l: "Palet na koniec", t: "num" },
+  { k: "h_why", l: "Hala nie jest pusta – dlaczego?", t: "area", wide: 1, reason: 1, need: () => n("h_end") > 0 }
+ ]},
+ { no: "8", title: "Dokumentacja MM", f: [
+  { k: "mm", l: "MM wczytane?", t: "yn" },
+  { k: "nomm", l: "Dostawy bez MM (szt.)", t: "num" },
+  { k: "mm_why", l: "Dlaczego MM nie wczytane?", t: "text", wide: 1, reason: 1, need: () => V.mm === "NIE" },
+  { k: "nomm_det", l: "Towar bez MM – nr naczepy / dostawcy", t: "area", wide: 1, reason: 1, need: () => n("nomm") > 0 },
+  { k: "nomm_mark", l: "Towar bez MM spisany i oznaczony?", t: "yn", wide: 1, reason: 1, need: () => n("nomm") > 0 },
+  { k: "nomm_why", l: "Dlaczego nie spisany / nie oznaczony?", t: "text", wide: 1, reason: 1, need: () => n("nomm") > 0 && V.nomm_mark === "NIE" }
+ ]},
+ { no: "9", title: "Skanery", f: [
+  { k: "sc_b", l: "Skanery przed zmianą", t: "num" },
+  { k: "sc_a", l: "Skanery po zmianie", t: "num" },
+  { k: "sc_why", l: "Liczba się różni – gdzie są brakujące skanery?", t: "area", wide: 1, reason: 1, need: () => n("sc_b") != null && n("sc_a") != null && n("sc_b") !== n("sc_a") },
+  { k: "sc_log", l: "Wpisy w zestawieniu kompletne?", t: "yn", wide: 1 },
+  { k: "sc_log_why", l: "Czego brakuje w zestawieniu?", t: "text", wide: 1, reason: 1, need: () => V.sc_log === "NIE" }
+ ]},
+ { no: "10", title: "Porządek", f: [
+  { k: "ord", l: "Porządek po zmianie?", t: "yn", wide: 1 },
+  { k: "ord_left", l: "Co zostało do posprzątania i dlaczego?", t: "area", wide: 1, reason: 1, need: () => V.ord === "NIE" }
+ ]},
+ { no: "11", title: "Nieprawidłowości", f: [
+  { k: "irr_n", l: "Liczba zgłoszonych nieprawidłowości", t: "num" },
+  { k: "irr_desc", l: () => n("irr_n") === 0 ? "Zero zgłoszeń – co sprawdziłeś, że stwierdzasz brak?" : "Opis: co, gdzie, kto zgłosił, kto nie zgłosił", t: "area", wide: 1 }
+ ]},
+ { no: "12", title: "Przekazuję następnej zmianie", f: [
+  { k: "ho1", l: () => V.status && V.status !== "g" ? "Zadanie 1 (wymagane przy statusie żółtym/czerwonym)" : "Zadanie 1", t: "text", wide: 1, ph: "Co ma zrobić następna zmiana", opt: () => !(V.status && V.status !== "g") },
+  { k: "ho2", l: "Zadanie 2", t: "text", wide: 1, opt: () => true },
+  { k: "ho3", l: "Zadanie 3", t: "text", wide: 1, opt: () => true },
+  { k: "ho_who", l: "Przejmuje (kto)", t: "text", wide: 1 }
+ ]}
+];
+const STATUS = { g: ["g", "Zielony", "wszystko zrobione"], y: ["y", "Żółty", "drobne zaległości"], r: ["r", "Czerwony", "zostają zadania"] };
+const lbl = (f) => typeof f.l === "function" ? f.l() : f.l;
+const balVals = (p) => p === "n" ? [n("n_start"), n("n_in"), n("n_unl"), n("n_end")] : [n("b_start"), n("b_in"), n("b_done"), n("b_end")];
+function bal(p) { const a = balVals(p); if (a.some(x => x == null)) return null; return a[0] + a[1] - a[2] === a[3]; }
+function prevMismatch() {
+  if (!prev || !prev.v) return [];
+  const m = [];
+  const c = (k, pk, name) => { const a = n(k), raw = prev.v[pk], b = raw != null && raw !== "" ? +raw : null; if (a != null && b != null && a !== b) m.push(name + ": poprzednik zostawił " + b + ", zastałeś " + a); };
+  c("n_start", "n_end", "Naczepy do rozładunku"); c("r_start", "r_left", "Remonty"); c("b_start", "b_end", "Butelki"); c("h_start", "h_end", "Hala do przebrania");
+  return m;
+}
+const active = (f) => !f.reason || f.need();
+const optional = (f) => f.opt && f.opt();
+function errOf(f) {
+  if (!active(f)) return null;
+  if (optional(f) && !filled(f.k)) return null;
+  if (!filled(f.k)) return "Uzupełnij";
+  const v = String(V[f.k]).trim();
+  if (f.t === "num") return (isNaN(+v) || +v < 0 || !Number.isInteger(+v)) ? "Wpisz liczbę całkowitą" : null;
+  if (f.t === "text" || f.t === "area") {
+    if (BAD_WORDS.includes(v.toLowerCase())) return "„" + v + "” to nie jest odpowiedź";
+    if ((f.reason || f.k === "irr_desc" || f.k === "rl_plan") && v.length < 8) return "Napisz konkretnie (min. kilka słów)";
+  }
+  return null;
+}
+
+/* ---------- render form ---------- */
+function renderForm() {
+  const root = $("#form"); root.innerHTML = "";
+  S.forEach((s, si) => {
+    const sec = document.createElement("section"); sec.className = "sec"; sec.id = "sec-" + si;
+    sec.innerHTML = '<h2><span class="no">' + s.no + "</span>" + s.title + '<span class="cnt"></span></h2>';
+    if (s.prev) { const p = document.createElement("div"); p.className = "prev"; p.id = "prevbox"; sec.appendChild(p); }
+    const g = document.createElement("div"); g.className = "grid"; sec.appendChild(g);
+    s.f.forEach(f => {
+      if (f.calc) { const c = document.createElement("div"); c.className = "calc f wide"; c.id = "calc-" + f.calc; g.appendChild(c); return; }
+      const w = document.createElement("div"); w.className = "f" + (f.wide ? " wide" : "") + (f.reason ? " reason" : ""); w.id = "w-" + f.k;
+      const lab = document.createElement("label"); lab.htmlFor = "i-" + f.k; lab.id = "l-" + f.k; lab.textContent = lbl(f); w.appendChild(lab);
+      let inp;
+      if (f.t === "yn" || f.t === "yn3") {
+        inp = document.createElement("div"); inp.className = "yn"; inp.id = "i-" + f.k;
+        (f.t === "yn3" ? ["TAK", "NIE", "Nie było"] : ["TAK", "NIE"]).forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.dataset.v = o; b.onclick = () => { V[f.k] = o; change(); }; inp.appendChild(b); });
+      } else if (f.t === "status") {
+        inp = document.createElement("div"); inp.className = "status-pick"; inp.id = "i-" + f.k;
+        Object.values(STATUS).forEach(([c, a, b]) => { const bt = document.createElement("button"); bt.type = "button"; bt.dataset.v = c; bt.innerHTML = '<span class="dot ' + c + '"></span><span><b>' + a + "</b> – " + b + "</span>"; bt.onclick = () => { V.status = c; change(); }; inp.appendChild(bt); });
+      } else if (f.t === "shift") {
+        inp = document.createElement("select"); inp.id = "i-" + f.k; inp.innerHTML = '<option value="">wybierz</option><option>I</option><option>II</option><option>III</option>';
+        inp.value = V[f.k] || ""; inp.onchange = () => { V[f.k] = inp.value; change(); };
+      } else {
+        inp = document.createElement(f.t === "area" ? "textarea" : "input"); inp.id = "i-" + f.k;
+        if (f.t === "num") { inp.type = "number"; inp.min = "0"; inp.step = "1"; inp.inputMode = "numeric"; inp.placeholder = "0"; }
+        else if (f.t === "date") inp.type = "date";
+        else if (f.t === "text") inp.type = "text";
+        if (f.ph) inp.placeholder = f.ph;
+        inp.value = V[f.k] ?? ""; inp.oninput = () => { V[f.k] = inp.value; change(); };
+      }
+      w.appendChild(inp);
+      const m = document.createElement("div"); m.className = "msg"; m.id = "m-" + f.k; w.appendChild(m);
+      g.appendChild(w);
+    });
+    root.appendChild(sec);
+  });
+  update();
+}
+function change() { LS.set("rz-draft", V); if (V.spec) LS.set("rz-spec", V.spec); update(); }
+function update() {
+  let tot = 0, ok = 0;
+  S.forEach((s, si) => {
+    let sErr = 0, sTot = 0;
+    s.f.forEach(f => {
+      if (f.calc) {
+        const el = $("#calc-" + f.calc), r = bal(f.calc), a = balVals(f.calc);
+        if (r == null) { el.className = "calc f wide"; el.textContent = f.calc === "n" ? "Bilans: start + przyjechały − rozładowane = koniec" : "Bilans: start + przyjęte − przerobione = koniec"; }
+        else { el.className = "calc f wide " + (r ? "ok" : "bad"); el.textContent = a[0] + " + " + a[1] + " − " + a[2] + " = " + (a[0] + a[1] - a[2]) + (r ? " ✓ zgadza się" : " ≠ " + a[3] + " – bilans się nie zgadza"); }
+        return;
+      }
+      const w = $("#w-" + f.k), on = active(f); w.hidden = !on; if (!on) return;
+      $("#l-" + f.k).textContent = lbl(f);
+      if (f.t === "yn" || f.t === "yn3" || f.t === "status") w.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === V[f.k]));
+      if (optional(f) && !filled(f.k)) { w.classList.remove("err"); $("#m-" + f.k).textContent = ""; return; }
+      const e = errOf(f); tot++; sTot++; if (!e) ok++; else sErr++;
+      w.classList.toggle("err", !!(showErr && e)); $("#m-" + f.k).textContent = showErr && e ? e : "";
+    });
+    const sec = $("#sec-" + si); sec.querySelector(".cnt").textContent = (sTot - sErr) + "/" + sTot;
+    sec.classList.toggle("has-err", showErr && sErr > 0); sec.classList.toggle("done", sErr === 0);
+  });
+  renderPrev();
+  $("#prog-t").textContent = ok === tot ? "Wszystko wypełnione" : "Wypełnione " + ok + " z " + tot + " pól";
+  $("#prog-i").style.width = (tot ? ok / tot * 100 : 0) + "%";
+  return tot - ok;
+}
+function renderPrev() {
+  const b = $("#prevbox"); if (!b) return;
+  if (!prev) { b.textContent = "Brak wcześniejszych raportów w systemie – to pierwszy raport."; return; }
+  const v = prev.v || {}, tasks = [v.ho1, v.ho2, v.ho3].filter(x => x && String(x).trim());
+  let h = "Poprzednia zmiana: <b>" + esc(v.date) + "</b>, zmiana <b>" + esc(v.shift) + "</b>, " + esc(v.spec) +
+    "<br>Zostawił: naczepy do rozładunku <b>" + esc(v.n_end) + "</b> · remonty <b>" + esc(v.r_left) + "</b> · butelki <b>" + esc(v.b_end) + "</b> pal. · hala <b>" + esc(v.h_end) + "</b> pal.";
+  h += tasks.length ? "<br>Przekazał do zrobienia:<ul>" + tasks.map(t => "<li>" + esc(t) + "</li>").join("") + "</ul>" : "<br>Nie przekazał zadań.";
+  const mm = prevMismatch();
+  if (mm.length) h += '<div class="notice err" style="margin-top:8px"><b>Niezgodność z raportem poprzednika:</b><br>' + mm.map(esc).join("<br>") + "</div>";
+  b.innerHTML = h;
+}
+
+/* ---------- report text ---------- */
+const T = (k) => { const x = V[k]; return (x == null || String(x).trim() === "") ? "—" : String(x).trim(); };
+const why = (k) => filled(k) ? " – " + T(k) : "";
+function buildText() {
+  const st = STATUS[V.status] || ["", "—", ""], L = [];
+  L.push("RAPORT ZMIANY – " + T("date") + " – zmiana " + T("shift"));
+  L.push("Specjalista: " + T("spec") + "   Zespół: " + T("team"));
+  L.push("STATUS ZMIANY: " + st[1].toUpperCase() + " (" + st[2] + ")");
+  L.push("", "0. PRZEJĘCIE OD POPRZEDNIEJ ZMIANY");
+  L.push("- Stan zastany zgodny z raportem poprzednika: " + T("prev_ok") + why("prev_diff"));
+  const mm = prevMismatch(); if (mm.length) L.push("- UWAGA, niezgodność liczb: " + mm.join("; "));
+  L.push("- Zadania poprzednika zamknięte: " + T("prev_tasks") + why("prev_tasks_why"));
+  L.push("", "1. NACZEPY – BILANS");
+  L.push("- Do rozładunku na start: " + T("n_start"), "- Przyjechały w trakcie zmiany: " + T("n_in"), "- Rozładowane na zmianie: " + T("n_unl"));
+  L.push("- Do rozładunku na koniec: " + T("n_end") + why("n_end_why"));
+  L.push("- Bilans: " + (bal("n") ? "zgadza się" : "NIE ZGADZA SIĘ" + why("n_bal_why")));
+  L.push("- Remonty: na start " + T("r_start") + " / rozładowane " + T("r_unl") + " / pozostało " + T("r_left") + why("r_why"));
+  L.push("- Wysłane pod komplet: Euro PUL " + T("s_eur") + ", DHP " + T("s_dhp"));
+  L.push("", "2. HIGIENA NACZEP");
+  L.push("- Zamiecione: " + T("sw"), "- Zgłoszone do mycia: " + T("wash_req") + (filled("wash_nums") && n("wash_req") > 0 ? " (nr: " + T("wash_nums") + ")" : ""), "- Umyte na myjni: " + T("washed"));
+  L.push("- Myjnia na nockę + dokumenty na nocne odbiory: " + T("night") + why("night_why"));
+  L.push("", "3. PALETY");
+  L.push("- Przyjęte ze zwrotem: " + T("p_ret"), "- Utworzone palety combo: " + T("p_combo"), "- Utworzone palety utylizacji: " + T("p_util"), "- Green Office na koniec zmiany: " + T("p_go"));
+  L.push("- Złom posprzątany: " + T("scrap") + ", zostało palet: " + T("scrap_left") + why("scrap_why"));
+  L.push("", "4. BUTELKI");
+  L.push("- Na start: " + T("b_start") + " pal.", "- Przyjęte: " + T("b_in") + " pal. / " + T("b_in_szt") + " szt.", "- Przerobione: " + T("b_done") + " pal.", "- Na koniec: " + T("b_end") + " pal.");
+  L.push("- Bilans: " + (bal("b") ? "zgadza się" : "NIE ZGADZA SIĘ" + why("b_bal_why")));
+  L.push("", "5. PRZERZUTY / DKM");
+  L.push("- Zrobione naczepy: " + T("dkm_done"), "- Na magazynie pozostało: " + T("dkm_left") + why("dkm_why"));
+  L.push("", "6. REDLINK");
+  L.push("- Odpowiedź na zapytanie udzielona: " + T("rl") + why("rl_why"), "- Plan przerzutów: " + T("rl_plan"));
+  L.push("", "7. HALA DO PRZEBRANIA (cel: 0)");
+  L.push("- Na start: " + T("h_start") + " pal. / na koniec: " + T("h_end") + " pal." + why("h_why"));
+  L.push("", "8. DOKUMENTACJA MM");
+  L.push("- MM wczytane: " + T("mm") + why("mm_why"));
+  L.push("- Towar bez MM: " + T("nomm") + " szt." + (n("nomm") > 0 ? " – " + T("nomm_det") + " – spisany i oznaczony: " + T("nomm_mark") + why("nomm_why") : ""));
+  L.push("", "9. SKANERY");
+  L.push("- Przed zmianą: " + T("sc_b") + " / po zmianie: " + T("sc_a") + why("sc_why"), "- Wpisy w zestawieniu kompletne: " + T("sc_log") + why("sc_log_why"));
+  L.push("", "10. PORZĄDEK");
+  L.push("- Porządek po zmianie: " + T("ord") + why("ord_left"));
+  L.push("", "11. NIEPRAWIDŁOWOŚCI");
+  L.push("- Liczba zgłoszonych: " + T("irr_n"), "- " + (n("irr_n") === 0 ? "Sprawdzone: " : "Opis: ") + T("irr_desc"));
+  L.push("", "12. PRZEKAZUJĘ NASTĘPNEJ ZMIANIE");
+  const t = ["ho1", "ho2", "ho3"].filter(filled);
+  if (t.length) t.forEach((k, i) => L.push((i + 1) + ") " + T(k))); else L.push("- brak zadań do przekazania");
+  L.push("- Przejmuje: " + T("ho_who"));
+  return L.join("\n");
+}
+function flagCount() {
+  let c = prevMismatch().length;
+  if (bal("n") === false) c++; if (bal("b") === false) c++;
+  ["prev_ok", "night", "scrap", "rl", "mm", "sc_log", "ord"].forEach(k => { if (V[k] === "NIE") c++; });
+  if (n("h_end") > 0) c++; if (n("nomm") > 0) c++;
+  return c;
+}
+
+/* ---------- send ---------- */
+const splitAddr = (s) => String(s || "").split(/[,;]/).map(x => x.trim()).filter(Boolean);
+const ejsReady = () => !!(cfg.ejsService && cfg.ejsTemplate && cfg.ejsKey);
+async function sendEmailJS(subject, text) {
+  const r = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ service_id: cfg.ejsService, template_id: cfg.ejsTemplate, user_id: cfg.ejsKey,
+      template_params: { to_email: splitAddr(cfg.to).join(","), cc_email: splitAddr(cfg.cc).join(","), subject, message: text, from_name: V.spec || email, reply_to: email } })
+  });
+  if (!r.ok) throw new Error(await r.text().catch(() => "HTTP " + r.status));
+}
+function mailtoUrl(subject, text) {
+  const body = text.length > 1800 ? text.slice(0, 1800) + "\n…(pełny raport jest w aplikacji – zakładka Historia)" : text;
+  const q = [];
+  if (cfg.cc) q.push("cc=" + encodeURIComponent(splitAddr(cfg.cc).join(",")));
+  q.push("subject=" + encodeURIComponent(subject), "body=" + encodeURIComponent(body.replace(/\n/g, "\r\n")));
+  return "mailto:" + splitAddr(cfg.to).join(",") + "?" + q.join("&");
+}
+$("#btn-send").onclick = async () => {
+  showErr = true; const missing = update();
+  if (missing > 0) {
+    const first = document.querySelector(".f.err"); if (first) first.scrollIntoView({ behavior: "smooth", block: "center" });
+    $("#prog-t").textContent = "Brakuje " + missing + " pól – raportu nie da się wysłać"; return;
+  }
+  if (!splitAddr(cfg.to).length) { toast("Kierownik nie ustawił jeszcze adresu odbiorcy raportów."); return; }
+  const btn = $("#btn-send"); btn.disabled = true; btn.textContent = "Wysyłanie…";
+  lastText = buildText();
+  const subject = "Raport zmiany – " + T("date") + " – zmiana " + T("shift") + " – " + T("spec");
+  const out = $("#out"); out.hidden = false;
+  let saved = false, mailed = false, mailErr = "";
+  try {
+    await db.collection("shift_reports").add({ v: JSON.parse(JSON.stringify(V)), text: lastText, status: V.status || "", flags: flagCount(), createdAt: new Date().toISOString(), by: email });
+    saved = true;
+  } catch (e) { console.error(e); }
+  if (ejsReady()) { try { await sendEmailJS(subject, lastText); mailed = true; } catch (e) { console.error(e); mailErr = String(e.message || e).slice(0, 160); } }
+  out.innerHTML =
+    "<h2>Raport " + (mailed ? "wysłany" : "gotowy") + "</h2>" +
+    (saved ? '<div class="notice ok">Raport zapisany w historii.</div>' : '<div class="notice err">Nie udało się zapisać raportu w historii. Sprawdź internet i spróbuj ponownie.</div>') +
+    (mailed ? '<div class="notice ok">Mail wysłany do: ' + esc(splitAddr(cfg.to).join(", ")) + (cfg.cc ? "<br>DW: " + esc(splitAddr(cfg.cc).join(", ")) : "") + "</div>"
+            : '<div class="notice warn">' + (mailErr ? "Automatyczna wysyłka nie zadziałała (" + esc(mailErr) + "). " : "") + "Kliknij „Otwórz w Outlooku” i wyślij maila. Jeśli Outlook się nie otworzy, skopiuj treść i wklej do maila na adresy poniżej.</div>" +
+              '<div class="addr">Do: ' + esc(splitAddr(cfg.to).join(", ")) + "<br>DW: " + esc(splitAddr(cfg.cc).join(", ") || "—") + "<br>Temat: " + esc(subject) + "</div>" +
+              '<div class="row"><a class="btn primary" id="mail-a" href="' + esc(mailtoUrl(subject, lastText)) + '">Otwórz w Outlooku</a><button class="btn" id="copy-b" type="button">Kopiuj treść</button></div>') +
+    '<div class="row"><button class="btn" id="new-b" type="button">Nowy raport</button></div>' +
+    '<pre class="rep" id="rep"></pre>';
+  $("#rep").textContent = lastText;
+  const cb = $("#copy-b"); if (cb) cb.onclick = async () => { try { await navigator.clipboard.writeText(lastText); cb.textContent = "Skopiowano"; } catch { const r = document.createRange(); r.selectNodeContents($("#rep")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); cb.textContent = "Zaznaczono – Ctrl+C"; } };
+  $("#new-b").onclick = () => { V = { date: today(), spec: V.spec }; LS.set("rz-draft", V); showErr = false; out.hidden = true; renderForm(); window.scrollTo(0, 0); };
+  if (saved) { LS.set("rz-draft", {}); }
+  if (!mailed && saved) { try { window.location.href = mailtoUrl(subject, lastText); } catch {} }
+  btn.disabled = false; btn.textContent = "Wyślij raport";
+  out.scrollIntoView({ behavior: "smooth" });
+};
+
+/* ---------- history ---------- */
+function renderHist() {
+  const v = $("#p-hist");
+  if (!reports.length) { v.innerHTML = '<div class="notice info">Brak raportów. Pierwszy pojawi się tutaj po wysłaniu formularza.</div>'; return; }
+  const wk = Date.now() - 7 * 864e5, w = reports.filter(r => Date.parse(r.createdAt) > wk);
+  const red = w.filter(r => r.status === "r").length, fl = w.reduce((a, r) => a + (r.flags || 0), 0), mis = w.filter(r => r.v && r.v.prev_ok === "NIE").length;
+  let h = '<div class="stats"><div class="stat"><b>' + w.length + "</b><span>raportów w 7 dni</span></div><div class=\"stat\"><b>" + red + '</b><span>zmian na czerwono</span></div><div class="stat"><b>' + fl + '</b><span>problemów zgłoszonych</span></div><div class="stat"><b>' + mis + "</b><span>niezgodności przy przejęciu</span></div></div>";
+  const by = {}; w.forEach(r => { const s = (r.v && r.v.spec) || "?"; by[s] = by[s] || { n: 0, f: 0, m: 0, r: 0 }; by[s].n++; by[s].f += r.flags || 0; if (r.v && r.v.prev_ok === "NIE") by[s].m++; if (r.status === "r") by[s].r++; });
+  const ks = Object.keys(by);
+  if (ks.length) h += '<div class="panel"><h2>Specjaliści – ostatnie 7 dni</h2><div class="tablewrap"><table class="t"><tr><th>Specjalista</th><th>Raporty</th><th>Na czerwono</th><th>Problemy</th><th>Zakwestionował poprzednika</th></tr>' +
+    ks.map(k => "<tr><td>" + esc(k) + '</td><td class="n">' + by[k].n + '</td><td class="n">' + by[k].r + '</td><td class="n">' + by[k].f + '</td><td class="n">' + by[k].m + "</td></tr>").join("") + "</table></div></div>";
+  h += reports.map(r => { const v = r.v || {}, st = STATUS[r.status] || ["", "—", ""];
+    return '<details class="hi"><summary><span class="dot ' + st[0] + '"></span><b>' + esc(v.spec) + '</b><span class="meta">' + esc(v.date) + " · zm. " + esc(v.shift) + "</span>" + (r.flags ? '<span class="pill bad">' + r.flags + " problemów</span>" : '<span class="pill">bez uwag</span>') + '</summary><pre class="rep" style="margin-top:10px">' + esc(r.text) + "</pre></details>"; }).join("");
+  v.innerHTML = h;
+}
+
+/* ---------- settings (moderators) ---------- */
+function renderSet() {
+  const v = $("#p-set");
+  v.innerHTML =
+    '<div class="panel"><h2>Odbiorcy raportu</h2><p class="sub">Kilka adresów oddziel przecinkiem.</p>' +
+    '<label class="field">Do <input id="s-to" type="text" placeholder="imie.nazwisko@firma.pl"></label>' +
+    '<label class="field">DW <input id="s-cc" type="text" placeholder="adres1@firma.pl, adres2@firma.pl"></label></div>' +
+    '<div class="panel"><h2>Automatyczna wysyłka (EmailJS)</h2><p class="sub">Gdy te trzy pola są wypełnione, raport wychodzi mailem sam po kliknięciu „Wyślij raport”. Gdy są puste, aplikacja otwiera gotowego maila w Outlooku. Instrukcja w README repozytorium.</p>' +
+    '<label class="field">Service ID <input id="s-es" type="text" placeholder="service_xxxxxxx"></label>' +
+    '<label class="field">Template ID <input id="s-et" type="text" placeholder="template_xxxxxxx"></label>' +
+    '<label class="field">Public Key <input id="s-ek" type="text" placeholder="np. AbCdEf123456"></label></div>' +
+    '<div class="row"><button class="btn primary" id="s-save" type="button">Zapisz ustawienia</button><span id="s-st" class="sub"></span></div>';
+  $("#s-to").value = cfg.to || ""; $("#s-cc").value = cfg.cc || ""; $("#s-es").value = cfg.ejsService || ""; $("#s-et").value = cfg.ejsTemplate || ""; $("#s-ek").value = cfg.ejsKey || "";
+  $("#s-save").onclick = async () => {
+    const okA = (s) => splitAddr(s).every(x => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x));
+    const d = { to: $("#s-to").value.trim(), cc: $("#s-cc").value.trim(), ejsService: $("#s-es").value.trim(), ejsTemplate: $("#s-et").value.trim(), ejsKey: $("#s-ek").value.trim() };
+    if (!d.to || !okA(d.to) || !okA(d.cc)) { $("#s-st").textContent = "Sprawdź adresy – każdy w postaci nazwa@domena.pl"; return; }
+    try { await db.collection("settings").doc("shiftReport").set(d); $("#s-st").textContent = "Zapisano"; } catch (e) { console.error(e); $("#s-st").textContent = e && e.code === "permission-denied" ? "Brak uprawnień – zapis tylko dla moderatora." : "Nie udało się zapisać."; }
+  };
+}
+
+/* ---------- tabs ---------- */
+const TABS = ["form", "hist", "set"];
+function showTab(t) {
+  TABS.forEach(x => { $("#tab-" + x).setAttribute("aria-selected", x === t); $("#p-" + x).hidden = x !== t; });
+  $("#bar").hidden = t !== "form";
+  if (t === "hist") renderHist(); if (t === "set") renderSet();
+}
+TABS.forEach(t => $("#tab-" + t).addEventListener("click", () => showTab(t)));
+
+/* ---------- auth / data ---------- */
+$("#loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); const m = $("#loginMsg"); m.hidden = true; $("#lSubmit").disabled = true;
+  try { await auth.signInWithEmailAndPassword($("#lEmail").value.trim(), $("#lPass").value); $("#lPass").value = ""; }
+  catch (err) { m.textContent = err.code === "auth/too-many-requests" ? "Za dużo prób. Spróbuj za kilka minut." : "Nieprawidłowy e-mail lub hasło."; m.hidden = false; }
+  finally { $("#lSubmit").disabled = false; }
+});
+$("#logout").addEventListener("click", () => auth.signOut());
+
+function subscribe() {
+  unsubs.push(db.collection("config").doc("roles").onSnapshot(s => {
+    const mods = ((s.exists && s.data().moderators) || []).map(x => String(x).toLowerCase());
+    isMod = mods.includes(email.toLowerCase()); $("#tab-set").hidden = !isMod;
+    if (!isMod && !$("#p-set").hidden) showTab("form");
+  }, e => console.error(e)));
+  unsubs.push(db.collection("settings").doc("shiftReport").onSnapshot(s => { cfg = s.exists ? s.data() : {}; }, e => console.error(e)));
+  unsubs.push(db.collection("shift_reports").orderBy("createdAt", "desc").limit(90).onSnapshot(s => {
+    reports = s.docs.map(d => d.data()); prev = reports[0] || null; update(); if (!$("#p-hist").hidden) renderHist();
+  }, e => console.error(e)));
+}
+
+(function start() {
+  V = Object.assign({ date: today() }, LS.get("rz-draft", {}));
+  if (!V.date) V.date = today();
+  if (!V.spec) { const s = LS.get("rz-spec", ""); if (s) V.spec = s; }
+  renderForm();
+  const c = window.FIREBASE_CONFIG;
+  if (!window.firebase || !c || !c.apiKey) { $("#noConfig").hidden = false; return; }
+  firebase.initializeApp(c); db = firebase.firestore(); auth = firebase.auth();
+  auth.onAuthStateChanged(u => {
+    unsubs.forEach(x => x()); unsubs = [];
+    const inside = !!u;
+    $("#login").hidden = inside; $("#tabs").hidden = !inside; $("#who").hidden = !inside;
+    if (!inside) { TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; return; }
+    email = u.email || ""; $("#whoEmail").textContent = email;
+    showTab("form"); subscribe();
+  });
+})();
+})();
+</script>
+</body>
+</html>

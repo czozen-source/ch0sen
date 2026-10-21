@@ -36,6 +36,11 @@ service cloud.firestore {
     match /schedule/{day} {
       allow read, write: if signedIn();
     }
+    // Raporty zmian: każdy zalogowany czyta i dodaje raport, poprawia i usuwa tylko moderator.
+    match /shift_reports/{id} {
+      allow read, create: if signedIn();
+      allow update, delete: if isMod();
+    }
     // Zgłoszenia: każdy zalogowany dodaje i zmienia status, usuwa tylko moderator.
     match /damages/{id} {
       allow read, create, update: if signedIn();
