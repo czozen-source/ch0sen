@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Raport zmiany</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: same header as the forklift register; one narrow clipboard column; sticky progress bar at the bottom of the form */
+:root {
+  --bg: #eef1f4; --surface: #ffffff; --surface-2: #f5f7f9; --line: #d5dbe2;
+  --fg: #17202b; --muted: #5b6878; --accent: #e8a200; --accent-ink: #1a1400;
+  --head: #1d2733; --head-fg: #f3f5f7;
+  --ok: #1f8a4c; --ok-bg: #e2f4ea; --warn: #b26b00; --warn-bg: #fff1d6;
+  --busy: #1f62b8; --bad: #c0332b; --bad-bg: #fbe4e2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11161c; --surface: #1a2129; --surface-2: #151b22; --line: #2e3844;
+  --fg: #e6eaef; --muted: #96a3b3; --accent: #f2b31d; --accent-ink: #1a1400;
+  --head: #0b0f14; --head-fg: #e6eaef;
+  --ok: #4cc47f; --ok-bg: #173323; --warn: #f0a63a; --warn-bg: #3a2a10;
+  --busy: #6ea6f0; --bad: #f07067; --bad-bg: #3e1a18; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #11161c; --surface: #1a2129; --surface-2: #151b22; --line: #2e3844;
+  --fg: #e6eaef; --muted: #96a3b3; --accent: #f2b31d; --accent-ink: #1a1400;
+  --head: #0b0f14; --head-fg: #e6eaef;
+  --ok: #4cc47f; --ok-bg: #173323; --warn: #f0a63a; --warn-bg: #3a2a10;
+  --busy: #6ea6f0; --bad: #f07067; --bad-bg: #3e1a18; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; padding-top: env(safe-area-inset-top, 0px); background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+[hidden] { display: none !important; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--head); }
+.wrap { max-width: 780px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--head); color: var(--head-fg); border-bottom: 3px solid var(--accent); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-block: 10px 0; }
+.brand { display: flex; align-items: baseline; gap: 12px; margin-right: auto; flex-wrap: wrap; }
+.brand h1 { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; letter-spacing: .02em; text-transform: uppercase; margin: 0; }
+.brand a { color: #b8c4d1; font-size: .82rem; }
+.who { font-size: .8rem; color: #b8c4d1; display: inline-flex; gap: 10px; align-items: center; }
+.who button { font: inherit; background: transparent; color: #fff; border: 1px solid #4a5868; border-radius: var(--r); padding: 3px 9px; cursor: pointer; }
+nav.tabs { display: flex; gap: 2px; width: 100%; overflow-x: auto; }
+nav.tabs button { font-family: var(--f-display); font-size: 1.05rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; background: transparent; color: #b8c4d1; border: 0; padding: 8px 14px 9px; cursor: pointer; border-radius: var(--r) var(--r) 0 0; white-space: nowrap; }
+nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+main { padding-block: 18px 130px; display: grid; gap: 14px; }
+h2 { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
+.sub { color: var(--muted); margin: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+input, select, textarea { font: inherit; font-size: .95rem; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 10px; width: 100%; min-width: 0; }
+input[type=number] { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+textarea { min-height: 58px; resize: vertical; }
+input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font: inherit; font-weight: 600; font-size: .9rem; border-radius: var(--r); padding: 9px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+button.link { font: inherit; background: none; border: 0; padding: 0; color: var(--busy); cursor: pointer; text-decoration: underline; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; }
+.notice { padding: 10px 12px; border-radius: var(--r); font-size: .9rem; }
+.notice.ok { background: var(--ok-bg); color: var(--ok); }
+.notice.err { background: var(--bad-bg); color: var(--bad); }
+.notice.warn { background: var(--warn-bg); color: var(--warn); }
+.notice.info { background: var(--surface-2); color: var(--muted); border: 1px dashed var(--line); }
+.notice ul { margin: 4px 0 0; padding-left: 18px; }
+.login { max-width: 420px; margin: 30px auto 0; }
+.field { display: grid; gap: 4px; font-size: .82rem; font-weight: 600; color: var(--muted); }
+
+section.sec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; }
+section.sec.has-err { box-shadow: inset 4px 0 0 var(--bad); }
+section.sec.done { box-shadow: inset 4px 0 0 var(--ok); }
+.sec h2 { display: flex; align-items: center; gap: 10px; }
+.sec h2 .no { font-family: var(--f-mono); font-size: .8rem; background: var(--accent); color: var(--accent-ink); padding: 2px 7px; border-radius: 4px; }
+.sec h2 .cnt { margin-left: auto; font: 500 .75rem var(--f-mono); color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.f { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.f.wide { grid-column: 1 / -1; }
+.f > label { font-size: .8rem; font-weight: 600; color: var(--muted); }
+.f.err input, .f.err select, .f.err textarea, .f.err .yn { border-color: var(--bad); }
+.f .msg { font-size: .78rem; color: var(--bad); }
+.f.reason { background: var(--warn-bg); border-radius: var(--r); padding: 8px; }
+.f.reason > label { color: var(--warn); }
+.yn { display: flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; width: max-content; max-width: 100%; }
+.yn button { font: 600 .9rem var(--f-body); border: 0; background: var(--surface-2); color: var(--fg); padding: 8px 16px; cursor: pointer; }
+.yn button + button { border-left: 1px solid var(--line); }
+.yn button.on[data-v="TAK"] { background: var(--ok); color: #fff; }
+.yn button.on[data-v="NIE"] { background: var(--bad); color: #fff; }
+.yn button.on[data-v="Nie było"] { background: var(--muted); color: var(--bg); }
+.calc { font: 500 .82rem var(--f-mono); padding: 7px 10px; border-radius: var(--r); background: var(--surface-2); color: var(--muted); }
+.calc.ok { background: var(--ok-bg); color: var(--ok); } .calc.bad { background: var(--bad-bg); color: var(--bad); }
+.prev { font-size: .88rem; background: var(--surface-2); border-radius: var(--r); padding: 10px 12px; }
+.prev b { font-family: var(--f-mono); font-weight: 500; }
+.prev ul { margin: 6px 0 0; padding-left: 18px; }
+.status-pick { display: flex; gap: 8px; flex-wrap: wrap; }
+.status-pick button { flex: 1 1 150px; font: 600 .9rem var(--f-body); text-align: left; border: 2px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: var(--r); padding: 9px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
+.status-pick button.on { border-color: var(--fg); }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.dot.g { background: var(--ok); } .dot.y { background: var(--warn); } .dot.r { background: var(--bad); }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding-top: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 6; }
+.bar .wrap { display: flex; align-items: center; gap: 12px; }
+.prog { flex: 1; min-width: 0; }
+.prog .t { font-size: .85rem; font-weight: 600; }
+.prog .track { height: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+.prog .track i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+pre.rep { font: 500 .78rem/1.5 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border-radius: var(--r); padding: 12px; margin: 0; max-height: 420px; overflow: auto; }
+.addr { font-family: var(--f-mono); font-size: .82rem; overflow-wrap: anywhere; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; }
+.stat b { display: block; font-family: var(--f-mono); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.stat span { font-size: .8rem; color: var(--muted); }
+details.hi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px; }
+details.hi summary { cursor: pointer; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; list-style: none; }
+details.hi summary::-webkit-details-marker { display: none; }
+.meta { font: 500 .8rem var(--f-mono); color: var(--muted); }
+.pill { font: 600 .7rem var(--f-body); padding: 2px 8px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); text-transform: uppercase; letter-spacing: .04em; }
+.pill.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+.tablewrap { overflow-x: auto; }
+table.t { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.t th, table.t td { text-align: left; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); }
+table.t th { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: var(--r); font-size: .9rem; z-index: 20; max-width: calc(100% - 32px); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+
+/* Redlink weekly counter */
+.rl { display: grid; gap: 10px; }
+.rl-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rl-head b { font-family: var(--f-mono); font-size: .9rem; }
+.rl-days { display: grid; gap: 6px; }
+.rl-day { display: grid; grid-template-columns: 74px 1fr auto; gap: 4px 10px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface-2); }
+.rl-day.today { border-color: var(--accent); }
+.rl-day .d { font-weight: 600; font-size: .85rem; line-height: 1.2; }
+.rl-day .d small { display: block; font: 500 .72rem var(--f-mono); color: var(--muted); }
+.rl-day .sum { font: 600 .85rem var(--f-mono); font-variant-numeric: tabular-nums; }
+.rl-day .sum.full { color: var(--bad); }
+.rl-track { height: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.rl-track i { display: block; height: 100%; background: var(--ok); }
+.rl-track i.mid { background: var(--warn); } .rl-track i.full { background: var(--bad); }
+.rl-chips { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: .76rem; padding: 2px 4px 2px 8px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); display: inline-flex; gap: 4px; align-items: center; }
+.chip button { font: inherit; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 4px; }
+.rl-add { display: grid; grid-template-columns: 1fr 90px auto; gap: 8px; }
+@media (max-width: 420px) { .rl-add { grid-template-columns: 1fr 1fr; } .rl-add button { grid-column: 1 / -1; } }
+.rl-week { font: 600 .85rem var(--f-mono); color: var(--muted); }
+/* colored preview of the mail */
+.preview { border: 1px solid var(--line); border-radius: var(--r); background: #ffffff; color: #17202b; padding: 12px; overflow-x: auto; }
+.sig { font-size: .9rem; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><h1>Raport zmiany</h1><a href="./">← Rejestr wózków</a></div>
+    <span class="who" id="who" hidden><span id="whoEmail"></span><button type="button" id="logout">Wyloguj</button></span>
+    <nav class="tabs" role="tablist" aria-label="Sekcje" id="tabs" hidden>
+      <button role="tab" id="tab-form" aria-controls="p-form" aria-selected="true">Nowy raport</button>
+      <button role="tab" id="tab-rl" aria-controls="p-rl" aria-selected="false">Redlink</button>
+      <button role="tab" id="tab-hist" aria-controls="p-hist" aria-selected="false">Historia</button>
+      <button role="tab" id="tab-set" aria-controls="p-set" aria-selected="false" hidden>Ustawienia</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="noConfig" class="notice err" hidden>Aplikacja nie jest połączona z bazą danych (plik <code>firebase-config.js</code>).</div>
+  <div id="dbErr" class="notice err" hidden></div>
+  <div id="noAccess" class="notice info" hidden>Ta strona jest w przygotowaniu i nie jest jeszcze dostępna. Wróć do <a href="./">rejestru wózków</a>.</div>
+
+  <section id="login" class="panel login" hidden>
+    <h2>Zaloguj się</h2>
+    <p class="sub">To samo konto co w rejestrze wózków.</p>
+    <form id="loginForm" class="panel" style="border:0;padding:0" novalidate>
+      <label class="field">E-mail <input id="lEmail" type="email" autocomplete="username" required></label>
+      <label class="field">Hasło <input id="lPass" type="password" autocomplete="current-password" required></label>
+      <div id="loginMsg" class="notice err" hidden></div>
+      <div class="row"><button class="btn primary" type="submit" id="lSubmit">Zaloguj</button></div>
+    </form>
+  </section>
+
+  <section role="tabpanel" id="p-form" hidden>
+    <div class="notice warn"><b>Zasady wypełniania</b>
+      <ul>
+        <li>Każde pole musi być wypełnione. Liczba albo powód – „ok” i „brak” nie przechodzą.</li>
+        <li>Stan na start musi zgadzać się z końcem poprzedniej zmiany. Jeśli się nie zgadza, opisz różnicę.</li>
+        <li>Bilans naczep i butelek musi się zgadzać. Jeśli się nie zgadza, wyjaśnij dlaczego.</li>
+      </ul>
+    </div>
+    <div id="out" class="panel" hidden></div>
+    <div id="form" style="display:grid;gap:14px"></div>
+  </section>
+
+  <section role="tabpanel" id="p-rl" hidden>
+    <div class="panel"><h2>Plan przerzutów Redlink</h2>
+      <p class="sub">Każdy dopisuje palety, które zaplanował na dany dzień. Limit to 15 palet przerzutów na dzień, łącznie dla wszystkich zmian.</p>
+      <div id="rlBox2"></div>
+    </div>
+  </section>
+
+  <section role="tabpanel" id="p-hist" hidden></section>
+  <section role="tabpanel" id="p-set" hidden></section>
+</main>
+
+<div class="bar" id="bar" hidden><div class="wrap">
+  <div class="prog"><div class="t" id="prog-t">Wypełnij raport</div><div class="track"><i id="prog-i"></i></div></div>
+  <button class="btn primary" id="btn-send" type="button">Wyślij raport</button>
+</div></div>
+<div id="toast" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(function(){
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const BAD_WORDS = ["ok", "okej", "brak", "-", "--", "nie wiem", "x", ".", "..", "nic", "jw", "j.w.", "to samo"];
+const RL_MAX = 15;
+const HALA = ["Czysta", "Do bramy 90", "Do bramy 91", "Do bramy 92", "Do bramy 93", "Za bramą 93"];
+const halaOk = (v) => HALA.indexOf(v) >= 0 && HALA.indexOf(v) <= 1;
+const DAYS = ["pon", "wt", "śr", "czw", "pt", "sob", "nd"];
+const iso = (d) => { const x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); };
+const today = () => iso(new Date());
+const monday = (s) => { const d = new Date(s + "T12:00:00"); const k = (d.getDay() + 6) % 7; d.setDate(d.getDate() - k); return iso(d); };
+const addDays = (s, k) => { const d = new Date(s + "T12:00:00"); d.setDate(d.getDate() + k); return iso(d); };
+const dm = (s) => s.slice(8, 10) + "." + s.slice(5, 7);
+const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+let toastT;
+function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3600); }
+function dbMsg(e) {
+  const c = e && e.code;
+  if (c === "permission-denied") return "Baza odrzuciła zapis (brak uprawnień). Moderator musi opublikować aktualne reguły z pliku firestore.rules w konsoli Firebase.";
+  if (c === "unavailable") return "Brak połączenia z bazą. Sprawdź internet.";
+  if (c === "unauthenticated") return "Sesja wygasła. Zaloguj się ponownie.";
+  return "Błąd bazy danych" + (c ? " (" + c + ")" : "") + ".";
+}
+
+let db = null, auth = null, user = null, unsubs = [];
+let email = "", myName = "", isMod = false, prev = null, reports = [], cfg = {};
+let V = {}, showErr = false;
+const OWNER = "czozen@gmail.com"; // wersja testowa: strona tylko dla właściciela
+let rlWeek = monday(today()), rlDoc = { days: {} }, rlUnsub = null;
+
+/* ---------- field model ---------- */
+const n = (k) => { const x = V[k]; return (x === "" || x == null || isNaN(+x)) ? null : +x; };
+const filled = (k) => V[k] != null && String(V[k]).trim() !== "";
+const S = [
+ { no: "·", title: "Dane zmiany", f: [
+  { k: "date", l: "Data", t: "date" },
+  { k: "shift", l: "Zmiana", t: "shift" },
+  { k: "ppl_op", l: "Ludzie – opakowania", t: "num" },
+  { k: "ppl_st", l: "Ludzie – strefa", t: "num" },
+  { k: "status", l: "Status zmiany", t: "status", wide: 1 }
+ ]},
+ { no: "0", title: "Przejęcie od poprzedniej zmiany", prev: 1, f: [
+  { k: "prev_ok", l: "Stan zastany zgodny z raportem poprzednika?", t: "yn", wide: 1 },
+  { k: "prev_diff", l: "Co się nie zgadza?", t: "area", wide: 1, reason: 1, need: () => V.prev_ok === "NIE" || prevMismatch().length > 0 },
+  { k: "prev_tasks", l: "Zadania przekazane przez poprzednika zamknięte?", t: "yn3", wide: 1 },
+  { k: "prev_tasks_why", l: "Które zadania nie są zamknięte i dlaczego?", t: "area", wide: 1, reason: 1, need: () => V.prev_tasks === "NIE" }
+ ]},
+ { no: "1", title: "Naczepy – bilans", f: [
+  { k: "n_start", l: "Do rozładunku na start", t: "num" },
+  { k: "n_in", l: "Przyjechały w trakcie zmiany", t: "num" },
+  { k: "n_unl", l: "Rozładowane na zmianie", t: "num" },
+  { k: "n_end", l: "Do rozładunku na koniec", t: "num" },
+  { calc: "n" },
+  { k: "n_bal_why", l: "Bilans się nie zgadza – wyjaśnij", t: "area", wide: 1, reason: 1, need: () => bal("n") === false },
+  { k: "n_end_why", l: "Dlaczego zostają naczepy do rozładunku?", t: "area", wide: 1, reason: 1, need: () => n("n_end") > 0 },
+  { k: "r_start", l: "Remonty na start", t: "num" },
+  { k: "r_unl", l: "Remonty rozładowane", t: "num" },
+  { k: "r_left", l: "Remonty pozostało", t: "num" },
+  { k: "r_why", l: "Status pozostałych remontów", t: "area", wide: 1, reason: 1, need: () => n("r_left") > 0 },
+  { k: "s_eur", l: "Wysłane naczepy z PUL EUR", t: "num" },
+  { k: "s_dhp", l: "Wysłane naczepy z DHP", t: "num" },
+  { k: "s_eur_desc", l: "Opis naczep z PUL EUR (nr naczepy, kierunek)", t: "text", wide: 1, reason: 1, need: () => n("s_eur") > 0 },
+  { k: "s_dhp_desc", l: "Opis naczep z DHP (nr naczepy, kierunek)", t: "text", wide: 1, reason: 1, need: () => n("s_dhp") > 0 }
+ ]},
+ { no: "2", title: "Higiena naczep", f: [
+  { k: "sw", l: "Naczepy zamiecione", t: "num" },
+  { k: "wash_req", l: "Zgłoszone do mycia", t: "num" },
+  { k: "washed", l: "Umyte na myjni", t: "num" },
+  { k: "night", l: "Myjnia na nockę wydrukowana + dokumenty na nocne odbiory", t: "yn", wide: 1 },
+  { k: "night_why", l: "Dlaczego nie?", t: "text", wide: 1, reason: 1, need: () => V.night === "NIE" }
+ ]},
+ { no: "3", title: "Palety", f: [
+  { k: "p_ret", l: "Przyjęte ze zwrotem", t: "num" },
+  { k: "p_combo", l: "Utworzone palety combo", t: "num" },
+  { k: "p_util", l: "Utworzone palety utylizacji", t: "num" },
+  { k: "p_go", l: "Green Office na koniec zmiany", t: "num" },
+  { k: "p_toner", l: "Przyjęte palety z tonerami?", t: "yn" },
+  { k: "p_light", l: "Przyjęte palety ze świetlówkami?", t: "yn" },
+  { k: "p_batt", l: "Przyjęte palety z bateriami?", t: "yn" },
+  { k: "scrap", l: "Złom posprzątany?", t: "yn" },
+  { k: "scrap_left", l: "Złom – zostało palet", t: "num" },
+  { k: "scrap_why", l: "Dlaczego złom nie jest posprzątany?", t: "area", wide: 1, reason: 1, need: () => V.scrap === "NIE" || n("scrap_left") > 0 }
+ ]},
+ { no: "4", title: "Butelki (palety)", f: [
+  { k: "b_start", l: "Na start", t: "num" },
+  { k: "b_in", l: "Przyjęte", t: "num" },
+  { k: "b_done", l: "Przerobione", t: "num" },
+  { k: "b_end", l: "Na koniec", t: "num" },
+  { calc: "b" },
+  { k: "b_bal_why", l: "Bilans butelek się nie zgadza – wyjaśnij", t: "area", wide: 1, reason: 1, need: () => bal("b") === false }
+ ]},
+ { no: "5", title: "Przerzuty / DKM", f: [
+  { k: "prz", l: "Przerzuty zrobione?", t: "yn" },
+  { k: "dkm", l: "DKM zrobione?", t: "yn" },
+  { k: "dkm_left", l: "Palet zostało po zmianie", t: "num" },
+  { k: "dkm_why", l: "Dlaczego nie zrobione / dlaczego zostały palety?", t: "area", wide: 1, reason: 1, need: () => V.prz === "NIE" || V.dkm === "NIE" || n("dkm_left") > 0 }
+ ]},
+ { no: "6", title: "Redlink", rl: 1, f: [
+  { k: "rl", l: "Odpowiedź na zapytanie w Redlink udzielona?", t: "yn", wide: 1 },
+  { k: "rl_why", l: "Dlaczego nie?", t: "text", wide: 1, reason: 1, need: () => V.rl === "NIE" }
+ ]},
+ { no: "7", title: "Hala do przebrania", f: [
+  { k: "h_start", l: "Palety na start", t: "hala" },
+  { k: "h_end", l: "Palety na koniec", t: "hala" },
+  { k: "h_why", l: "Palety dalej niż do bramy 90 – dlaczego?", t: "area", wide: 1, reason: 1, need: () => filled("h_end") && !halaOk(V.h_end) }
+ ]},
+ { no: "8", title: "Dokumentacja MM", f: [
+  { k: "mm", l: "MM wczytane?", t: "yn" },
+  { k: "mm_left", l: "Ile MM zostało do wczytania", t: "num" },
+  { k: "mm_why", l: "Dlaczego nie wczytane?", t: "text", wide: 1, reason: 1, need: () => V.mm === "NIE" || n("mm_left") > 0 }
+ ]},
+ { no: "9", title: "Skanery", f: [
+  { k: "sc_b", l: "Skanery przed zmianą", t: "num" },
+  { k: "sc_a", l: "Skanery po zmianie", t: "num" },
+  { k: "sc_why", l: "Liczba się różni – gdzie są brakujące skanery?", t: "area", wide: 1, reason: 1, need: () => n("sc_b") != null && n("sc_a") != null && n("sc_b") !== n("sc_a") },
+  { k: "sc_log", l: "Wpisy w zestawieniu kompletne?", t: "yn", wide: 1 },
+  { k: "sc_log_why", l: "Czego brakuje w zestawieniu?", t: "text", wide: 1, reason: 1, need: () => V.sc_log === "NIE" }
+ ]},
+ { no: "10", title: "Porządek", f: [
+  { k: "ord", l: "Porządek po zmianie?", t: "yn", wide: 1 },
+  { k: "ord_left", l: "Co zostało do posprzątania i dlaczego?", t: "area", wide: 1, reason: 1, need: () => V.ord === "NIE" }
+ ]},
+ { no: "11", title: "Do zrobienia i nieprawidłowości", f: [
+  { k: "ho1", l: () => V.status && V.status !== "g" ? "1. (wymagane przy statusie żółtym/czerwonym)" : "1.", t: "text", wide: 1, ph: "Co trzeba zrobić / jaka nieprawidłowość, gdzie, kto", opt: () => !(V.status && V.status !== "g") },
+  { k: "ho2", l: "2.", t: "text", wide: 1, opt: () => true },
+  { k: "ho3", l: "3.", t: "text", wide: 1, opt: () => true },
+  { k: "ho4", l: "4.", t: "text", wide: 1, opt: () => true },
+  { k: "ho_who", l: "Przejmuje (kto)", t: "text", wide: 1 }
+ ]}
+];
+const STATUS = { g: ["g", "Zielony", "wszystko zrobione", "#1f8a4c"], y: ["y", "Żółty", "drobne zaległości", "#b26b00"], r: ["r", "Czerwony", "zostają zadania", "#c0332b"] };
+const lbl = (f) => typeof f.l === "function" ? f.l() : f.l;
+const balVals = (p) => p === "n" ? [n("n_start"), n("n_in"), n("n_unl"), n("n_end")] : [n("b_start"), n("b_in"), n("b_done"), n("b_end")];
+function bal(p) { const a = balVals(p); if (a.some(x => x == null)) return null; return a[0] + a[1] - a[2] === a[3]; }
+function prevMismatch() {
+  if (!prev || !prev.v) return [];
+  const m = [], pv = prev.v;
+  const c = (k, pk, name) => { const a = n(k), raw = pv[pk], b = raw != null && raw !== "" ? +raw : null; if (a != null && b != null && a !== b) m.push(name + ": poprzednik zostawił " + b + ", zastałeś " + a); };
+  c("n_start", "n_end", "Naczepy do rozładunku"); c("r_start", "r_left", "Remonty"); c("b_start", "b_end", "Butelki");
+  if (filled("h_start") && pv.h_end && HALA.includes(pv.h_end) && V.h_start !== pv.h_end) m.push("Hala do przebrania: poprzednik zostawił „" + pv.h_end + "”, zastałeś „" + V.h_start + "”");
+  return m;
+}
+const active = (f) => !f.reason || f.need();
+const optional = (f) => f.opt && f.opt();
+function errOf(f) {
+  if (!active(f)) return null;
+  if (optional(f) && !filled(f.k)) return null;
+  if (!filled(f.k)) return "Uzupełnij";
+  const v = String(V[f.k]).trim();
+  if (f.t === "num") return (isNaN(+v) || +v < 0 || !Number.isInteger(+v)) ? "Wpisz liczbę całkowitą" : null;
+  if (f.t === "text" || f.t === "area") {
+    if (BAD_WORDS.includes(v.toLowerCase())) return "„" + v + "” to nie jest odpowiedź";
+    if (f.reason && v.length < 8) return "Napisz konkretnie (min. kilka słów)";
+  }
+  return null;
+}
+
+/* ---------- render form ---------- */
+function renderForm() {
+  const root = $("#form"); root.innerHTML = "";
+  S.forEach((s, si) => {
+    const sec = document.createElement("section"); sec.className = "sec"; sec.id = "sec-" + si;
+    sec.innerHTML = '<h2><span class="no">' + s.no + "</span>" + s.title + '<span class="cnt"></span></h2>';
+    if (s.prev) { const p = document.createElement("div"); p.className = "prev"; p.id = "prevbox"; sec.appendChild(p); }
+    const g = document.createElement("div"); g.className = "grid"; sec.appendChild(g);
+    s.f.forEach(f => {
+      if (f.calc) { const c = document.createElement("div"); c.className = "calc f wide"; c.id = "calc-" + f.calc; g.appendChild(c); return; }
+      const w = document.createElement("div"); w.className = "f" + (f.wide ? " wide" : "") + (f.reason ? " reason" : ""); w.id = "w-" + f.k;
+      const lab = document.createElement("label"); lab.htmlFor = "i-" + f.k; lab.id = "l-" + f.k; lab.textContent = lbl(f); w.appendChild(lab);
+      let inp;
+      if (f.t === "yn" || f.t === "yn3") {
+        inp = document.createElement("div"); inp.className = "yn"; inp.id = "i-" + f.k;
+        (f.t === "yn3" ? ["TAK", "NIE", "Nie było"] : ["TAK", "NIE"]).forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.dataset.v = o; b.onclick = () => { V[f.k] = o; change(); }; inp.appendChild(b); });
+      } else if (f.t === "status") {
+        inp = document.createElement("div"); inp.className = "status-pick"; inp.id = "i-" + f.k;
+        Object.values(STATUS).forEach(([c, a, b]) => { const bt = document.createElement("button"); bt.type = "button"; bt.dataset.v = c; bt.innerHTML = '<span class="dot ' + c + '"></span><span><b>' + a + "</b> – " + b + "</span>"; bt.onclick = () => { V.status = c; change(); }; inp.appendChild(bt); });
+      } else if (f.t === "shift" || f.t === "hala") {
+        inp = document.createElement("select"); inp.id = "i-" + f.k;
+        const opts = f.t === "shift" ? ["I", "II", "III"] : HALA;
+        inp.innerHTML = '<option value="">wybierz</option>' + opts.map(o => "<option>" + o + "</option>").join("");
+        inp.value = V[f.k] || ""; inp.onchange = () => { V[f.k] = inp.value; change(); };
+      } else {
+        inp = document.createElement(f.t === "area" ? "textarea" : "input"); inp.id = "i-" + f.k;
+        if (f.t === "num") { inp.type = "number"; inp.min = "0"; inp.step = "1"; inp.inputMode = "numeric"; inp.placeholder = "0"; }
+        else if (f.t === "date") inp.type = "date";
+        else if (f.t === "text") inp.type = "text";
+        if (f.ph) inp.placeholder = f.ph;
+        inp.value = V[f.k] ?? ""; inp.oninput = () => { V[f.k] = inp.value; change(); };
+      }
+      w.appendChild(inp);
+      const m = document.createElement("div"); m.className = "msg"; m.id = "m-" + f.k; w.appendChild(m);
+      g.appendChild(w);
+    });
+    if (s.rl) { const r = document.createElement("div"); r.id = "rlBox"; sec.appendChild(r); }
+    root.appendChild(sec);
+  });
+  update(); renderRL();
+}
+function change() { LS.set("rz-draft", V); update(); }
+function update() {
+  let tot = 0, ok = 0;
+  S.forEach((s, si) => {
+    let sErr = 0, sTot = 0;
+    s.f.forEach(f => {
+      if (f.calc) {
+        const el = $("#calc-" + f.calc), r = bal(f.calc), a = balVals(f.calc);
+        if (r == null) { el.className = "calc f wide"; el.textContent = f.calc === "n" ? "Bilans: start + przyjechały − rozładowane = koniec" : "Bilans: start + przyjęte − przerobione = koniec"; }
+        else { el.className = "calc f wide " + (r ? "ok" : "bad"); el.textContent = a[0] + " + " + a[1] + " − " + a[2] + " = " + (a[0] + a[1] - a[2]) + (r ? " ✓ zgadza się" : " ≠ " + a[3] + " – bilans się nie zgadza"); }
+        return;
+      }
+      const w = $("#w-" + f.k), on = active(f); w.hidden = !on; if (!on) return;
+      $("#l-" + f.k).textContent = lbl(f);
+      if (f.t === "yn" || f.t === "yn3" || f.t === "status") w.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === V[f.k]));
+      if (optional(f) && !filled(f.k)) { w.classList.remove("err"); $("#m-" + f.k).textContent = ""; return; }
+      const e = errOf(f); tot++; sTot++; if (!e) ok++; else sErr++;
+      w.classList.toggle("err", !!(showErr && e)); $("#m-" + f.k).textContent = showErr && e ? e : "";
+    });
+    const sec = $("#sec-" + si); sec.querySelector(".cnt").textContent = (sTot - sErr) + "/" + sTot;
+    sec.classList.toggle("has-err", showErr && sErr > 0); sec.classList.toggle("done", sErr === 0);
+  });
+  renderPrev();
+  $("#prog-t").textContent = ok === tot ? "Wszystko wypełnione" : "Wypełnione " + ok + " z " + tot + " pól";
+  $("#prog-i").style.width = (tot ? ok / tot * 100 : 0) + "%";
+  return tot - ok;
+}
+function renderPrev() {
+  const b = $("#prevbox"); if (!b) return;
+  if (!prev) { b.textContent = "Brak wcześniejszych raportów w systemie – to pierwszy raport."; return; }
+  const v = prev.v || {}, tasks = [v.ho1, v.ho2, v.ho3, v.ho4].filter(x => x && String(x).trim());
+  let h = "Poprzednia zmiana: <b>" + esc(v.date) + "</b>, zmiana <b>" + esc(v.shift) + "</b>, " + esc(prev.name || v.spec || prev.by) +
+    "<br>Zostawił: naczepy do rozładunku <b>" + esc(v.n_end) + "</b> · remonty <b>" + esc(v.r_left) + "</b> · butelki <b>" + esc(v.b_end) + "</b> pal. · hala: <b>" + esc(v.h_end) + "</b>";
+  h += tasks.length ? "<br>Do zrobienia od poprzednika:<ul>" + tasks.map(t => "<li>" + esc(t) + "</li>").join("") + "</ul>" : "<br>Nie zostawił zadań.";
+  const mm = prevMismatch();
+  if (mm.length) h += '<div class="notice err" style="margin-top:8px"><b>Niezgodność z raportem poprzednika:</b><br>' + mm.map(esc).join("<br>") + "</div>";
+  b.innerHTML = h;
+}
+
+/* ---------- Redlink weekly counter ---------- */
+const rlSum = (day) => (rlDoc.days && rlDoc.days[day] || []).reduce((a, e) => a + (+e.p || 0), 0);
+function rlHtml(id) {
+  const t = today();
+  let h = '<div class="rl"><div class="rl-head"><button class="btn" type="button" data-rl="-1" aria-label="Poprzedni tydzień">‹</button><span class="rl-week">Tydzień ' + dm(rlWeek) + "–" + dm(addDays(rlWeek, 6)) + '</span><button class="btn" type="button" data-rl="1" aria-label="Następny tydzień">›</button><span class="sub" style="margin-left:auto">Razem: <b>' + [0,1,2,3,4,5,6].reduce((a, k) => a + rlSum(addDays(rlWeek, k)), 0) + "</b> pal.</span></div><div class=\"rl-days\">";
+  for (let k = 0; k < 7; k++) {
+    const day = addDays(rlWeek, k), sum = rlSum(day), pct = Math.min(100, sum / RL_MAX * 100), cls = sum >= RL_MAX ? "full" : sum >= 10 ? "mid" : "";
+    const items = (rlDoc.days && rlDoc.days[day]) || [];
+    h += '<div class="rl-day' + (day === t ? " today" : "") + '"><div class="d">' + DAYS[k] + "<small>" + dm(day) + '</small></div><div class="rl-track"><i class="' + cls + '" style="width:' + pct + '%"></i></div><div class="sum ' + (sum >= RL_MAX ? "full" : "") + '">' + sum + "/" + RL_MAX + "</div>" +
+      (items.length ? '<div class="rl-chips">' + items.map(e => '<span class="chip">' + esc(e.name || e.by) + ": " + e.p + (e.by === email || isMod ? '<button type="button" data-del="' + esc(day) + "|" + esc(e.id) + '" aria-label="Usuń wpis">✕</button>' : "") + "</span>").join("") + "</div>" : "") + "</div>";
+  }
+  h += '</div><div class="rl-add"><select id="' + id + '-d" aria-label="Dzień">' + [0,1,2,3,4,5,6].map(k => { const d = addDays(rlWeek, k); return '<option value="' + d + '"' + (d === t ? " selected" : "") + ">" + DAYS[k] + " " + dm(d) + " (wolne " + Math.max(0, RL_MAX - rlSum(d)) + ")</option>"; }).join("") +
+    '</select><input id="' + id + '-p" type="number" min="1" max="15" step="1" inputmode="numeric" placeholder="palet" aria-label="Liczba palet"><button class="btn primary" type="button" id="' + id + '-a">Dodaj</button></div><div class="sub" id="' + id + '-m"></div></div>';
+  return h;
+}
+function renderRL() {
+  [["#rlBox", "rla"], ["#rlBox2", "rlb"]].forEach(([sel, id]) => {
+    const box = $(sel); if (!box) return;
+    box.innerHTML = rlHtml(id);
+    box.querySelectorAll("[data-rl]").forEach(b => b.onclick = () => { rlWeek = addDays(rlWeek, 7 * +b.dataset.rl); subscribeRL(); });
+    box.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { const [d, i] = b.dataset.del.split("|"); rlDelete(d, i); });
+    $("#" + id + "-a").onclick = () => rlAdd($("#" + id + "-d").value, +$("#" + id + "-p").value, $("#" + id + "-m"));
+  });
+}
+async function rlAdd(day, p, msg) {
+  if (!Number.isInteger(p) || p < 1) { msg.textContent = "Wpisz liczbę palet (min. 1)."; return; }
+  const ref = db.collection("redlink").doc(monday(day));
+  try {
+    await db.runTransaction(async tx => {
+      const s = await tx.get(ref), d = s.exists ? s.data() : { days: {} }, list = (d.days && d.days[day]) || [];
+      const sum = list.reduce((a, e) => a + (+e.p || 0), 0);
+      if (sum + p > RL_MAX) throw { code: "limit", left: RL_MAX - sum };
+      const entry = { id: Date.now().toString(36), p, by: email, name: email, at: new Date().toISOString() };
+      tx.set(ref, { week: monday(day), days: Object.assign({}, d.days || {}, { [day]: list.concat([entry]) }) });
+    });
+    msg.textContent = "Dodano " + p + " pal. na " + dm(day) + ".";
+  } catch (e) {
+    msg.textContent = e && e.code === "limit" ? "Za dużo – na " + dm(day) + " zostało tylko " + e.left + " pal. (limit " + RL_MAX + " na dzień)." : dbMsg(e);
+  }
+}
+async function rlDelete(day, id) {
+  const ref = db.collection("redlink").doc(monday(day));
+  try {
+    await db.runTransaction(async tx => {
+      const s = await tx.get(ref); if (!s.exists) return;
+      const d = s.data(), list = ((d.days && d.days[day]) || []).filter(e => e.id !== id);
+      tx.set(ref, { week: d.week || monday(day), days: Object.assign({}, d.days || {}, { [day]: list }) });
+    });
+  } catch (e) { toast(dbMsg(e)); }
+}
+function subscribeRL() {
+  if (rlUnsub) rlUnsub();
+  rlDoc = { days: {} }; renderRL();
+  rlUnsub = db.collection("redlink").doc(rlWeek).onSnapshot(s => { rlDoc = s.exists ? s.data() : { days: {} }; renderRL(); }, e => { console.error(e); });
+}
+function rlSummary() {
+  const d0 = V.date || today(), w = monday(d0);
+  if (rlWeek !== w) return "plan w zakładce Redlink";
+  const out = [];
+  for (let k = 0; k < 7; k++) { const d = addDays(w, k); if (d < d0) continue; out.push(DAYS[k] + " " + dm(d) + ": " + rlSum(d) + "/" + RL_MAX); }
+  return out.join(", ") || "—";
+}
+
+/* ---------- report rows (shared by text, html, history) ---------- */
+// state: ok | bad | "" (informacja)
+function rows() {
+  const yn = (k, good = "TAK") => V[k] === good ? "ok" : V[k] ? "bad" : "";
+  const zero = (k) => n(k) === 0 ? "ok" : n(k) > 0 ? "bad" : "";
+  const R = [];
+  const sec = (t, items) => R.push({ t, items: items.filter(Boolean) });
+  const it = (l, v, s = "", note = "") => ({ l, v: String(v), s, note });
+  const T = (k) => filled(k) ? String(V[k]).trim() : "—";
+  const mm = prevMismatch();
+  sec("0. Przejęcie od poprzedniej zmiany", [
+    it("Stan zastany zgodny z raportem poprzednika", T("prev_ok"), V.prev_ok === "TAK" && !mm.length ? "ok" : "bad", filled("prev_diff") ? T("prev_diff") : ""),
+    mm.length ? it("Niezgodność liczb", mm.join("; "), "bad") : null,
+    it("Zadania poprzednika zamknięte", T("prev_tasks"), V.prev_tasks === "NIE" ? "bad" : "ok", filled("prev_tasks_why") ? T("prev_tasks_why") : "")
+  ]);
+  sec("1. Naczepy", [
+    it("Do rozładunku na start", T("n_start")), it("Przyjechały w trakcie zmiany", T("n_in")), it("Rozładowane na zmianie", T("n_unl")),
+    it("Do rozładunku na koniec", T("n_end"), zero("n_end"), n("n_end") > 0 ? T("n_end_why") : ""),
+    it("Bilans naczep", bal("n") ? "zgadza się" : "NIE ZGADZA SIĘ", bal("n") ? "ok" : "bad", bal("n") ? "" : T("n_bal_why")),
+    it("Remonty (start / rozładowane / pozostało)", T("r_start") + " / " + T("r_unl") + " / " + T("r_left"), zero("r_left"), n("r_left") > 0 ? T("r_why") : ""),
+    it("Wysłane naczepy z PUL EUR", T("s_eur"), "", n("s_eur") > 0 ? T("s_eur_desc") : ""),
+    it("Wysłane naczepy z DHP", T("s_dhp"), "", n("s_dhp") > 0 ? T("s_dhp_desc") : "")
+  ]);
+  sec("2. Higiena naczep", [
+    it("Zamiecione", T("sw")), it("Zgłoszone do mycia", T("wash_req")), it("Umyte na myjni", T("washed")),
+    it("Myjnia na nockę + dokumenty na nocne odbiory", T("night"), yn("night"), V.night === "NIE" ? T("night_why") : "")
+  ]);
+  sec("3. Palety", [
+    it("Przyjęte ze zwrotem", T("p_ret")), it("Utworzone palety combo", T("p_combo")), it("Utworzone palety utylizacji", T("p_util")), it("Green Office na koniec zmiany", T("p_go")),
+    it("Przyjęte palety z tonerami", T("p_toner")), it("Przyjęte palety ze świetlówkami", T("p_light")), it("Przyjęte palety z bateriami", T("p_batt")),
+    it("Złom posprzątany / zostało palet", T("scrap") + " / " + T("scrap_left"), V.scrap === "TAK" && n("scrap_left") === 0 ? "ok" : "bad", filled("scrap_why") && (V.scrap === "NIE" || n("scrap_left") > 0) ? T("scrap_why") : "")
+  ]);
+  sec("4. Butelki (palety)", [
+    it("Na start / przyjęte / przerobione / na koniec", T("b_start") + " / " + T("b_in") + " / " + T("b_done") + " / " + T("b_end")),
+    it("Bilans butelek", bal("b") ? "zgadza się" : "NIE ZGADZA SIĘ", bal("b") ? "ok" : "bad", bal("b") ? "" : T("b_bal_why"))
+  ]);
+  const dkmBad = V.prz === "NIE" || V.dkm === "NIE" || n("dkm_left") > 0;
+  sec("5. Przerzuty / DKM", [
+    it("Przerzuty zrobione", T("prz"), yn("prz")), it("DKM zrobione", T("dkm"), yn("dkm")),
+    it("Palet zostało po zmianie", T("dkm_left"), zero("dkm_left"), dkmBad ? T("dkm_why") : "")
+  ]);
+  sec("6. Redlink", [
+    it("Odpowiedź na zapytanie udzielona", T("rl"), yn("rl"), V.rl === "NIE" ? T("rl_why") : ""),
+    it("Plan przerzutów (palety / limit " + RL_MAX + ")", rlSummary())
+  ]);
+  sec("7. Hala do przebrania", [
+    it("Palety na start", T("h_start")),
+    it("Palety na koniec", T("h_end"), filled("h_end") ? (halaOk(V.h_end) ? "ok" : "bad") : "", filled("h_end") && !halaOk(V.h_end) ? T("h_why") : "")
+  ]);
+  sec("8. Dokumentacja MM", [
+    it("MM wczytane", T("mm"), yn("mm")), it("Zostało do wczytania", T("mm_left"), zero("mm_left"), V.mm === "NIE" || n("mm_left") > 0 ? T("mm_why") : "")
+  ]);
+  sec("9. Skanery", [
+    it("Przed zmianą / po zmianie", T("sc_b") + " / " + T("sc_a"), n("sc_b") != null && n("sc_b") === n("sc_a") ? "ok" : "bad", n("sc_b") !== n("sc_a") ? T("sc_why") : ""),
+    it("Wpisy w zestawieniu kompletne", T("sc_log"), yn("sc_log"), V.sc_log === "NIE" ? T("sc_log_why") : "")
+  ]);
+  sec("10. Porządek", [ it("Porządek po zmianie", T("ord"), yn("ord"), V.ord === "NIE" ? T("ord_left") : "") ]);
+  const todo = ["ho1", "ho2", "ho3", "ho4"].filter(filled).map(k => String(V[k]).trim());
+  sec("11. Do zrobienia i nieprawidłowości", (todo.length ? todo.map((t, i) => it((i + 1) + ".", t, "bad")) : [it("Zadania", "brak – wszystko zamknięte", "ok")]).concat([it("Przejmuje", T("ho_who"))]));
+  return R;
+}
+function header() {
+  const st = STATUS[V.status] || ["", "—", "", "#5b6878"];
+  return { title: "RAPORT ZMIANY – " + (V.date || "") + " – zmiana " + (V.shift || ""), st, people: "Ludzie: opakowania " + (V.ppl_op ?? "—") + ", strefa " + (V.ppl_st ?? "—"), from: "Raport wysłał: " + email };
+}
+const signer = () => email;
+function buildText(R) {
+  const h = header(), L = [h.title, h.from, "STATUS ZMIANY: " + h.st[1].toUpperCase() + " (" + h.st[2] + ")", h.people];
+  R.forEach(s => { L.push("", s.t.toUpperCase()); s.items.forEach(i => L.push("- " + (i.s === "bad" ? "[!] " : i.s === "ok" ? "[OK] " : "") + i.l + ": " + i.v + (i.note ? " – " + i.note : ""))); });
+  return L.join("\n");
+}
+function buildHtml(R) {
+  const h = header(), C = { ok: ["#e2f4ea", "#1f8a4c", "OK"], bad: ["#fbe4e2", "#c0332b", "DO UWAGI"], "": ["#ffffff", "#5b6878", ""] };
+  const td = "padding:6px 10px;border-bottom:1px solid #e3e7ec;vertical-align:top;font-size:14px;";
+  let out = '<div style="font-family:Segoe UI,Arial,sans-serif;color:#17202b;max-width:720px">' +
+    '<div style="background:#1d2733;color:#ffffff;padding:12px 14px;border-bottom:4px solid #e8a200"><div style="font-size:18px;font-weight:700;letter-spacing:.02em">' + esc(h.title) + "</div>" + '<div style="font-size:13px;color:#d5dbe2;margin-top:2px">' + esc(h.from) + "</div>" +
+    '<div style="margin-top:6px"><span style="display:inline-block;background:' + h.st[3] + ';color:#ffffff;font-weight:700;padding:3px 10px;border-radius:12px;font-size:13px">STATUS: ' + esc(h.st[1].toUpperCase()) + " – " + esc(h.st[2]) + '</span> <span style="font-size:13px;color:#d5dbe2">' + esc(h.people) + "</span></div></div>" +
+    '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;margin-top:6px">';
+  R.forEach(s => {
+    out += '<tr><td colspan="3" style="padding:12px 10px 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#1d2733;border-bottom:2px solid #1d2733">' + esc(s.t) + "</td></tr>";
+    s.items.forEach(i => { const c = C[i.s];
+      out += '<tr style="background:' + c[0] + '"><td style="' + td + 'width:46%">' + esc(i.l) + '</td><td style="' + td + 'font-weight:600">' + esc(i.v) + (i.note ? '<div style="font-weight:400;color:' + (i.s === "bad" ? "#c0332b" : "#5b6878") + ';font-size:13px;margin-top:2px">' + esc(i.note) + "</div>" : "") +
+        '</td><td style="' + td + 'width:90px;text-align:right;font-size:11px;font-weight:700;color:' + c[1] + '">' + c[2] + "</td></tr>"; });
+  });
+  out += "</table></div>";
+  return out;
+}
+function flagCount(R) { return R.reduce((a, s) => a + s.items.filter(i => i.s === "bad").length, 0); }
+
+/* ---------- send ---------- */
+const splitAddr = (s) => String(s || "").split(/[,;]/).map(x => x.trim()).filter(Boolean);
+const ejsReady = () => !!(cfg.ejsService && cfg.ejsTemplate && cfg.ejsKey);
+async function sendEmailJS(subject, text, html) {
+  const r = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ service_id: cfg.ejsService, template_id: cfg.ejsTemplate, user_id: cfg.ejsKey,
+      template_params: { to_email: splitAddr(cfg.to).join(","), cc_email: splitAddr(cfg.cc).join(","), subject, html, message: text, from_name: signer(), reply_to: email } })
+  });
+  if (!r.ok) throw new Error(await r.text().catch(() => "HTTP " + r.status));
+}
+async function copyRich(html, text, btn) {
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([html], { type: "text/html" }), "text/plain": new Blob([text], { type: "text/plain" }) })]);
+    btn.textContent = "Skopiowano – wklej w Outlooku (Ctrl+V)";
+  } catch {
+    const p = $("#preview"), r = document.createRange(); r.selectNodeContents(p); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    let ok = false; try { ok = document.execCommand("copy"); } catch {}
+    s.removeAllRanges(); btn.textContent = ok ? "Skopiowano – wklej w Outlooku (Ctrl+V)" : "Zaznacz raport poniżej i skopiuj Ctrl+C";
+  }
+}
+$("#btn-send").onclick = async () => {
+  showErr = true; const missing = update();
+  if (missing > 0) {
+    const first = document.querySelector(".f.err"); if (first) first.scrollIntoView({ behavior: "smooth", block: "center" });
+    $("#prog-t").textContent = "Brakuje " + missing + " pól – raportu nie da się wysłać"; return;
+  }
+  if (!splitAddr(cfg.to).length) { toast("Kierownik nie ustawił jeszcze adresu odbiorcy raportów (Ustawienia)."); return; }
+  const btn = $("#btn-send"); btn.disabled = true; btn.textContent = "Wysyłanie…";
+  const R = rows(), text = buildText(R), html = buildHtml(R), flags = flagCount(R);
+  const subject = (V.status === "r" ? "[CZERWONY] " : V.status === "y" ? "[ŻÓŁTY] " : "") + "Raport zmiany – " + V.date + " – zmiana " + V.shift + " – " + signer();
+  const out = $("#out"); out.hidden = false;
+  let saved = false, saveErr = "", mailed = false, mailErr = "";
+  try {
+    await db.collection("shift_reports").add({ v: JSON.parse(JSON.stringify(V)), text, html, status: V.status || "", flags, createdAt: new Date().toISOString(), by: email, name: signer() });
+    saved = true;
+  } catch (e) { console.error(e); saveErr = dbMsg(e); }
+  if (ejsReady()) { try { await sendEmailJS(subject, text, html); mailed = true; } catch (e) { console.error(e); mailErr = String(e.message || e).slice(0, 200); } }
+  const owa = "https://outlook.office.com/mail/deeplink/compose?to=" + encodeURIComponent(splitAddr(cfg.to).join(";")) + (cfg.cc ? "&cc=" + encodeURIComponent(splitAddr(cfg.cc).join(";")) : "") + "&subject=" + encodeURIComponent(subject);
+  out.innerHTML =
+    "<h2>Raport " + (mailed ? "wysłany" : "gotowy") + "</h2>" +
+    (saved ? '<div class="notice ok"><b>Raport zapisany.</b> Formularz został wyczyszczony – raport jest w zakładce Historia.</div>' : '<div class="notice err"><b>Raport NIE zapisał się.</b> ' + esc(saveErr) + " Dane w formularzu zostały – spróbuj wysłać ponownie.</div>") +
+    (mailed ? '<div class="notice ok">Mail wysłany do: ' + esc(splitAddr(cfg.to).join(", ")) + (cfg.cc ? "<br>DW: " + esc(splitAddr(cfg.cc).join(", ")) : "") + "</div>"
+      : '<div class="notice warn">' + (mailErr ? "Automatyczna wysyłka nie zadziałała: " + esc(mailErr) + "<br>" : "Automatyczna wysyłka nie jest jeszcze włączona. ") +
+        "Skopiuj kolorowy raport, otwórz nowego maila w Outlooku i wklej (Ctrl+V).</div>" +
+        '<div class="addr">Do: ' + esc(splitAddr(cfg.to).join(", ")) + "<br>DW: " + esc(splitAddr(cfg.cc).join(", ") || "—") + "<br>Temat: " + esc(subject) + "</div>" +
+        '<div class="row"><button class="btn primary" id="copy-b" type="button">Kopiuj raport z kolorami</button><a class="btn" href="' + esc(owa) + '" target="_blank" rel="noopener">Otwórz nowy mail w Outlooku (przeglądarka)</a></div>') +
+    '<div class="row"><button class="btn" id="new-b" type="button">Zamknij</button></div>' +
+    '<div class="preview" id="preview">' + html + "</div>";
+  const cb = $("#copy-b"); if (cb) cb.onclick = () => copyRich(html, text, cb);
+  $("#new-b").onclick = () => { out.hidden = true; window.scrollTo(0, 0); };
+  if (saved) { V = { date: today() }; LS.set("rz-draft", {}); showErr = false; renderForm(); }
+  btn.disabled = false; btn.textContent = "Wyślij raport";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+/* ---------- history ---------- */
+function renderHist() {
+  const v = $("#p-hist");
+  if (!reports.length) { v.innerHTML = '<div class="notice info">Brak raportów. Pierwszy pojawi się tutaj po wysłaniu formularza.</div>'; return; }
+  const wk = Date.now() - 7 * 864e5, w = reports.filter(r => Date.parse(r.createdAt) > wk);
+  const red = w.filter(r => r.status === "r").length, fl = w.reduce((a, r) => a + (r.flags || 0), 0), mis = w.filter(r => r.v && r.v.prev_ok === "NIE").length;
+  let h = '<div class="stats"><div class="stat"><b>' + w.length + '</b><span>raportów w 7 dni</span></div><div class="stat"><b>' + red + '</b><span>zmian na czerwono</span></div><div class="stat"><b>' + fl + '</b><span>punktów do uwagi</span></div><div class="stat"><b>' + mis + "</b><span>niezgodności przy przejęciu</span></div></div>";
+  const by = {}; w.forEach(r => { const s = r.name || (r.v && r.v.spec) || r.by || "?"; by[s] = by[s] || { n: 0, f: 0, m: 0, r: 0 }; by[s].n++; by[s].f += r.flags || 0; if (r.v && r.v.prev_ok === "NIE") by[s].m++; if (r.status === "r") by[s].r++; });
+  const ks = Object.keys(by);
+  if (ks.length) h += '<div class="panel"><h2>Specjaliści – ostatnie 7 dni</h2><div class="tablewrap"><table class="t"><tr><th>Specjalista</th><th>Raporty</th><th>Na czerwono</th><th>Do uwagi</th><th>Zakwestionował poprzednika</th></tr>' +
+    ks.map(k => "<tr><td>" + esc(k) + '</td><td class="n">' + by[k].n + '</td><td class="n">' + by[k].r + '</td><td class="n">' + by[k].f + '</td><td class="n">' + by[k].m + "</td></tr>").join("") + "</table></div></div>";
+  h += reports.map((r, i) => { const v = r.v || {}, st = STATUS[r.status] || ["", "—", ""];
+    return '<details class="hi" data-i="' + i + '"><summary><span class="dot ' + st[0] + '"></span><b>' + esc(r.name || v.spec || r.by) + '</b><span class="meta">' + esc(v.date) + " · zm. " + esc(v.shift) + "</span>" + (r.flags ? '<span class="pill bad">' + r.flags + " do uwagi</span>" : '<span class="pill">bez uwag</span>') + '</summary><div class="hb" style="margin-top:10px"></div></details>'; }).join("");
+  v.innerHTML = h;
+  v.querySelectorAll("details.hi").forEach(d => d.addEventListener("toggle", () => {
+    const b = d.querySelector(".hb"); if (!d.open || b.childElementCount) return; const r = reports[+d.dataset.i];
+    if (r.html) { const p = document.createElement("div"); p.className = "preview"; p.innerHTML = r.html; b.appendChild(p); }
+    else { const p = document.createElement("pre"); p.className = "rep"; p.textContent = r.text || ""; b.appendChild(p); }
+    if (email.toLowerCase() === OWNER) {
+      const row = document.createElement("div"); row.className = "row"; row.style.marginTop = "10px";
+      const del = document.createElement("button"); del.type = "button"; del.className = "btn"; del.style.color = "var(--bad)"; del.textContent = "Usuń raport";
+      let armedT = null;
+      del.onclick = async () => {
+        if (!armedT) { del.textContent = "Na pewno? Kliknij jeszcze raz, żeby usunąć"; armedT = setTimeout(() => { armedT = null; del.textContent = "Usuń raport"; }, 4000); return; }
+        clearTimeout(armedT); armedT = null; del.disabled = true; del.textContent = "Usuwanie…";
+        msg.textContent = "";
+        try { await db.collection("shift_reports").doc(r.id).delete(); toast("Raport usunięty"); }
+        catch (e) { console.error(e); msg.textContent = dbMsg(e); del.disabled = false; del.textContent = "Usuń raport"; }
+      };
+      const msg = document.createElement("div"); msg.className = "notice err"; msg.style.flexBasis = "100%";
+      new MutationObserver(() => { msg.hidden = !msg.textContent; }).observe(msg, { childList: true, characterData: true, subtree: true }); msg.hidden = true;
+      row.appendChild(del); row.appendChild(msg); b.appendChild(row);
+    }
+  }));
+}
+
+/* ---------- settings (moderators) ---------- */
+function renderSet() {
+  const v = $("#p-set");
+  v.innerHTML =
+    '<div class="panel"><h2>Odbiorcy raportu</h2><p class="sub">Kilka adresów oddziel przecinkiem.</p>' +
+    '<label class="field">Do <input id="s-to" type="text" placeholder="imie.nazwisko@firma.pl"></label>' +
+    '<label class="field">DW <input id="s-cc" type="text" placeholder="adres1@firma.pl, adres2@firma.pl"></label></div>' +
+    '<div class="panel"><h2>Automatyczna wysyłka (EmailJS)</h2><p class="sub">Gdy te trzy pola są wypełnione, raport wychodzi sam, kolorowym mailem, po kliknięciu „Wyślij raport”. Instrukcja w README repozytorium.</p>' +
+    '<label class="field">Service ID <input id="s-es" type="text" placeholder="service_xxxxxxx"></label>' +
+    '<label class="field">Template ID <input id="s-et" type="text" placeholder="template_xxxxxxx"></label>' +
+    '<label class="field">Public Key <input id="s-ek" type="text" placeholder="np. AbCdEf123456"></label></div>' +
+    '<div class="row"><button class="btn primary" id="s-save" type="button">Zapisz ustawienia</button><span id="s-st" class="sub"></span></div>';
+  $("#s-to").value = cfg.to || ""; $("#s-cc").value = cfg.cc || ""; $("#s-es").value = cfg.ejsService || ""; $("#s-et").value = cfg.ejsTemplate || ""; $("#s-ek").value = cfg.ejsKey || "";
+  $("#s-save").onclick = async () => {
+    const okA = (s) => splitAddr(s).every(x => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x));
+    const d = { to: $("#s-to").value.trim(), cc: $("#s-cc").value.trim(), ejsService: $("#s-es").value.trim(), ejsTemplate: $("#s-et").value.trim(), ejsKey: $("#s-ek").value.trim() };
+    if (!d.to || !okA(d.to) || !okA(d.cc)) { $("#s-st").textContent = "Sprawdź adresy – każdy w postaci nazwa@domena.pl"; return; }
+    try { await db.collection("settings").doc("shiftReport").set(d); $("#s-st").textContent = "Zapisano"; } catch (e) { console.error(e); $("#s-st").textContent = dbMsg(e); }
+  };
+}
+
+/* ---------- tabs ---------- */
+const TABS = ["form", "rl", "hist", "set"];
+function showTab(t) {
+  TABS.forEach(x => { $("#tab-" + x).setAttribute("aria-selected", x === t); $("#p-" + x).hidden = x !== t; });
+  $("#bar").hidden = t !== "form";
+  if (t === "hist") renderHist(); if (t === "set") renderSet(); if (t === "rl") renderRL();
+}
+TABS.forEach(t => $("#tab-" + t).addEventListener("click", () => showTab(t)));
+
+/* ---------- auth / data ---------- */
+$("#loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); const m = $("#loginMsg"); m.hidden = true; $("#lSubmit").disabled = true;
+  try { await auth.signInWithEmailAndPassword($("#lEmail").value.trim(), $("#lPass").value); $("#lPass").value = ""; }
+  catch (err) { m.textContent = err.code === "auth/too-many-requests" ? "Za dużo prób. Spróbuj za kilka minut." : "Nieprawidłowy e-mail lub hasło."; m.hidden = false; }
+  finally { $("#lSubmit").disabled = false; }
+});
+$("#logout").addEventListener("click", () => auth.signOut());
+
+function showDbErr(e) { console.error(e); const b = $("#dbErr"); b.textContent = dbMsg(e); b.hidden = false; }
+function subscribe() {
+  unsubs.push(db.collection("config").doc("roles").onSnapshot(s => {
+    const mods = ((s.exists && s.data().moderators) || []).map(x => String(x).toLowerCase());
+    isMod = mods.includes(email.toLowerCase()); $("#tab-set").hidden = !isMod;
+    if (!isMod && !$("#p-set").hidden) showTab("form");
+  }, e => console.error(e)));
+  unsubs.push(db.collection("settings").doc("shiftReport").onSnapshot(s => { cfg = s.exists ? s.data() : {}; }, e => console.error(e)));
+  unsubs.push(db.collection("shift_reports").orderBy("createdAt", "desc").limit(90).onSnapshot(s => {
+    $("#dbErr").hidden = true;
+    reports = s.docs.map(d => Object.assign({ id: d.id }, d.data())); prev = reports[0] || null; update(); if (!$("#p-hist").hidden) renderHist();
+  }, showDbErr));
+  subscribeRL();
+}
+
+(function start() {
+  V = Object.assign({ date: today() }, LS.get("rz-draft", {}));
+  if (!V.date) V.date = today();
+  renderForm();
+  const c = window.FIREBASE_CONFIG;
+  if (!window.firebase || !c || !c.apiKey) { $("#noConfig").hidden = false; return; }
+  firebase.initializeApp(c); db = firebase.firestore(); auth = firebase.auth();
+  auth.onAuthStateChanged(u => {
+    unsubs.forEach(x => x()); unsubs = []; if (rlUnsub) { rlUnsub(); rlUnsub = null; }
+    user = u; const inside = !!u;
+    $("#login").hidden = inside; $("#tabs").hidden = !inside; $("#who").hidden = !inside;
+    if (!inside) { TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = true; return; }
+    email = u.email || ""; $("#whoEmail").textContent = email;
+    if (email.toLowerCase() !== OWNER) { $("#tabs").hidden = true; TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = false; return; }
+    $("#noAccess").hidden = true;
+    showTab("form"); update(); subscribe();
+  });
+})();
+})();
+</script>
+</body>
+</html>

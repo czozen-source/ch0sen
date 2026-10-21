@@ -267,6 +267,8 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
 .picked { font-size: .8rem; font-weight: 500; text-transform: none; letter-spacing: normal; color: var(--ok); }
 /* Login + mail */
 .login { max-width: 420px; margin: 40px auto 0; }
+.navlink { color: var(--accent); font-size: .85rem; font-weight: 600; text-decoration: none; }
+.navlink:hover { text-decoration: underline; }
 .who { font-size: .8rem; color: #b8c4d1; display: inline-flex; gap: 10px; align-items: center; }
 .who button { font: inherit; background: transparent; color: #fff; border: 1px solid #4a5868; border-radius: var(--r); padding: 3px 9px; cursor: pointer; }
 .mailbox { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface-2); }
@@ -279,6 +281,7 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
     <div class="brand">
       <h1>Rejestr uszkodzeń wózków</h1>
       <span class="live" id="live"><i></i><span id="liveText">Łączenie…</span></span>
+      <a class="navlink" id="navReport" href="raport.html" hidden>Raport zmiany →</a>
     </div>
     <span class="who" id="who" hidden><span id="whoEmail"></span><button type="button" id="logout">Wyloguj</button></span>
     <nav class="tabs" role="tablist" aria-label="Sekcje" id="tabs" hidden>
@@ -293,6 +296,7 @@ section[role="tabpanel"] > *, .panel > *, .list > * { min-width: 0; }
 </header>
 
 <main class="wrap">
+  <div id="noAccess" class="notice info" hidden style="margin-top:20px">Aplikacja jest w przygotowaniu i nie jest jeszcze dostępna dla tego konta.</div>
   <div id="noConfig" class="notice err" hidden>Aplikacja nie jest jeszcze połączona z bazą danych. Administrator musi uzupełnić plik <code>firebase-config.js</code> (instrukcja w README).</div>
 
   <!-- LOGOWANIE -->
@@ -1368,9 +1372,12 @@ $("logout").addEventListener("click", () => auth.signOut());
     unsubscribeAll();
     const inside = !!u;
     $("login").hidden = inside; $("app").hidden = !inside; $("tabs").hidden = !inside; $("who").hidden = !inside;
-    if (!inside) { state.uid = null; state.email = ""; state.isMod = false; applyRole(); $("liveText").textContent = "Wylogowano"; $("live").classList.remove("on"); return; }
+    if (!inside) { $("navReport").hidden = true; $("noAccess").hidden = true; state.uid = null; state.email = ""; state.isMod = false; applyRole(); $("liveText").textContent = "Wylogowano"; $("live").classList.remove("on"); return; }
     state.uid = u.uid; state.email = u.email || "";
     $("whoEmail").textContent = state.email;
+    // Wersja testowa: cała aplikacja tylko dla właściciela. Żeby otworzyć dla zespołu, usuń ten warunek (i zmień signedIn() w firestore.rules).
+    if (state.email.toLowerCase() !== "czozen@gmail.com") { $("app").hidden = true; $("tabs").hidden = true; $("navReport").hidden = true; $("noAccess").hidden = false; $("liveText").textContent = "Niedostępne"; return; }
+    $("noAccess").hidden = true; $("navReport").hidden = false;
     $("liveText").textContent = "Łączenie…";
     subscribeAll();
   });

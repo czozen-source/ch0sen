@@ -1,11 +1,19 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // WERSJA TESTOWA: cała aplikacja (rejestr wózków i raport zmiany) tylko dla konta czozen@gmail.com.
+    // Żeby otworzyć dla zespołu, w signedIn() zostaw tylko: return request.auth != null;
     function signedIn() {
-      return request.auth != null;
+      return request.auth != null && request.auth.token.email != null
+        && request.auth.token.email.lower() == 'czozen@gmail.com';
     }
     // Moderatorzy: dokument config/roles, pole "moderators" (tablica adresów e-mail, małymi literami).
     // Ten dokument zmienia się tylko w konsoli Firebase.
+    // Właściciel: raport zmiany jest w wersji testowej i widzi go tylko to konto.
+    function isOwner() {
+      return signedIn() && request.auth.token.email != null
+        && request.auth.token.email.lower() == 'czozen@gmail.com';
+    }
     function isMod() {
       return signedIn() && request.auth.token.email != null
         && request.auth.token.email.lower() in get(/databases/$(database)/documents/config/roles).data.moderators;
@@ -35,6 +43,14 @@ service cloud.firestore {
     // Rozpiska wózków (dokument na dzień): czytają i uzupełniają wszyscy zalogowani.
     match /schedule/{day} {
       allow read, write: if signedIn();
+    }
+    // Raporty zmian i plan Redlink: wersja testowa – tylko właściciel.
+    // Po testach zamień isOwner() na signedIn() (a update/delete raportów na isMod()).
+    match /shift_reports/{id} {
+      allow read, write: if isOwner();
+    }
+    match /redlink/{week} {
+      allow read, write: if isOwner();
     }
     // Zgłoszenia: każdy zalogowany dodaje i zmienia status, usuwa tylko moderator.
     match /damages/{id} {
