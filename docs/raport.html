@@ -612,7 +612,7 @@ function flagCount(R) { return R.reduce((a, s) => a + s.items.filter(i => i.s ==
 /* ---------- send ---------- */
 const splitAddr = (s) => [...new Set(String(s || "").split(/[,;]/).map(x => x.trim().toLowerCase()).filter(Boolean))];
 // Always copied on every report, on top of the DW set in Ustawienia
-const CC_ALWAYS = ["jakub.ciurus@jeronimo-martins.com", "dawid.warchol@jeronimo-martins.com"];
+const CC_ALWAYS = ["jakub.ciurus@jeronimo-martins.com", "dawid.warchol@jeronimo-martins.com", "michal.krzyzak@jeronimo-martins.com"];
 const ccList = () => splitAddr(CC_ALWAYS.concat(splitAddr(cfg.cc)).join(",")).filter(x => !splitAddr(cfg.to).includes(x));
 const ejsReady = () => !!(cfg.ejsService && cfg.ejsTemplate && cfg.ejsKey);
 async function sendEmailJS(subject, text, html) {
@@ -788,7 +788,7 @@ function renderHistList() {
 function renderSet() {
   const v = $("#p-set");
   v.innerHTML =
-    '<div class="panel"><h2>Odbiorcy raportu</h2><p class="sub">Kilka adresów oddziel przecinkiem. Jakub Ciuruś i Dawid Warchoł są dodawani do DW zawsze.</p>' +
+    '<div class="panel"><h2>Odbiorcy raportu</h2><p class="sub">Kilka adresów oddziel przecinkiem. Jakub Ciuruś, Dawid Warchoł i Michał Krzyżak są dodawani do DW zawsze.</p>' +
     '<label class="field">Do <input id="s-to" type="text" placeholder="imie.nazwisko@firma.pl"></label>' +
     '<label class="field">DW <input id="s-cc" type="text" placeholder="adres1@firma.pl, adres2@firma.pl"></label></div>' +
     '<div class="panel"><h2>Automatyczna wysyłka (EmailJS)</h2><p class="sub">Gdy te trzy pola są wypełnione, raport wychodzi sam, kolorowym mailem, po kliknięciu „Wyślij raport”. Instrukcja w README repozytorium.</p>' +
