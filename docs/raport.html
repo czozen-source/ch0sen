@@ -593,7 +593,8 @@ function buildText(R) {
 function buildHtml(R) {
   const h = header(), C = { ok: ["#e2f4ea", "#1f8a4c", "OK"], bad: ["#fbe4e2", "#c0332b", "DO UWAGI"], "": ["#ffffff", "#5b6878", ""] };
   const td = "padding:6px 10px;border-bottom:1px solid #e3e7ec;vertical-align:top;font-size:14px;";
-  let out = '<div style="font-family:Segoe UI,Arial,sans-serif;color:#17202b;max-width:720px">' +
+  // Whole report sits in a fixed 720px table: Outlook ignores max-width on a <div> and stretches it to the window
+  let out = '<table width="720" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:720px;font-family:Segoe UI,Arial,sans-serif;color:#17202b"><tr><td style="padding:0">' +
     '<div style="background:#1d2733;color:#ffffff;padding:12px 14px;border-bottom:4px solid #e8a200"><div style="font-size:18px;font-weight:700;letter-spacing:.02em">' + esc(h.title) + "</div>" + '<div style="font-size:13px;color:#d5dbe2;margin-top:2px">' + esc(h.from) + "</div>" +
     '<div style="margin-top:6px"><span style="display:inline-block;background:' + h.st[3] + ';color:#ffffff;font-weight:700;padding:3px 10px;border-radius:12px;font-size:13px">STATUS: ' + esc(h.st[1].toUpperCase()) + " – " + esc(h.st[2]) + '</span> <span style="font-size:13px;color:#d5dbe2">' + esc(h.people) + "</span></div></div>" +
     // Fixed pixel widths (not %): Excel takes column widths from the pasted table and stretches "100%" columns very wide
@@ -604,7 +605,7 @@ function buildHtml(R) {
       out += '<tr style="background:' + c[0] + '"><td width="300" style="' + td + 'width:300px">' + esc(i.l) + '</td><td width="330" style="' + td + 'width:330px;font-weight:600">' + esc(i.v) + (i.note ? '<div style="font-weight:400;color:' + (i.s === "bad" ? "#c0332b" : "#5b6878") + ';font-size:13px;margin-top:2px">' + esc(i.note) + "</div>" : "") +
         '</td><td width="90" style="' + td + 'width:90px;text-align:right;font-size:11px;font-weight:700;color:' + c[1] + '">' + c[2] + "</td></tr>"; });
   });
-  out += "</table></div>";
+  out += "</table></td></tr></table>";
   return out;
 }
 function flagCount(R) { return R.reduce((a, s) => a + s.items.filter(i => i.s === "bad").length, 0); }
@@ -650,7 +651,9 @@ $("#btn-send").onclick = async () => {
     saved = true;
   } catch (e) { console.error(e); saveErr = dbMsg(e); }
   if (ejsReady()) { try { await sendEmailJS(subject, text, html); mailed = true; } catch (e) { console.error(e); mailErr = String(e.message || e).slice(0, 200); } }
-  const owa = "https://outlook.office.com/mail/deeplink/compose?to=" + encodeURIComponent(splitAddr(cfg.to).join(";")) + (ccList().length ? "&cc=" + encodeURIComponent(ccList().join(";")) : "") + "&subject=" + encodeURIComponent(subject);
+  // Addresses left unencoded: OWA does not split "%3B"-encoded lists and drops the recipients
+  const owa = "https://outlook.office.com/mail/deeplink/compose?to=" + splitAddr(cfg.to).join(";") + (ccList().length ? "&cc=" + ccList().join(";") : "") + "&subject=" + encodeURIComponent(subject);
+  const mailto = "mailto:" + splitAddr(cfg.to).join(";") + "?" + (ccList().length ? "cc=" + ccList().join(";") + "&" : "") + "subject=" + encodeURIComponent(subject);
   out.innerHTML =
     "<h2>Raport " + (mailed ? "wysłany" : "gotowy") + "</h2>" +
     (saved ? '<div class="notice ok"><b>Raport zapisany.</b> Formularz został wyczyszczony – raport jest w zakładce Historia.</div>' : '<div class="notice err"><b>Raport NIE zapisał się.</b> ' + esc(saveErr) + " Dane w formularzu zostały – spróbuj wysłać ponownie.</div>") +
@@ -658,7 +661,7 @@ $("#btn-send").onclick = async () => {
       : '<div class="notice warn">' + (mailErr ? "Automatyczna wysyłka nie zadziałała: " + esc(mailErr) + "<br>" : "Automatyczna wysyłka nie jest jeszcze włączona. ") +
         "Skopiuj kolorowy raport, otwórz nowego maila w Outlooku i wklej (Ctrl+V).</div>" +
         '<div class="addr">Do: ' + esc(splitAddr(cfg.to).join(", ")) + "<br>DW: " + esc(ccList().join(", ") || "—") + "<br>Temat: " + esc(subject) + "</div>" +
-        '<div class="row"><button class="btn primary" id="copy-b" type="button">Kopiuj raport z kolorami</button><a class="btn" href="' + esc(owa) + '" target="_blank" rel="noopener">Otwórz nowy mail w Outlooku (przeglądarka)</a></div>') +
+        '<div class="row"><button class="btn primary" id="copy-b" type="button">Kopiuj raport z kolorami</button><a class="btn" href="' + esc(mailto) + '">Otwórz nowy mail w Outlooku (program)</a><a class="btn" href="' + esc(owa) + '" target="_blank" rel="noopener">Otwórz nowy mail w Outlooku (przeglądarka)</a></div>') +
     '<div class="row"><button class="btn" id="new-b" type="button">Zamknij</button></div>' +
     '<div class="preview" id="preview">' + html + "</div>";
   const cb = $("#copy-b"); if (cb) cb.onclick = () => copyRich(html, text, cb);
