@@ -81,4 +81,5 @@ Bez tego po kliknięciu „Wyślij raport” jest przycisk „Kopiuj raport z ko
 
 `docs/gra.html` — bijatyka w stylu automatów z lat 90. (jeden plik, bez instalacji). Na GitHub Pages: `https://czozen-source.github.io/ch0sen/gra.html`.
 - Tryby: 1 gracz (arcade: 5 walk z CPU, 3 poziomy trudności) i 2 graczy na jednej klawiaturze.
+- Areny z Tarnowa: Rynek z Ratuszem, Góra św. Marcina z ruinami zamku, Park Strzelecki z Mauzoleum Bema, Katedra nocą, Azoty w Mościcach, dworzec PKP z przejeżdżającym pociągiem.
 - Sterowanie: gracz 1 — WASD, cios F/G, kop V/B, specjalny E, super R; gracz 2 — strzałki, cios I/O, kop K/L, specjalny P, super `;`. Enter — start/pauza, M — dźwięk. Na telefonie przyciski dotykowe, działa też pad.
