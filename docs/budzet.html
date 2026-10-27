@@ -124,6 +124,28 @@ button{cursor:pointer}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 
+/* kalendarz miesiąca */
+.calnav{display:flex;align-items:center;gap:6px}
+.calnav h2{min-width:9.5em;text-align:center}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.cal .wd{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center;font-weight:600;padding-bottom:2px}
+.cal .wd.we{color:var(--bad)}
+.cd{border:0;border-radius:9px;background:var(--sunk);min-height:54px;padding:5px 4px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:2px;text-align:left;min-width:0;position:relative}
+.cd b{font-family:var(--f-num);font-size:.82rem;font-weight:600}
+.cd span{font-family:var(--f-num);font-size:.68rem;color:var(--ink);opacity:.8;white-space:nowrap;overflow:hidden;max-width:100%}
+.cd.fut{background:transparent;border:1px dashed var(--line)}
+.cd.fut b{color:var(--muted)}
+.cd.ok{background:color-mix(in srgb,var(--good) 30%,var(--surface))}
+.cd.mid{background:color-mix(in srgb,var(--warn) 35%,var(--surface))}
+.cd.over{background:color-mix(in srgb,var(--bad) 45%,var(--surface))}
+.cd.zero{background:color-mix(in srgb,var(--good) 60%,var(--surface))}
+.cd.now{outline:2px solid var(--ink);outline-offset:1px}
+.cd.sel{box-shadow:inset 0 0 0 2px var(--yolk)}
+.cd .pay{position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--yolk)}
+.calsum{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+.calsum b{color:var(--ink);font-family:var(--f-num);font-weight:600}
+@media (max-width:460px){.cd{min-height:46px;padding:4px 3px}.cd span{font-size:.6rem}}
+
 .cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
 .stack{display:flex;flex-direction:column;gap:18px;min-width:0}
 
@@ -300,7 +322,7 @@ function cycleFor(date, payday){
 
 // ---------- state ----------
 const S = { settings:null, cycles:{}, demo:false, mode:"local", col:null, view: location.hash==="#widget" ? "widget" : "main",
-  draft:{cat:"jedzenie", kind:"need"} };
+  draft:{cat:"jedzenie", kind:"need"}, calOff:0, calSel:null };
 
 function demoData(){
   const now = new Date();
@@ -484,11 +506,63 @@ function render(){
     <div class="legend"><span><i style="background:color-mix(in srgb,var(--good) 60%,var(--surface))"></i>dzień bez wydatków</span><span><i style="background:color-mix(in srgb,var(--good) 30%,var(--surface))"></i>poniżej limitu</span><span><i style="background:color-mix(in srgb,var(--warn) 35%,var(--surface))"></i>na granicy</span><span><i style="background:color-mix(in srgb,var(--bad) 45%,var(--surface))"></i>ponad limit</span></div>
   </section>`;
 
+  html += calendarPanel(k);
+
   // COLUMNS
   html += `<div class="cols"><div class="stack">${addPanel(k)}${expensesPanel(k)}${catsPanel(k)}</div>
     <div class="stack">${tipsPanel(k)}${fixedPanel(k)}${parkPanel(k)}${historyPanel(k)}</div></div>`;
   $("#main").innerHTML = html;
   updateHint();
+}
+
+// limit bazowy dnia: z cyklu, do którego ten dzień należy
+function baseFor(d){
+  const s=S.settings, cy=cycleFor(d, s.payday), c=S.cycles[cy.key];
+  const inc=c&&c.inc!=null?c.inc:s.income, fix=c&&c.fix!=null?c.fix:fixedTotal(), goal=c&&c.goal!=null?c.goal:s.goal;
+  return (inc-fix-goal)/cy.days;
+}
+function allByDay(){
+  const m={};
+  Object.values(S.cycles).forEach(c=>(c.exp||[]).forEach(e=>{ const d=ymd(new Date(e.t)); (m[d]=m[d]||[]).push(e); }));
+  return m;
+}
+const MONTHS_FULL=["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
+function calendarPanel(k){
+  const now=new Date(), first=new Date(now.getFullYear(), now.getMonth()+S.calOff, 1);
+  const y=first.getFullYear(), mo=first.getMonth(), dim=new Date(y,mo+1,0).getDate();
+  const lead=(first.getDay()+6)%7; // poniedziałek jako pierwszy
+  const byDay=allByDay(), todayKey=ymd(now), pay=Math.min(28,Math.max(1,S.settings.payday|0||1));
+  let cells=["pn","wt","śr","cz","pt","sb","nd"].map((w,i)=>`<div class="wd ${i>4?"we":""}">${w}</div>`).join("");
+  for(let i=0;i<lead;i++) cells+=`<div></div>`;
+  let monthSpent=0, zeroDays=0, overDays=0, pastDays=0;
+  for(let d=1; d<=dim; d++){
+    const date=new Date(y,mo,d), key=ymd(date), list=byDay[key]||[], v=list.reduce((a,e)=>a+e.a,0);
+    const past = key<todayKey || (key===todayKey && v>0);
+    let cls="cd";
+    const tracked = !!S.cycles[cycleFor(date, S.settings.payday).key]; // dni sprzed korzystania z aplikacji zostają neutralne
+    if(key>todayKey) cls+=" fut";
+    else if(past && tracked){ const base=baseFor(date); cls+= v===0?" zero": v<=base*0.8?" ok": v<=base*1.15?" mid":" over";
+      pastDays++; if(v===0) zeroDays++; if(v>base*1.15) overDays++; }
+    if(key===todayKey) cls+=" now";
+    if(key===S.calSel) cls+=" sel";
+    monthSpent+=v;
+    cells+=`<button type="button" class="${cls}" data-calday="${key}" aria-label="${d} ${MONTHS[mo]}: wydane ${zl(v,1)}"><b>${d}</b>${v>0?`<span>${nf0.format(Math.round(v))} zł</span>`:""}${d===pay?`<i class="pay" title="Wypłata"></i>`:""}</button>`;
+  }
+  let detail="";
+  if(S.calSel && S.calSel.slice(0,7)===`${y}-${pad(mo+1)}`){
+    const sd=new Date(S.calSel+"T12:00:00"), list=(byDay[S.calSel]||[]).slice().sort((a,b)=>b.t-a.t), tot=list.reduce((a,e)=>a+e.a,0);
+    detail=`<div class="dayhead"><span>${WD[sd.getDay()]} ${fmtD(sd)} · limit ${zl(baseFor(sd))}</span><span class="num">${zl(tot,1)}</span></div>`+
+      (list.length?`<div class="list">${list.map(e=>{const c=CAT[e.c]||CAT.inne; return `<div class="row"><span class="dot" style="background:${c.c}"></span><div class="t"><div>${esc(e.n||c.n)}</div><small>${c.n}${e.k==="want"?` · <span class="tag-w">zachcianka</span>`:""}</small></div><div class="a">${zls(e.a)}<small>${hoursTxt(e.a/k.hourly)}</small></div><button class="x" type="button" data-del="${e.id}" aria-label="Usuń wydatek">×</button></div>`;}).join("")}</div>`
+       :`<p class="empty">${S.calSel>todayKey?"Ten dzień jeszcze przed tobą.":"Tego dnia nic nie wydano."}</p>`);
+  }
+  return `<section class="panel"><div class="ph">
+      <div class="calnav"><button class="btn small" type="button" data-calnav="-1" aria-label="Poprzedni miesiąc">‹</button><h2>${MONTHS_FULL[mo]} ${y}</h2><button class="btn small" type="button" data-calnav="1" aria-label="Następny miesiąc">›</button></div>
+      ${S.calOff?`<button class="btn small ghost" type="button" data-calnav="0">Wróć do bieżącego</button>`:""}
+    </div>
+    <div class="cal">${cells}</div>
+    <div class="calsum"><span>Wydane w miesiącu: <b>${zl(monthSpent)}</b></span><span>Dni bez wydatków: <b>${zeroDays}</b></span><span>Dni ponad limit: <b>${overDays}</b></span><span><i class="pay" style="position:static;display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--yolk);margin-right:4px"></i>dzień wypłaty</span></div>
+    ${detail?`<div>${detail}</div>`:`<p class="hint" style="margin:0">Stuknij dzień, żeby zobaczyć jego wydatki.</p>`}
+  </section>`;
 }
 
 function addPanel(k){
@@ -717,8 +791,12 @@ document.addEventListener("click", e=>{
   if(b.dataset.cat){ S.draft.cat=b.dataset.cat; document.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed",x===b)); return; }
   if(b.dataset.kind){ S.draft.kind=b.dataset.kind; document.querySelectorAll("[data-kind]").forEach(x=>x.setAttribute("aria-pressed",x===b)); return; }
   const key = S.settings ? curCycle().key : null;
+  if(b.dataset.calnav!==undefined){ const v=+b.dataset.calnav; S.calOff = v===0 ? 0 : S.calOff+v; render(); return; }
+  if(b.dataset.calday){ S.calSel = S.calSel===b.dataset.calday ? null : b.dataset.calday; render(); return; }
   if(b.dataset.del){ if(S.demo) return toast("To przykładowe dane.");
-    const d=cycleDoc(key); const i=d.exp.findIndex(x=>x.id===b.dataset.del); if(i>=0){ d.exp.splice(i,1); save(key); render(); toast("Usunięto wydatek."); } return; }
+    for(const ck of Object.keys(S.cycles)){ const d=S.cycles[ck]; const i=(d.exp||[]).findIndex(x=>x.id===b.dataset.del);
+      if(i>=0){ d.exp.splice(i,1); save(ck); render(); toast("Usunięto wydatek."); break; } }
+    return; }
   if(b.dataset.act==="park-draft"){ const a=parseAmt($("#a-amt").value); const n=$("#a-note").value.trim();
     if(!(a>0)) return toast("Wpisz kwotę i nazwę rzeczy, którą chcesz kupić.");
     if(S.demo){ toast("To przykładowe dane. Najpierw wpisz swój dochód."); return openSettings(); }
