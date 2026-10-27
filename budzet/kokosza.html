@@ -221,6 +221,7 @@ button{cursor:pointer}
       <span class="chip" id="store-chip"><i></i><span>Ładuję…</span></span>
       <button class="btn small" id="btn-view" type="button">Widżet</button>
       <button class="btn small" id="btn-settings" type="button">Dochód i koszty stałe</button>
+      <button class="btn small ghost" id="btn-logout" type="button" hidden>Wyloguj</button>
     </div>
   </div>
   <div id="main"><p class="muted">Ładuję twój budżet…</p></div>
@@ -305,8 +306,8 @@ function curCycle(){ return cycleFor(new Date(), S.settings.payday); }
 function cycleDoc(key){ if(!S.cycles[key]) S.cycles[key]=blankCycle(); return S.cycles[key]; }
 
 // ---------- persistence ----------
-function lsRead(){ try{ const raw=localStorage.getItem(LS_KEY); return raw?JSON.parse(raw):null; }catch(e){ return null; } }
-function lsWrite(){ if(S.demo) return; try{ localStorage.setItem(LS_KEY, JSON.stringify({settings:S.settings,cycles:S.cycles})); }catch(e){} }
+function lsRead(key){ try{ const raw=localStorage.getItem(key||S.lsKey||LS_KEY); return raw?JSON.parse(raw):null; }catch(e){ return null; } }
+function lsWrite(){ if(S.demo) return; try{ localStorage.setItem(S.lsKey||LS_KEY, JSON.stringify({settings:S.settings,cycles:S.cycles})); }catch(e){} }
 const pending = new Set(); let saveT=null;
 function save(which){ // which: "settings" or a cycle key
   if(S.demo) return;
@@ -391,8 +392,12 @@ function eggSVG(frac, w=118){
 // ---------- render: main ----------
 function render(){
   const chip=$("#store-chip");
+  const gated = S.mode==="login" || S.mode==="pending";
+  $("#btn-view").hidden = $("#btn-settings").hidden = gated;
+  $("#btn-logout").hidden = !S.user;
   chip.className="chip"+(S.mode==="cloud"&&!S.demo?" cloud":"");
-  chip.querySelector("span").textContent = S.demo ? "Przykładowe dane" : S.mode==="cloud" ? "Zapis w chmurze" : "Zapis w tej przeglądarce";
+  chip.querySelector("span").textContent = gated ? "Niezalogowano" : S.user ? S.user : S.demo ? "Przykładowe dane" : S.mode==="cloud" ? "Zapis w chmurze" : "Zapis w tej przeglądarce";
+  if(gated) return renderLogin();
   $("#btn-view").textContent = S.view==="widget" ? "Pełny widok" : "Widżet";
   if(S.view==="widget") return renderWidget();
   const k=calc(), s=k.s;
@@ -716,7 +721,7 @@ window.addEventListener("hashchange", ()=>{ S.view=location.hash==="#widget"?"wi
 
 async function resetAll(){
   const keys=["settings",...Object.keys(S.cycles)];
-  try{ localStorage.removeItem(LS_KEY); }catch(_){}
+  try{ localStorage.removeItem(S.lsKey||LS_KEY); }catch(_){}
   if(S.mode==="cloud"&&S.col){ for(const k of keys){ try{ await S.col.doc(k).delete(); }catch(_){} } }
   closeSheet(); const d=demoData(); S.settings=d.settings; S.cycles=d.cycles; S.demo=true; render(); toast("Usunięto dane.");
 }
@@ -726,10 +731,70 @@ function toast(msg){ let el=$(".toast"); if(!el){ el=document.createElement("div
   el.textContent=msg; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{el.hidden=true;},3200); }
 
 // odśwież o północy i co minutę licznik listy 48 h
-setInterval(()=>{ if(!$("#sheet") && document.activeElement?.tagName!=="INPUT") render(); }, 60000);
+setInterval(()=>{ if(S.settings && S.mode!=="login" && !$("#sheet") && document.activeElement?.tagName!=="INPUT") render(); }, 60000);
+
+// ---------- logowanie e-mailem (wersja na GitHub Pages, Firebase) ----------
+function renderLogin(){
+  if(S.mode==="pending"){ $("#main").innerHTML=`<p class="muted">Sprawdzam logowanie…</p>`; return; }
+  if($("#loginf")){ $("#login-err").textContent=S.loginErr||""; $("#login-err").hidden=!S.loginErr; return; }
+  $("#main").innerHTML = `<div class="wg"><div class="egg-card">${eggSVG(.55,90)}
+    <div class="egg-txt"><h2>Zaloguj się</h2><div class="muted" style="font-size:.9rem">Twój budżet zapisuje się na koncie, więc zobaczysz go na telefonie i na komputerze.</div></div></div>
+    <form class="panel" id="loginf" autocomplete="on">
+      <div class="field"><label for="l-email">E-mail</label><input class="in" id="l-email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="l-pass">Hasło</label><input class="in" id="l-pass" type="password" autocomplete="current-password" required></div>
+      <p class="hint" id="login-err" role="alert" style="margin:0;color:var(--bad)" ${S.loginErr?"":"hidden"}>${esc(S.loginErr||"")}</p>
+      <div class="addrow"><button class="btn ghost" type="button" data-act="forgot">Nie pamiętam hasła</button><button class="btn primary" type="submit">Zaloguj</button></div>
+    </form>
+    <p class="hint" style="margin:0">Konta dodaje administrator w konsoli Firebase (Authentication → Users). Działa to samo konto co w rejestrze wózków.</p></div>`;
+}
+function fbError(e){
+  const c=e&&e.code||"";
+  if(/invalid-credential|wrong-password|user-not-found|invalid-email|invalid-login/.test(c)) return "Nieprawidłowy e-mail lub hasło.";
+  if(/too-many-requests/.test(c)) return "Za dużo prób. Odczekaj chwilę i spróbuj ponownie.";
+  if(/network/.test(c)) return "Brak połączenia z internetem.";
+  if(/permission-denied/.test(c)) return "Baza nie pozwala jeszcze zapisywać budżetu. Administrator musi opublikować nowe reguły z pliku firestore.rules w konsoli Firebase.";
+  return "Coś poszło nie tak ("+(c||"błąd")+"). Spróbuj ponownie.";
+}
+function fbBoot(){
+  firebase.initializeApp(window.FIREBASE_CONFIG);
+  const auth=firebase.auth(), fdb=firebase.firestore();
+  S.fbAuth=auth; S.mode="pending"; render();
+  auth.onAuthStateChanged(async u=>{
+    if(!u){ S.user=null; S.col=null; S.lsKey=null; S.settings=null; S.cycles={}; S.mode="login"; render(); return; }
+    S.user=u.email; S.lsKey=LS_KEY+"."+u.uid; S.loginErr="";
+    const col=fdb.collection("budgets").doc(u.uid).collection("docs");
+    let cloud={settings:null,cycles:{}};
+    try{
+      const snap=await col.get();
+      snap.docs.forEach(d=>{ const v=d.data(); if(d.id==="settings") cloud.settings=v; else if(d.id.startsWith("c-")) cloud.cycles[d.id]=v; });
+      S.col=col; S.mode="cloud";
+    }catch(e){ S.mode="local"; toast(fbError(e)); }
+    const local = lsRead(S.lsKey) || lsRead(LS_KEY); // LS_KEY: dane zapisane na telefonie przed logowaniem
+    if(cloud.settings && cloud.settings.setup){ S.settings=cloud.settings; S.cycles=cloud.cycles; S.demo=false; lsWrite(); }
+    else if(local && local.settings && local.settings.setup){ S.settings=local.settings; S.cycles=local.cycles||{}; S.demo=false; save("settings"); Object.keys(S.cycles).forEach(k=>save(k)); }
+    else { const d=demoData(); S.settings=d.settings; S.cycles=d.cycles; S.demo=true; }
+    render();
+  });
+}
+document.addEventListener("submit", async e=>{
+  if(e.target.id!=="loginf") return;
+  const btn=e.target.querySelector("button[type=submit]"); btn.disabled=true; S.loginErr="";
+  try{ await S.fbAuth.signInWithEmailAndPassword($("#l-email").value.trim(), $("#l-pass").value); }
+  catch(err){ S.loginErr=fbError(err); renderLogin(); }
+  btn.disabled=false;
+});
+document.addEventListener("click", async e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.id==="btn-logout"){ await flush(); S.fbAuth&&S.fbAuth.signOut(); return; }
+  if(b.dataset.act==="forgot"){ const email=$("#l-email").value.trim();
+    if(!email){ S.loginErr="Wpisz najpierw swój e-mail, a wyślę link do zmiany hasła."; return renderLogin(); }
+    try{ await S.fbAuth.sendPasswordResetEmail(email); }catch(_){}
+    S.loginErr=""; renderLogin(); toast("Jeśli to konto istnieje, link do zmiany hasła jest już w skrzynce."); }
+});
 
 // ---------- boot ----------
 (function boot(){
+  if(window.firebase && window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey) return fbBoot();
   const local=lsRead();
   if(local&&local.settings&&local.settings.setup){ S.settings=local.settings; S.cycles=local.cycles||{}; }
   else { const d=demoData(); S.settings=d.settings; S.cycles=d.cycles; S.demo=true; }

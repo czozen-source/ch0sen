@@ -53,5 +53,9 @@ service cloud.firestore {
     match /damages/{id} {
       allow read, write: if isOwner();
     }
+    // Budżet Kokosza (docs/budzet.html): każdy zalogowany widzi i zmienia tylko swój budżet.
+    match /budgets/{uid}/{document=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
   }
 }
