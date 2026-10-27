@@ -78,6 +78,7 @@ Bez tego po kliknięciu „Wyślij raport” jest przycisk „Kopiuj raport z ko
 5. Aplikacja → **Ustawienia** raportu → wpisz Service ID, Template ID i Public Key → Zapisz.
 
 ## Budżet Kokosza (`docs/budzet.html`)
-Osobisty budżet: `https://czozen-source.github.io/ch0sen/budzet.html` (widżet: `…/budzet.html#widget`). Logowanie e-mailem i hasłem przez ten sam projekt Firebase co rejestr. **Dostęp ma wyłącznie konto czozen@gmail.com** (stała `OWNER` w `budzet/kokosza.html` i `isOwner()` przy `budgets` w `firestore.rules`); każde inne konto dostaje „To konto nie ma dostępu do tej strony” i jest wylogowane, a baza odmawia mu odczytu.
+Osobisty budżet: `https://czozen-source.github.io/ch0sen/budzet.html` (widżet: `…/budzet.html#widget`). Logowanie e-mailem i hasłem przez ten sam projekt Firebase co rejestr. **Dostęp mają tylko czozen@gmail.com i annakurnik90@gmail.com**, każde ze swoimi osobnymi danymi (`budgets/{uid}`). Lista jest w trzech miejscach: `BUDGET_USERS` w `budzet/kokosza.html` (i `docs/budzet.html`), `isBudgetUser()` w `firestore.rules`, `BUDGET_ONLY` w `docs/raport.html`. Każde inne konto dostaje „To konto nie ma dostępu do tej strony” i jest wylogowane, a baza odmawia mu odczytu. Konto annakurnik90@gmail.com nie widzi raportu zmiany, Redlinka ani rejestru wózków.
+- Konto dla Anny: Authentication → Users → **Add user** (annakurnik90@gmail.com + hasło tymczasowe); hasło zmieni sama przez „Nie pamiętam hasła”.
 - Jednorazowo: wklej aktualne `firestore.rules` w konsoli Firebase → Firestore → Reguły → **Opublikuj** (dochodzi blok `budgets`).
 - Źródło jest w `budzet/kokosza.html`; `docs/budzet.html` to ten sam kod z nagłówkiem strony i skryptami Firebase.

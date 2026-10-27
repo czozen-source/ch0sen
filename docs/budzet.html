@@ -267,7 +267,8 @@ const CATS = [
 const FCATS = ["Raty","Media","Mieszkanie","Abonamenty","Ubezpieczenia","Inne"];
 const CAT = Object.fromEntries(CATS.map(c=>[c.id,c]));
 const LS_KEY = "kokosza.v1";
-const OWNER = "czozen@gmail.com"; // tylko to konto ma dostęp do budżetu (to samo w firestore.rules)
+const OWNER = "czozen@gmail.com";
+const BUDGET_USERS = [OWNER, "annakurnik90@gmail.com"]; // tylko te konta mają dostęp do budżetu (to samo w firestore.rules); każde ma osobne dane
 const COOL_MS = 48*3600*1000;
 
 // ---------- helpers ----------
@@ -782,7 +783,7 @@ function fbBoot(){
   S.fbAuth=auth; S.mode="pending"; render();
   auth.onAuthStateChanged(async u=>{
     if(!u){ S.user=null; S.col=null; S.lsKey=null; S.settings=null; S.cycles={}; S.mode="login"; render(); return; }
-    if(String(u.email||"").toLowerCase()!==OWNER){ S.loginErr="To konto nie ma dostępu do tej strony."; S.mode="login"; auth.signOut(); return; }
+    if(!BUDGET_USERS.includes(String(u.email||"").toLowerCase())){ S.loginErr="To konto nie ma dostępu do tej strony."; S.mode="login"; auth.signOut(); return; }
     S.user=u.email; S.lsKey=LS_KEY+"."+u.uid; S.loginErr="";
     const col=fdb.collection("budgets").doc(u.uid).collection("docs");
     let cloud={settings:null,cycles:{}};
@@ -793,7 +794,8 @@ function fbBoot(){
     }catch(e){
       if(e && e.code==="permission-denied"){ S.loginErr="To konto nie ma dostępu do tej strony."; S.mode="login"; auth.signOut(); return; }
       S.mode="local"; toast(fbError(e)); }
-    const local = lsRead(S.lsKey) || lsRead(LS_KEY); // LS_KEY: dane zapisane na telefonie przed logowaniem
+    // LS_KEY: dane zapisane na telefonie przed wprowadzeniem logowania; należą do właściciela, więc tylko on je przejmuje
+    const local = lsRead(S.lsKey) || (String(u.email).toLowerCase()===OWNER ? lsRead(LS_KEY) : null);
     if(cloud.settings && cloud.settings.setup){ S.settings=cloud.settings; S.cycles=cloud.cycles; S.demo=false; lsWrite(); }
     else if(local && local.settings && local.settings.setup){ S.settings=local.settings; S.cycles=local.cycles||{}; S.demo=false; save("settings"); Object.keys(S.cycles).forEach(k=>save(k)); }
     else { const d=demoData(); S.settings=d.settings; S.cycles=d.cycles; S.demo=true; }
