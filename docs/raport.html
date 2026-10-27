@@ -248,6 +248,7 @@ let db = null, auth = null, user = null, unsubs = [];
 let email = "", myName = "", isMod = false, prev = null, reports = [], cfg = {};
 let V = {}, showErr = false;
 const OWNER = "czozen@gmail.com"; // wersja testowa: tylko właściciel widzi rejestr wózków i usuwa raporty
+const BUDGET_ONLY = ["annakurnik90@gmail.com"]; // konta tylko do budżetu: bez dostępu do raportu (to samo w firestore.rules)
 let rlWeek = monday(today()), rlDoc = { days: {} }, rlUnsub = null;
 
 /* ---------- field model ---------- */
@@ -855,6 +856,10 @@ function subscribe() {
     if (!inside) { TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = true; return; }
     email = u.email || ""; $("#whoEmail").textContent = email;
     $("#navReg").hidden = email.toLowerCase() !== OWNER;
+    if (BUDGET_ONLY.includes(email.toLowerCase())) {
+      $("#tabs").hidden = true; TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#navReg").hidden = true;
+      const n = $("#noAccess"); n.innerHTML = 'To konto ma dostęp tylko do <a href="budzet.html">budżetu</a>.'; n.hidden = false; return;
+    }
     $("#noAccess").hidden = true;
     showTab("form"); update(); subscribe();
   });

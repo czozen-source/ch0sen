@@ -13,13 +13,25 @@ service cloud.firestore {
       return signedIn() && request.auth.token.email != null
         && request.auth.token.email.lower() == 'czozen@gmail.com';
     }
+    // Budżet (docs/budzet.html): właściciel i konta poniżej, każde ze swoimi osobnymi danymi.
+    // Konta tylko do budżetu nie widzą raportu zmiany, Redlinka, ustawień ani rejestru wózków.
+    function isBudgetUser() {
+      return signedIn() && request.auth.token.email != null
+        && request.auth.token.email.lower() in ['czozen@gmail.com', 'annakurnik90@gmail.com'];
+    }
+    function isBudgetOnly() {
+      return isBudgetUser() && !isOwner();
+    }
+    function isStaff() {
+      return signedIn() && !isBudgetOnly();
+    }
     function isMod() {
       return signedIn() && request.auth.token.email != null
         && request.auth.token.email.lower() in get(/databases/$(database)/documents/config/roles).data.moderators;
     }
 
     match /config/{doc} {
-      allow read: if signedIn();
+      allow read: if isStaff();
       allow write: if false;
     }
     // Rejestr wózków (listy, rozpiska, zgłoszenia): wersja testowa – tylko właściciel.
@@ -36,7 +48,7 @@ service cloud.firestore {
     // Ustawienia: settings/shiftReport należy do raportu zmiany (czytają wszyscy, zmienia moderator),
     // pozostałe dokumenty (mail, rozpiska) do rejestru wózków.
     match /settings/{id} {
-      allow read: if (id == 'shiftReport' && signedIn()) || isOwner();
+      allow read: if (id == 'shiftReport' && isStaff()) || isOwner();
       allow write: if (id == 'shiftReport' && isMod()) || isOwner();
     }
     match /schedule/{day} {
@@ -44,18 +56,18 @@ service cloud.firestore {
     }
     // Raporty zmian i plan Redlink: wszyscy zalogowani; raport usuwa tylko właściciel.
     match /shift_reports/{id} {
-      allow read, create: if signedIn();
+      allow read, create: if isStaff();
       allow update, delete: if isOwner();
     }
     match /redlink/{week} {
-      allow read, write: if signedIn();
+      allow read, write: if isStaff();
     }
     match /damages/{id} {
       allow read, write: if isOwner();
     }
-    // Budżet Kokosza (docs/budzet.html): wyłącznie właściciel. Inne konta nie widzą go wcale.
+    // Budżet Kokosza: tylko konta z isBudgetUser(), każde wyłącznie swój dokument (uid).
     match /budgets/{uid}/{document=**} {
-      allow read, write: if isOwner() && request.auth.uid == uid;
+      allow read, write: if isBudgetUser() && request.auth.uid == uid;
     }
   }
 }
