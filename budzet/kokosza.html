@@ -93,13 +93,6 @@ button{cursor:pointer}
 /* days strip */
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .ph{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:5px}
-.day{aspect-ratio:1;max-width:100%;border-radius:7px;background:var(--sunk);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-family:var(--f-num);color:var(--muted);position:relative}
-.day.ok{background:color-mix(in srgb,var(--good) 30%,var(--surface));color:var(--ink)}
-.day.mid{background:color-mix(in srgb,var(--warn) 35%,var(--surface));color:var(--ink)}
-.day.over{background:color-mix(in srgb,var(--bad) 45%,var(--surface));color:var(--ink)}
-.day.zero{background:color-mix(in srgb,var(--good) 60%,var(--surface));color:var(--ink);font-weight:600}
-.day.now{outline:2px solid var(--ink);outline-offset:1px}
 .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
@@ -112,6 +105,9 @@ button{cursor:pointer}
 .cal .wd.we{color:var(--bad)}
 .cd{border:0;border-radius:9px;background:var(--sunk);min-height:54px;padding:5px 4px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:2px;text-align:left;min-width:0;position:relative}
 .cd b{font-family:var(--f-num);font-size:.82rem;font-weight:600}
+.cd b small{font-weight:500;font-size:.62rem;color:var(--muted)}
+.cd .lim{color:var(--muted);opacity:1}
+.cd.fut.wkd{border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
 .cd span{font-family:var(--f-num);font-size:.68rem;color:var(--ink);opacity:.8;white-space:nowrap;overflow:hidden;max-width:100%}
 .cd.fut{background:transparent;border:1px dashed var(--line)}
 .cd.fut b{color:var(--muted)}
@@ -287,6 +283,12 @@ const ymd = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const dayStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const DAYMS = 86400000;
 const daysBetween = (a,b) => Math.round((dayStart(b)-dayStart(a))/DAYMS);
+const addDays = (d,i) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+i); // odporne na zmianę czasu
+const isWeekend = d => d.getDay()===0 || d.getDay()===6;
+// weekend dostaje większy limit niż dzień roboczy (mnożnik z ustawień)
+const wkW = () => { const v=S.settings&&S.settings.wkend; return v>0 ? v : 1.5; };
+const dayW = d => isWeekend(d) ? wkW() : 1;
+function weightSum(start, n){ let t=0; for(let i=0;i<n;i++) t+=dayW(addDays(start,i)); return t; }
 const MONTHS = ["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
 const WD = ["nd","pn","wt","śr","cz","pt","sb"];
 const fmtD = d => d.getDate()+" "+MONTHS[d.getMonth()];
@@ -302,11 +304,11 @@ function cycleFor(date, payday){
 
 // ---------- state ----------
 const S = { settings:null, cycles:{}, demo:false, mode:"local", col:null, view: location.hash==="#widget" ? "widget" : "main",
-  draft:{cat:"jedzenie", kind:"need"}, calOff:0, calSel:null };
+  draft:{cat:"jedzenie", kind:"need"}, cycOff:0, calSel:null };
 
 function demoData(){
   const now = new Date();
-  const settings = {setup:true, income:7200, payday:10, goal:1200, hours:168, fixed:[
+  const settings = {setup:true, income:7200, payday:10, goal:1200, hours:168, wkend:1.5, fixed:[
     {id:"f1",name:"Rata kredytu hipotecznego",amt:2150,cat:"Raty"},
     {id:"f2",name:"Prąd i gaz",amt:310,cat:"Media"},
     {id:"f3",name:"Czynsz do wspólnoty",amt:480,cat:"Mieszkanie"},
@@ -384,9 +386,12 @@ function calc(){
   let spent=0, spentToday=0, wants=0; const perDay={}, perCat={};
   doc.exp.forEach(e=>{ const d=ymd(new Date(e.t)); spent+=e.a; perDay[d]=(perDay[d]||0)+e.a; perCat[e.c]=(perCat[e.c]||0)+e.a; if(e.k==="want") wants+=e.a; if(d===todayKey) spentToday+=e.a; });
   const before = spent - spentToday;
-  const todayLimit = Math.max(0, (free - before)/daysLeft);
+  const W = weightSum(cy.start, cy.days), Wrem = weightSum(dayStart(now), daysLeft);
+  const perW = Math.max(0, free - before)/Wrem;          // pula od dziś do końca cyklu na jednostkę dnia (weekend = mnożnik)
+  const todayLimit = perW*dayW(now);
   const leftToday = todayLimit - spentToday;
-  const base = free/cy.days;
+  const base = free*dayW(now)/W;
+  const baseWd = free/W, baseWe = free*wkW()/W;
   const elapsedDays = idx+1;
   const pace = spent/elapsedDays;
   const projSpent = Math.max(spent, pace*cy.days);
@@ -394,8 +399,8 @@ function calc(){
   const nowSaved = s.income - fixed - spent;            // co zostaje, jeśli od dziś zero wydatków
   const hourly = s.income/(s.hours||168);
   const unpaid = (s.fixed||[]).filter(f=>!doc.paid[f.id]).reduce((a,f)=>a+(+f.amt||0),0);
-  let streak=0; for(let i=idx-1;i>=0;i--){ const d=ymd(new Date(cy.start.getTime()+i*DAYMS)); if((perDay[d]||0)<=base) streak++; else break; }
-  return {s,cy,doc,fixed,free,idx,daysLeft,spent,spentToday,todayLimit,leftToday,base,projSaved,nowSaved,hourly,perDay,perCat,wants,unpaid,streak,todayKey};
+  let streak=0; for(let i=idx-1;i>=0;i--){ const dd=addDays(cy.start,i); if((perDay[ymd(dd)]||0)<=free*dayW(dd)/W) streak++; else break; }
+  return {s,cy,doc,fixed,free,idx,daysLeft,spent,spentToday,todayLimit,leftToday,base,baseWd,baseWe,perW,projSaved,nowSaved,hourly,perDay,perCat,wants,unpaid,streak,todayKey};
 }
 
 // ---------- render: egg ----------
@@ -468,22 +473,8 @@ function render(){
   html += `<section class="stats">
     <div class="stat"><span class="lbl">Wydane z puli</span><span class="v">${zl(k.spent)}</span><span class="s">${spentPct}% puli, minęło ${cyclePct}% cyklu</span></div>
     <div class="stat"><span class="lbl">Zostało w puli</span><span class="v ${k.free-k.spent<0?"negc":""}">${zl(k.free-k.spent)}</span><span class="s">na ${k.daysLeft} ${k.daysLeft===1?"dzień":"dni"}, do ${fmtD(k.cy.end)}</span></div>
-    <div class="stat"><span class="lbl">Seria dni w limicie</span><span class="v">${k.streak} ${k.streak===1?"dzień":"dni"}</span><span class="s">limit bazowy ${zl(k.base)}/dzień</span></div>
+    <div class="stat"><span class="lbl">Seria dni w limicie</span><span class="v">${k.streak} ${k.streak===1?"dzień":"dni"}</span><span class="s">limit: tydzień ${zl(k.baseWd)}, weekend ${zl(k.baseWe)}</span></div>
     <div class="stat"><span class="lbl">Zachcianki</span><span class="v" style="color:var(--want)">${zl(k.wants)}</span><span class="s">${k.spent>0?Math.round(k.wants/k.spent*100):0}% wydatków · ${hoursTxt(k.wants/k.hourly)||"0 h pracy"}</span></div>
-  </section>`;
-
-  // DAYS
-  let days="";
-  for(let i=0;i<k.cy.days;i++){
-    const d=new Date(k.cy.start.getTime()+i*DAYMS); const key=ymd(d); const v=k.perDay[key]||0;
-    let cls="";
-    if(i<k.idx || (i===k.idx && v>0)){ cls = v===0?"zero": v<=k.base*0.8?"ok": v<=k.base*1.15?"mid":"over"; }
-    if(i===k.idx) cls+=" now";
-    days+=`<div class="day ${cls}" title="${fmtD(d)}: ${zl(v,1)}">${d.getDate()}</div>`;
-  }
-  html += `<section class="panel"><div class="ph"><h2>Cykl ${fmtD(k.cy.start)} – ${fmtD(k.cy.end)}</h2><span class="muted" style="font-size:.85rem">od wypłaty do wypłaty</span></div>
-    <div class="days">${days}</div>
-    <div class="legend"><span><i style="background:color-mix(in srgb,var(--good) 60%,var(--surface))"></i>dzień bez wydatków</span><span><i style="background:color-mix(in srgb,var(--good) 30%,var(--surface))"></i>poniżej limitu</span><span><i style="background:color-mix(in srgb,var(--warn) 35%,var(--surface))"></i>na granicy</span><span><i style="background:color-mix(in srgb,var(--bad) 45%,var(--surface))"></i>ponad limit</span></div>
   </section>`;
 
   html += calendarPanel(k);
@@ -495,52 +486,56 @@ function render(){
   updateHint();
 }
 
-// limit bazowy dnia: z cyklu, do którego ten dzień należy
+// planowany limit dnia: z cyklu, do którego ten dzień należy (weekend × mnożnik)
 function baseFor(d){
   const s=S.settings, cy=cycleFor(d, s.payday), c=S.cycles[cy.key];
   const inc=c&&c.inc!=null?c.inc:s.income, fix=c&&c.fix!=null?c.fix:fixedTotal(), goal=c&&c.goal!=null?c.goal:s.goal;
-  return (inc-fix-goal)/cy.days;
+  return (inc-fix-goal)*dayW(d)/weightSum(cy.start, cy.days);
 }
 function allByDay(){
   const m={};
   Object.values(S.cycles).forEach(c=>(c.exp||[]).forEach(e=>{ const d=ymd(new Date(e.t)); (m[d]=m[d]||[]).push(e); }));
   return m;
 }
-const MONTHS_FULL=["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
+// cykl od wypłaty do wypłaty ułożony jak kalendarz (pn–nd), żeby było widać weekendy
 function calendarPanel(k){
-  const now=new Date(), first=new Date(now.getFullYear(), now.getMonth()+S.calOff, 1);
-  const y=first.getFullYear(), mo=first.getMonth(), dim=new Date(y,mo+1,0).getDate();
-  const lead=(first.getDay()+6)%7; // poniedziałek jako pierwszy
-  const byDay=allByDay(), todayKey=ymd(now), pay=Math.min(28,Math.max(1,S.settings.payday|0||1));
+  const pay=Math.min(28,Math.max(1,S.settings.payday|0||1));
+  const cy = S.cycOff ? cycleFor(new Date(k.cy.start.getFullYear(), k.cy.start.getMonth()+S.cycOff, pay), pay) : k.cy;
+  const isCur = cy.key===k.cy.key, tracked = !!S.cycles[cy.key];
+  const byDay=allByDay(), todayKey=k.todayKey;
   let cells=["pn","wt","śr","cz","pt","sb","nd"].map((w,i)=>`<div class="wd ${i>4?"we":""}">${w}</div>`).join("");
-  for(let i=0;i<lead;i++) cells+=`<div></div>`;
-  let monthSpent=0, zeroDays=0, overDays=0, pastDays=0;
-  for(let d=1; d<=dim; d++){
-    const date=new Date(y,mo,d), key=ymd(date), list=byDay[key]||[], v=list.reduce((a,e)=>a+e.a,0);
+  for(let i=0,lead=(cy.start.getDay()+6)%7;i<lead;i++) cells+=`<div></div>`;
+  let spent=0, zeroDays=0, overDays=0, weSum=0, weN=0, wdSum=0, wdN=0;
+  for(let i=0;i<cy.days;i++){
+    const date=addDays(cy.start,i), key=ymd(date), list=byDay[key]||[], v=list.reduce((a,e)=>a+e.a,0), we=isWeekend(date);
     const past = key<todayKey || (key===todayKey && v>0);
-    let cls="cd";
-    const tracked = !!S.cycles[cycleFor(date, S.settings.payday).key]; // dni sprzed korzystania z aplikacji zostają neutralne
-    if(key>todayKey) cls+=" fut";
+    let cls="cd"+(we?" wkd":""), sub="";
+    if(key>todayKey){ cls+=" fut"; if(isCur) sub=`<span class="lim">${nf0.format(Math.round(k.perW*dayW(date)))} zł</span>`; }
     else if(past && tracked){ const base=baseFor(date); cls+= v===0?" zero": v<=base*0.8?" ok": v<=base*1.15?" mid":" over";
-      pastDays++; if(v===0) zeroDays++; if(v>base*1.15) overDays++; }
+      if(v===0) zeroDays++; if(v>base*1.15) overDays++; if(we){weSum+=v;weN++;}else{wdSum+=v;wdN++;} }
+    if(v>0) sub=`<span>${nf0.format(Math.round(v))} zł</span>`;
     if(key===todayKey) cls+=" now";
     if(key===S.calSel) cls+=" sel";
-    monthSpent+=v;
-    cells+=`<button type="button" class="${cls}" data-calday="${key}" aria-label="${d} ${MONTHS[mo]}: wydane ${zl(v,1)}"><b>${d}</b>${v>0?`<span>${nf0.format(Math.round(v))} zł</span>`:""}${d===pay?`<i class="pay" title="Wypłata"></i>`:""}</button>`;
+    spent+=v;
+    const lbl = (i===0||date.getDate()===1) ? `${date.getDate()} <small>${MONTHS[date.getMonth()]}</small>` : date.getDate();
+    cells+=`<button type="button" class="${cls}" data-calday="${key}" aria-label="${fmtD(date)}: wydane ${zl(v,1)}"><b>${lbl}</b>${sub}${date.getDate()===pay?`<i class="pay" title="Wypłata"></i>`:""}</button>`;
   }
   let detail="";
-  if(S.calSel && S.calSel.slice(0,7)===`${y}-${pad(mo+1)}`){
+  if(S.calSel && S.calSel>=ymd(cy.start) && S.calSel<=ymd(cy.end)){
     const sd=new Date(S.calSel+"T12:00:00"), list=(byDay[S.calSel]||[]).slice().sort((a,b)=>b.t-a.t), tot=list.reduce((a,e)=>a+e.a,0);
-    detail=`<div class="dayhead"><span>${WD[sd.getDay()]} ${fmtD(sd)} · limit ${zl(baseFor(sd))}</span><span class="num">${zl(tot,1)}</span></div>`+
+    const lim = S.calSel===todayKey ? k.todayLimit : isCur && S.calSel>todayKey ? k.perW*dayW(sd) : baseFor(sd);
+    detail=`<div class="dayhead"><span>${WD[sd.getDay()]} ${fmtD(sd)} · limit ${zl(lim)}</span><span class="num">${zl(tot,1)}</span></div>`+
       (list.length?`<div class="list">${list.map(e=>{const c=CAT[e.c]||CAT.inne; return `<div class="row"><span class="dot" style="background:${c.c}"></span><div class="t"><div>${esc(e.n||c.n)}</div><small>${c.n}${e.k==="want"?` · <span class="tag-w">zachcianka</span>`:""}</small></div><div class="a">${zls(e.a)}<small>${hoursTxt(e.a/k.hourly)}</small></div><button class="x" type="button" data-del="${e.id}" aria-label="Usuń wydatek">×</button></div>`;}).join("")}</div>`
        :`<p class="empty">${S.calSel>todayKey?"Ten dzień jeszcze przed tobą.":"Tego dnia nic nie wydano."}</p>`);
   }
+  const avg=(a,n)=>n?zl(a/n):"—";
   return `<section class="panel"><div class="ph">
-      <div class="calnav"><button class="btn small" type="button" data-calnav="-1" aria-label="Poprzedni miesiąc">‹</button><h2>${MONTHS_FULL[mo]} ${y}</h2><button class="btn small" type="button" data-calnav="1" aria-label="Następny miesiąc">›</button></div>
-      ${S.calOff?`<button class="btn small ghost" type="button" data-calnav="0">Wróć do bieżącego</button>`:""}
+      <div class="calnav"><button class="btn small" type="button" data-cycnav="-1" aria-label="Poprzedni cykl">‹</button><h2>${fmtD(cy.start)} – ${fmtD(cy.end)}</h2><button class="btn small" type="button" data-cycnav="1" aria-label="Następny cykl">›</button></div>
+      ${S.cycOff?`<button class="btn small ghost" type="button" data-cycnav="0">Wróć do bieżącego</button>`:`<span class="muted" style="font-size:.85rem">od wypłaty do wypłaty</span>`}
     </div>
     <div class="cal">${cells}</div>
-    <div class="calsum"><span>Wydane w miesiącu: <b>${zl(monthSpent)}</b></span><span>Dni bez wydatków: <b>${zeroDays}</b></span><span>Dni ponad limit: <b>${overDays}</b></span><span><i class="pay" style="position:static;display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--yolk);margin-right:4px"></i>dzień wypłaty</span></div>
+    <div class="calsum"><span>Wydane: <b>${zl(spent)}</b></span><span>Średnio w tygodniu: <b>${avg(wdSum,wdN)}</b>/dzień</span><span>W weekend: <b>${avg(weSum,weN)}</b>/dzień</span><span>Bez wydatków: <b>${zeroDays}</b></span><span>Ponad limit: <b>${overDays}</b></span></div>
+    <div class="legend"><span><i style="background:color-mix(in srgb,var(--good) 60%,var(--surface))"></i>bez wydatków</span><span><i style="background:color-mix(in srgb,var(--good) 30%,var(--surface))"></i>poniżej limitu</span><span><i style="background:color-mix(in srgb,var(--warn) 35%,var(--surface))"></i>na granicy</span><span><i style="background:color-mix(in srgb,var(--bad) 45%,var(--surface))"></i>ponad limit</span><span><i style="background:var(--yolk);border-radius:50%"></i>wypłata</span>${isCur?`<span>w przyszłych dniach: limit na ten dzień</span>`:""}</div>
     ${detail?`<div>${detail}</div>`:`<p class="hint" style="margin:0">Stuknij dzień, żeby zobaczyć jego wydatki.</p>`}
   </section>`;
 }
@@ -681,6 +676,7 @@ function openSettings(){
       <div class="field"><label for="s-pay">Dzień wypłaty (1–28)</label><input class="in num" id="s-pay" type="number" min="1" max="28" required value="${esc(s.payday)}"></div>
       <div class="field"><label for="s-goal">Ile chcesz odłożyć w miesiącu (zł)</label><input class="in num" id="s-goal" inputmode="decimal" value="${esc(s.goal)}" placeholder="np. 1000"></div>
       <div class="field"><label for="s-hrs">Godzin pracy w miesiącu</label><input class="in num" id="s-hrs" type="number" min="1" value="${esc(s.hours||168)}"></div>
+      <div class="field"><label for="s-wk">Limit w sobotę i niedzielę</label><select class="in" id="s-wk">${[[1,"taki sam jak w tygodniu"],[1.25,"o 25% większy"],[1.5,"o 50% większy"],[2,"2 razy większy"],[2.5,"2,5 razy większy"],[3,"3 razy większy"]].map(([v,t])=>`<option value="${v}" ${v===(s.wkend||1.5)?"selected":""}>${t}</option>`).join("")}</select></div>
     </div>
     <p class="hint" style="margin:0">Godziny pracy służą do przeliczania wydatków na czas, który musisz na nie przepracować.</p>
     <div class="ph"><h3>Koszty stałe</h3><span class="hint">raty, media, czynsz, abonamenty</span></div>
@@ -706,8 +702,8 @@ function drawFx(){
 function updateSum(){
   const inc=parseAmt($("#s-inc").value)||0, goal=parseAmt($("#s-goal").value)||0;
   const fx=sheetFixed.reduce((a,f)=>a+(parseAmt(f.amt)||0),0);
-  const free=inc-fx-goal;
-  $("#setsum").innerHTML=`<dl class="kv"><dt>Dochód</dt><dd>${zl(inc)}</dd><dt>Koszty stałe</dt><dd>−${zl(fx)}</dd><dt>Odkładasz</dt><dd>−${zl(goal)}</dd><dt><b>Pula na życie</b></dt><dd class="free ${free<0?"neg":""}">${zl(free)} · ok. ${zl(free/30.4)}/dzień</dd></dl>`;
+  const free=inc-fx-goal, wk=parseFloat($("#s-wk").value)||1.5;
+  $("#setsum").innerHTML=`<dl class="kv"><dt>Dochód</dt><dd>${zl(inc)}</dd><dt>Koszty stałe</dt><dd>−${zl(fx)}</dd><dt>Odkładasz</dt><dd>−${zl(goal)}</dd><dt><b>Pula na życie</b></dt><dd class="free ${free<0?"neg":""}">${zl(free)}</dd><dt>Dzień w tygodniu</dt><dd>ok. ${zl(free/(21.7+8.7*wk))}</dd><dt>Sobota, niedziela</dt><dd>ok. ${zl(free*wk/(21.7+8.7*wk))}</dd></dl>`;
 }
 function saveSettings(){
   const inc=parseAmt($("#s-inc").value);
@@ -715,7 +711,7 @@ function saveSettings(){
   const fixed=sheetFixed.filter(f=>String(f.name).trim()||parseAmt(f.amt)>0).map(f=>({id:f.id||uid(),name:String(f.name).trim()||f.cat,amt:parseAmt(f.amt)||0,cat:f.cat}));
   const wasDemo=S.demo;
   if(wasDemo){ S.demo=false; S.cycles={}; }
-  S.settings={setup:true,income:inc,payday:Math.min(28,Math.max(1,parseInt($("#s-pay").value)||1)),goal:Math.max(0,parseAmt($("#s-goal").value)||0),hours:Math.max(1,parseInt($("#s-hrs").value)||168),fixed};
+  S.settings={setup:true,income:inc,payday:Math.min(28,Math.max(1,parseInt($("#s-pay").value)||1)),goal:Math.max(0,parseAmt($("#s-goal").value)||0),hours:Math.max(1,parseInt($("#s-hrs").value)||168),wkend:parseFloat($("#s-wk").value)||1.5,fixed};
   const key=curCycle().key; const d=cycleDoc(key); d.inc=S.settings.income; d.fix=fixedTotal(); d.goal=S.settings.goal;
   save("settings"); save(key);
   closeSheet(); render(); toast("Zapisano. Limit na dziś przeliczony.");
@@ -756,7 +752,7 @@ document.addEventListener("input", e=>{
   if(t.id==="a-amt") updateHint();
   if(t.id==="a-note"){ const g=guessCat(t.value); if(g&&g!==S.draft.cat){ S.draft.cat=g; document.querySelectorAll("[data-cat]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cat===g)); } }
   if(t.dataset.fx!==undefined){ sheetFixed[+t.dataset.fx][t.dataset.k]=t.value; updateSum(); }
-  if(t.id==="s-inc"||t.id==="s-goal") updateSum();
+  if(t.id==="s-inc"||t.id==="s-goal"||t.id==="s-wk") updateSum();
 });
 document.addEventListener("change", e=>{
   const t=e.target;
@@ -771,7 +767,7 @@ document.addEventListener("click", e=>{
   if(b.dataset.cat){ S.draft.cat=b.dataset.cat; document.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed",x===b)); return; }
   if(b.dataset.kind){ S.draft.kind=b.dataset.kind; document.querySelectorAll("[data-kind]").forEach(x=>x.setAttribute("aria-pressed",x===b)); return; }
   const key = S.settings ? curCycle().key : null;
-  if(b.dataset.calnav!==undefined){ const v=+b.dataset.calnav; S.calOff = v===0 ? 0 : S.calOff+v; render(); return; }
+  if(b.dataset.cycnav!==undefined){ const v=+b.dataset.cycnav; S.cycOff = v===0 ? 0 : S.cycOff+v; render(); return; }
   if(b.dataset.calday){ S.calSel = S.calSel===b.dataset.calday ? null : b.dataset.calday; render(); return; }
   if(b.dataset.del){ if(S.demo) return toast("To przykładowe dane.");
     for(const ck of Object.keys(S.cycles)){ const d=S.cycles[ck]; const i=(d.exp||[]).findIndex(x=>x.id===b.dataset.del);
