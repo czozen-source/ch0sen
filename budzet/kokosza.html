@@ -85,7 +85,7 @@ button{cursor:pointer}
 .kv dt{color:var(--muted)} .kv dd{margin:0;text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
 
 /* stats strip */
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .stat .v{font-family:var(--f-num);font-size:1.2rem;font-weight:600;font-variant-numeric:tabular-nums}
 .stat .s{font-size:.8rem;color:var(--muted)}
@@ -469,12 +469,10 @@ function render(){
 
   // STATS
   const spentPct = k.free>0 ? Math.round(k.spent/k.free*100) : 0;
-  const cyclePct = Math.round((k.idx+1)/k.cy.days*100);
   html += `<section class="stats">
-    <div class="stat"><span class="lbl">Wydane z puli</span><span class="v">${zl(k.spent)}</span><span class="s">${spentPct}% puli, minęło ${cyclePct}% cyklu</span></div>
+    <div class="stat"><span class="lbl">Wydane z puli</span><span class="v">${zl(k.spent)}</span><span class="s">${spentPct}% puli</span></div>
     <div class="stat"><span class="lbl">Zostało w puli</span><span class="v ${k.free-k.spent<0?"negc":""}">${zl(k.free-k.spent)}</span><span class="s">na ${k.daysLeft} ${k.daysLeft===1?"dzień":"dni"}, do ${fmtD(k.cy.end)}</span></div>
-    <div class="stat"><span class="lbl">Seria dni w limicie</span><span class="v">${k.streak} ${k.streak===1?"dzień":"dni"}</span><span class="s">limit: tydzień ${zl(k.baseWd)}, weekend ${zl(k.baseWe)}</span></div>
-    <div class="stat"><span class="lbl">Zachcianki</span><span class="v" style="color:var(--want)">${zl(k.wants)}</span><span class="s">${k.spent>0?Math.round(k.wants/k.spent*100):0}% wydatków · ${hoursTxt(k.wants/k.hourly)||"0 h pracy"}</span></div>
+    <div class="stat"><span class="lbl">Zachcianki</span><span class="v" style="color:var(--want)">${zl(k.wants)}</span><span class="s">${k.spent>0?Math.round(k.wants/k.spent*100):0}% wydatków</span></div>
   </section>`;
 
   html += calendarPanel(k);
@@ -505,14 +503,14 @@ function calendarPanel(k){
   const byDay=allByDay(), todayKey=k.todayKey;
   let cells=["pn","wt","śr","cz","pt","sb","nd"].map((w,i)=>`<div class="wd ${i>4?"we":""}">${w}</div>`).join("");
   for(let i=0,lead=(cy.start.getDay()+6)%7;i<lead;i++) cells+=`<div></div>`;
-  let spent=0, zeroDays=0, overDays=0, weSum=0, weN=0, wdSum=0, wdN=0;
+  let spent=0, weSum=0, weN=0, wdSum=0, wdN=0;
   for(let i=0;i<cy.days;i++){
     const date=addDays(cy.start,i), key=ymd(date), list=byDay[key]||[], v=list.reduce((a,e)=>a+e.a,0), we=isWeekend(date);
     const past = key<todayKey || (key===todayKey && v>0);
     let cls="cd"+(we?" wkd":""), sub="";
     if(key>todayKey){ cls+=" fut"; if(isCur) sub=`<span class="lim">${nf0.format(Math.round(k.perW*dayW(date)))} zł</span>`; }
     else if(past && tracked){ const base=baseFor(date); cls+= v===0?" zero": v<=base*0.8?" ok": v<=base*1.15?" mid":" over";
-      if(v===0) zeroDays++; if(v>base*1.15) overDays++; if(we){weSum+=v;weN++;}else{wdSum+=v;wdN++;} }
+      if(we){weSum+=v;weN++;}else{wdSum+=v;wdN++;} }
     if(v>0) sub=`<span>${nf0.format(Math.round(v))} zł</span>`;
     if(key===todayKey) cls+=" now";
     if(key===S.calSel) cls+=" sel";
@@ -525,7 +523,7 @@ function calendarPanel(k){
     const sd=new Date(S.calSel+"T12:00:00"), list=(byDay[S.calSel]||[]).slice().sort((a,b)=>b.t-a.t), tot=list.reduce((a,e)=>a+e.a,0);
     const lim = S.calSel===todayKey ? k.todayLimit : isCur && S.calSel>todayKey ? k.perW*dayW(sd) : baseFor(sd);
     detail=`<div class="dayhead"><span>${WD[sd.getDay()]} ${fmtD(sd)} · limit ${zl(lim)}</span><span class="num">${zl(tot,1)}</span></div>`+
-      (list.length?`<div class="list">${list.map(e=>{const c=CAT[e.c]||CAT.inne; return `<div class="row"><span class="dot" style="background:${c.c}"></span><div class="t"><div>${esc(e.n||c.n)}</div><small>${c.n}${e.k==="want"?` · <span class="tag-w">zachcianka</span>`:""}</small></div><div class="a">${zls(e.a)}<small>${hoursTxt(e.a/k.hourly)}</small></div><button class="x" type="button" data-del="${e.id}" aria-label="Usuń wydatek">×</button></div>`;}).join("")}</div>`
+      (list.length?`<div class="list">${list.map(e=>{const c=CAT[e.c]||CAT.inne; return `<div class="row"><span class="dot" style="background:${c.c}"></span><div class="t"><div>${esc(e.n||c.n)}</div><small>${c.n}${e.k==="want"?` · <span class="tag-w">zachcianka</span>`:""}</small></div><div class="a">${zls(e.a)}</div><button class="x" type="button" data-del="${e.id}" aria-label="Usuń wydatek">×</button></div>`;}).join("")}</div>`
        :`<p class="empty">${S.calSel>todayKey?"Ten dzień jeszcze przed tobą.":"Tego dnia nic nie wydano."}</p>`);
   }
   const avg=(a,n)=>n?zl(a/n):"—";
@@ -534,9 +532,9 @@ function calendarPanel(k){
       ${S.cycOff?`<button class="btn small ghost" type="button" data-cycnav="0">Wróć do bieżącego</button>`:`<span class="muted" style="font-size:.85rem">od wypłaty do wypłaty</span>`}
     </div>
     <div class="cal">${cells}</div>
-    <div class="calsum"><span>Wydane: <b>${zl(spent)}</b></span><span>Średnio w tygodniu: <b>${avg(wdSum,wdN)}</b>/dzień</span><span>W weekend: <b>${avg(weSum,weN)}</b>/dzień</span><span>Bez wydatków: <b>${zeroDays}</b></span><span>Ponad limit: <b>${overDays}</b></span></div>
-    <div class="legend"><span><i style="background:color-mix(in srgb,var(--good) 60%,var(--surface))"></i>bez wydatków</span><span><i style="background:color-mix(in srgb,var(--good) 30%,var(--surface))"></i>poniżej limitu</span><span><i style="background:color-mix(in srgb,var(--warn) 35%,var(--surface))"></i>na granicy</span><span><i style="background:color-mix(in srgb,var(--bad) 45%,var(--surface))"></i>ponad limit</span><span><i style="background:var(--yolk);border-radius:50%"></i>wypłata</span>${isCur?`<span>w przyszłych dniach: limit na ten dzień</span>`:""}</div>
-    ${detail?`<div>${detail}</div>`:`<p class="hint" style="margin:0">Stuknij dzień, żeby zobaczyć jego wydatki.</p>`}
+    <div class="calsum"><span>Wydane: <b>${zl(spent)}</b></span><span>Średnio: tydzień <b>${avg(wdSum,wdN)}</b>, weekend <b>${avg(weSum,weN)}</b> dziennie</span></div>
+    <div class="legend"><span><i style="background:color-mix(in srgb,var(--good) 45%,var(--surface))"></i>w limicie</span><span><i style="background:color-mix(in srgb,var(--warn) 35%,var(--surface))"></i>na granicy</span><span><i style="background:color-mix(in srgb,var(--bad) 45%,var(--surface))"></i>ponad limit</span><span><i style="background:var(--yolk);border-radius:50%"></i>wypłata</span></div>
+    ${detail?`<div>${detail}</div>`:""}
   </section>`;
 }
 
@@ -562,16 +560,17 @@ function expensesPanel(k){
   const ex=[...k.doc.exp].sort((a,b)=>b.t-a.t);
   if(!ex.length) return `<section class="panel"><h2>Wydatki w tym cyklu</h2><p class="empty">Jeszcze nic. Dodaj pierwszy wydatek powyżej albo w polu „Szybki wydatek”.</p></section>`;
   let html="", last=null;
-  ex.forEach(e=>{
+  const shown = S.showAllExp ? ex : ex.slice(0,6);
+  shown.forEach(e=>{
     const d=new Date(e.t), key=ymd(d);
     if(key!==last){ last=key; html+=`<div class="dayhead"><span>${key===k.todayKey?"Dziś":WD[d.getDay()]+" "+fmtD(d)}</span><span class="num">${zl(k.perDay[key],1)}</span></div>`; }
     const c=CAT[e.c]||CAT.inne;
     html+=`<div class="row"><span class="dot" style="background:${c.c}"></span>
       <div class="t"><div>${esc(e.n||c.n)}</div><small>${c.n}${e.k==="want"?` · <span class="tag-w">zachcianka</span>`:""}</small></div>
-      <div class="a">${zls(e.a)}<small>${hoursTxt(e.a/k.hourly)}</small></div>
+      <div class="a">${zls(e.a)}</div>
       <button class="x" type="button" data-del="${e.id}" aria-label="Usuń wydatek ${esc(e.n||c.n)}">×</button></div>`;
   });
-  return `<section class="panel"><div class="ph"><h2>Wydatki w tym cyklu</h2><span class="muted num" style="font-size:.85rem">${ex.length} pozycji</span></div><div class="list">${html}</div></section>`;
+  return `<section class="panel"><div class="ph"><h2>Wydatki w tym cyklu</h2><span class="muted num" style="font-size:.85rem">${ex.length} pozycji</span></div><div class="list">${html}</div>${ex.length>6?`<button class="btn small" type="button" data-act="allexp" style="align-self:flex-start">${S.showAllExp?"Pokaż mniej":`Pokaż wszystkie (${ex.length})`}</button>`:""}</section>`;
 }
 
 function catsPanel(k){
@@ -600,7 +599,7 @@ function tipsPanel(k){
   const fixShare=s.income?k.fixed/s.income:0;
   if(fixShare>0.5) tips.push(`Koszty stałe to <b>${Math.round(fixShare*100)}%</b> dochodu. Powyżej 50% budżet robi się sztywny: sprawdź, czy któryś abonament albo ubezpieczenie da się renegocjować.`);
   if(!tips.length) tips.push("Wszystko w normie. Trzymaj dzienny limit, a cel oszczędności zrobi się sam.");
-  return `<section class="panel"><h2>Podpowiedzi</h2><ul class="tips">${tips.slice(0,4).map(t=>`<li>${t}</li>`).join("")}</ul></section>`;
+  return `<section class="panel"><h2>Podpowiedzi</h2><ul class="tips">${tips.slice(0,2).map(t=>`<li>${t}</li>`).join("")}</ul></section>`;
 }
 
 function fixedPanel(k){
@@ -767,6 +766,7 @@ document.addEventListener("click", e=>{
   if(b.dataset.cat){ S.draft.cat=b.dataset.cat; document.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed",x===b)); return; }
   if(b.dataset.kind){ S.draft.kind=b.dataset.kind; document.querySelectorAll("[data-kind]").forEach(x=>x.setAttribute("aria-pressed",x===b)); return; }
   const key = S.settings ? curCycle().key : null;
+  if(b.dataset.act==="allexp"){ S.showAllExp=!S.showAllExp; render(); return; }
   if(b.dataset.cycnav!==undefined){ const v=+b.dataset.cycnav; S.cycOff = v===0 ? 0 : S.cycOff+v; render(); return; }
   if(b.dataset.calday){ S.calSel = S.calSel===b.dataset.calday ? null : b.dataset.calday; render(); return; }
   if(b.dataset.del){ if(S.demo) return toast("To przykładowe dane.");
