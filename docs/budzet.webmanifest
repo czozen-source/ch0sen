@@ -1,0 +1,10 @@
+{
+  "name": "Kokosza — budżet",
+  "short_name": "Kokosza",
+  "start_url": "budzet.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ECEFE8",
+  "theme_color": "#1B2A25",
+  "icons": [{"src": "budzet-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}]
+}
