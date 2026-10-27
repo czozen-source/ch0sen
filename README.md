@@ -76,3 +76,9 @@ Bez tego po kliknięciu „Wyślij raport” jest przycisk „Kopiuj raport z ko
    - zapisz i skopiuj **Template ID**.
 4. **Account → General** → skopiuj **Public Key**. W **Account → Security** dodaj domenę `czozen-source.github.io` do dozwolonych.
 5. Aplikacja → **Ustawienia** raportu → wpisz Service ID, Template ID i Public Key → Zapisz.
+
+## Budżet Kokosza (`docs/budzet.html`)
+Osobisty budżet: `https://czozen-source.github.io/ch0sen/budzet.html` (widżet: `…/budzet.html#widget`). Logowanie e-mailem i hasłem przez ten sam projekt Firebase co rejestr; każdy widzi tylko swój budżet (`budgets/{uid}` w Firestore).
+- Jednorazowo: wklej aktualne `firestore.rules` w konsoli Firebase → Firestore → Reguły → **Opublikuj** (dochodzi blok `budgets`). Bez tego budżet zapisuje się tylko w przeglądarce.
+- Nowe konto: Authentication → Users → **Add user**.
+- Źródło jest w `budzet/kokosza.html`; `docs/budzet.html` to ten sam kod z nagłówkiem strony i skryptami Firebase.
