@@ -247,6 +247,7 @@ const CATS = [
 const FCATS = ["Raty","Media","Mieszkanie","Abonamenty","Ubezpieczenia","Inne"];
 const CAT = Object.fromEntries(CATS.map(c=>[c.id,c]));
 const LS_KEY = "kokosza.v1";
+const OWNER = "czozen@gmail.com"; // tylko to konto ma dostęp do budżetu (to samo w firestore.rules)
 const COOL_MS = 48*3600*1000;
 
 // ---------- helpers ----------
@@ -738,14 +739,14 @@ function renderLogin(){
   if(S.mode==="pending"){ $("#main").innerHTML=`<p class="muted">Sprawdzam logowanie…</p>`; return; }
   if($("#loginf")){ $("#login-err").textContent=S.loginErr||""; $("#login-err").hidden=!S.loginErr; return; }
   $("#main").innerHTML = `<div class="wg"><div class="egg-card">${eggSVG(.55,90)}
-    <div class="egg-txt"><h2>Zaloguj się</h2><div class="muted" style="font-size:.9rem">Twój budżet zapisuje się na koncie, więc zobaczysz go na telefonie i na komputerze.</div></div></div>
+    <div class="egg-txt"><h2>Zaloguj się</h2><div class="muted" style="font-size:.9rem">Budżet zapisuje się na koncie, więc zobaczysz go na telefonie i na komputerze.</div></div></div>
     <form class="panel" id="loginf" autocomplete="on">
       <div class="field"><label for="l-email">E-mail</label><input class="in" id="l-email" type="email" autocomplete="username" required></div>
       <div class="field"><label for="l-pass">Hasło</label><input class="in" id="l-pass" type="password" autocomplete="current-password" required></div>
       <p class="hint" id="login-err" role="alert" style="margin:0;color:var(--bad)" ${S.loginErr?"":"hidden"}>${esc(S.loginErr||"")}</p>
       <div class="addrow"><button class="btn ghost" type="button" data-act="forgot">Nie pamiętam hasła</button><button class="btn primary" type="submit">Zaloguj</button></div>
     </form>
-    <p class="hint" style="margin:0">Konta dodaje administrator w konsoli Firebase (Authentication → Users). Działa to samo konto co w rejestrze wózków.</p></div>`;
+    <p class="hint" style="margin:0">Strona prywatna.</p></div>`;
 }
 function fbError(e){
   const c=e&&e.code||"";
@@ -761,6 +762,7 @@ function fbBoot(){
   S.fbAuth=auth; S.mode="pending"; render();
   auth.onAuthStateChanged(async u=>{
     if(!u){ S.user=null; S.col=null; S.lsKey=null; S.settings=null; S.cycles={}; S.mode="login"; render(); return; }
+    if(String(u.email||"").toLowerCase()!==OWNER){ S.loginErr="To konto nie ma dostępu do tej strony."; S.mode="login"; auth.signOut(); return; }
     S.user=u.email; S.lsKey=LS_KEY+"."+u.uid; S.loginErr="";
     const col=fdb.collection("budgets").doc(u.uid).collection("docs");
     let cloud={settings:null,cycles:{}};
@@ -768,7 +770,9 @@ function fbBoot(){
       const snap=await col.get();
       snap.docs.forEach(d=>{ const v=d.data(); if(d.id==="settings") cloud.settings=v; else if(d.id.startsWith("c-")) cloud.cycles[d.id]=v; });
       S.col=col; S.mode="cloud";
-    }catch(e){ S.mode="local"; toast(fbError(e)); }
+    }catch(e){
+      if(e && e.code==="permission-denied"){ S.loginErr="To konto nie ma dostępu do tej strony."; S.mode="login"; auth.signOut(); return; }
+      S.mode="local"; toast(fbError(e)); }
     const local = lsRead(S.lsKey) || lsRead(LS_KEY); // LS_KEY: dane zapisane na telefonie przed logowaniem
     if(cloud.settings && cloud.settings.setup){ S.settings=cloud.settings; S.cycles=cloud.cycles; S.demo=false; lsWrite(); }
     else if(local && local.settings && local.settings.setup){ S.settings=local.settings; S.cycles=local.cycles||{}; S.demo=false; save("settings"); Object.keys(S.cycles).forEach(k=>save(k)); }
