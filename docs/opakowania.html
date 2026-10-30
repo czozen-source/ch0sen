@@ -115,8 +115,8 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 @media (max-width: 980px) { .cols { grid-template-columns: 1fr; } }
 
 /* KPI jako stemple na deskach */
-.kpis { display: grid; gap: 8px; grid-template-columns: repeat(6, minmax(0, 1fr)); }
-@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.kpis { display: grid; gap: 8px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .kpi { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: var(--r); padding: 6px 9px 7px; display: grid; gap: 0; min-width: 0; }
 .kpi .l { font: 600 .72rem var(--f-cond); color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
@@ -125,6 +125,42 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .kpi .d { font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .kpi.alert { border-top-color: var(--bad); } .kpi.alert .v { color: var(--bad); }
 .kpi.good { border-top-color: var(--ok); }
+
+/* „co trzeba zrobić”: karty działań */
+.acts-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.act { border: 1px solid var(--line); border-left: 6px solid var(--gc, var(--warn)); background: var(--surface); border-radius: var(--r); padding: 7px 10px 8px; display: grid; gap: 1px; align-content: start; }
+.act .t { font: 700 .78rem var(--f-cond); text-transform: uppercase; letter-spacing: .06em; color: var(--gc, var(--warn)); }
+.act .big { font: 400 1.45rem/1.15 var(--f-stamp); }
+.act .big small { font: 600 .82rem var(--f-cond); color: var(--muted); }
+.act .s { font-size: .76rem; color: var(--muted); }
+.act .s b { color: var(--fg); }
+.act .row { margin-top: 5px; }
+.act.data { --gc: var(--warn); background: var(--warn-bg); }
+.okline { font-size: .76rem; color: var(--muted); margin: 0; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.up { color: var(--bad); } .down { color: var(--ok); }
+/* karty grup (pulpit) */
+.gcards { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.gcard { border: 1px solid var(--line); border-top: 5px solid var(--gc); background: var(--surface); border-radius: var(--r); padding: 6px 10px 8px; display: grid; gap: 1px; cursor: pointer; align-content: start; }
+.gcard:hover { background: var(--gb); }
+.gcard .t { font: 700 .82rem var(--f-cond); text-transform: uppercase; letter-spacing: .07em; color: var(--gc); }
+.gcard .v { font: 400 1.5rem/1.15 var(--f-stamp); }
+.gcard .v small { font: 600 .8rem var(--f-cond); color: var(--muted); }
+.gcard .s { font-size: .76rem; color: var(--muted); }
+.gcard .s b { font-family: var(--f-mono); }
+.gcard .tag { justify-self: start; margin-top: 3px; }
+/* postęp wydań */
+.pbar { display: grid; grid-template-columns: minmax(120px, 210px) 1fr 52px; gap: 8px; align-items: center; font-size: .8rem; }
+.pbar .tr { height: 10px; background: var(--line-2); border-radius: 5px; overflow: hidden; }
+.pbar .tr i { display: block; height: 100%; background: var(--ok); border-radius: 5px; }
+.pbar b { font-family: var(--f-mono); font-weight: 600; text-align: right; }
+/* sekcje załadunków */
+.sec { display: grid; gap: 3px; }
+.sec + .sec { margin-top: 8px; }
+.sec-h { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; padding: 5px 9px; border-radius: var(--r); background: var(--wood-1); color: var(--wood-fg); }
+.sec-h h3 { color: var(--pine); font-size: 1.05rem; }
+.sec-h .sub { color: var(--wood-mut); }
+.sec-h .tag { background: rgba(255,255,255,.1); border-color: transparent; color: var(--wood-fg); }
+.sec-h .q { background: var(--surface); }
 
 /* tabele: gęste */
 .tbl-wrap { overflow: auto; }
@@ -293,25 +329,20 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       <button class="btn primary" type="button" data-new>+ Awizacja <kbd>N</kbd></button>
     </div>
     <div class="kpis" id="kpis"></div>
+    <div class="panel">
+      <header><h3>Co trzeba zrobić</h3><span class="sub">na najbliższe 7 dni</span><button class="btn xs spacer" type="button" data-goto="prog">Prognoza →</button></header>
+      <div id="pAct"></div>
+    </div>
+    <div class="gcards" id="pGroups"></div>
     <div class="cols">
       <div class="panel">
-        <header><h3>Opakowania · 7 dni</h3><span class="sub" id="pCatSub"></span><button class="btn xs spacer" type="button" data-goto="prog">Prognoza →</button></header>
-        <div class="tbl-wrap" id="pCats"></div>
+        <header><h3>Dziś</h3><span class="sub" id="pTodaySub"></span><button class="btn xs spacer" type="button" data-goto="dzien">Załadunki →</button></header>
+        <div id="pToday"></div>
       </div>
-      <div style="display:grid;gap:10px;align-content:start;min-width:0">
-        <div class="panel">
-          <header><h3>Dziś</h3><span class="sub" id="pTodaySub"></span><button class="btn xs spacer" type="button" data-goto="dzien">Załadunki →</button></header>
-          <div class="tbl-wrap h" id="pToday" style="max-height:300px"></div>
-        </div>
-        <div class="panel">
-          <header><h3>Umówione auta · 14 dni</h3></header>
-          <div id="pPlan"></div>
-        </div>
+      <div class="panel">
+        <header><h3>Umówione auta · 14 dni</h3></header>
+        <div id="pPlan"></div>
       </div>
-    </div>
-    <div class="panel">
-      <header><h3>Do zaawizowania · saldo EUR bez odbioru</h3><span class="sub" id="pSalSub"></span><button class="btn xs spacer" type="button" data-goto="salda">Salda →</button></header>
-      <div class="tbl-wrap" id="pSal"></div>
     </div>
   </section>
 
@@ -406,9 +437,13 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
 
   <!-- PROGNOZA -->
   <section id="p-prog" role="tabpanel" hidden>
+    <div class="panel" style="border-top:4px solid var(--wood-1)">
+      <header><h2>Co trzeba zrobić</h2><span class="sub" id="gActSub"></span></header>
+      <div id="gAct"></div>
+    </div>
     <div class="panel">
       <div class="row">
-        <h3>Prognoza i planowanie</h3>
+        <h3>Szczegóły prognozy</h3>
         <span class="sub">zjazd: średnia z 28 dni · stan za N dni = stan + zjazd × dni − awizacje</span>
         <span class="spacer"></span>
         <div class="seg" id="gH">
@@ -729,6 +764,10 @@ function mainGroup(q, name) {
   if (!best && name) { const m = NAME_G.find(([re]) => re.test(name)); if (m) best = m[1]; }
   return best ? "g-" + best : "";
 }
+// sekcja w załadunkach: PUL (palety poolingowe CHEP, LPR, IPP, NDHP) albo EUR + pozostałe (wózki, transportery, naprawa, sprzedaż)
+const PUL_G = new Set(["g-chep", "g-lpr", "g-ipp", "g-ndhp"]);
+const secOf = it => PUL_G.has(mainGroup(it.q, it.name)) ? "pul" : "eur";
+const SECS = { eur: ["Wydania EUR + pozostałe", "wózki · transportery · naprawa · sprzedaż"], pul: ["Wydania PUL", "CHEP · LPR · IPP · NDHP"] };
 const stanDates = () => Object.keys(DAYS).filter(d => DAYS[d].stan && Object.keys(DAYS[d].stan).length).sort();
 const lastStanDate = (upTo = today()) => stanDates().filter(d => d <= upTo).pop() || null;
 const slotStart = s => { const m = /^(\d{1,2}):(\d{2})/.exec(s || ""); return m ? (+m[1]) * 60 + (+m[2]) : -1; };
@@ -804,33 +843,30 @@ document.addEventListener("click", e => {
 
 /* ---------- PULPIT ---------- */
 function renderPulpit() {
-  const T = today(), TM = addDays(T, 1), sd = lastStanDate();
+  const T = today(), sd = lastStanDate();
   $("#pulpitDay").textContent = DOW[dowOf(T)] + " · " + plDate(T);
-  const tItems = itemsOf(T).filter(active), mItems = itemsOf(TM).filter(active);
-  const done = tItems.filter(i => i.st === "done").length;
+  const tItems = itemsOf(T).filter(active), done = tItems.filter(i => i.st === "done").length;
   let wk = 0, wkN = 0; for (let i = 0; i < 7; i++) itemsOf(addDays(T, i)).filter(active).forEach(it => { wk += trucksQ(it.q); wkN++; });
   const stanT = sd ? CATS.reduce((s, c) => s + (c.t > 0 ? (+DAYS[sd].stan[c.k] || 0) / c.t : 0), 0) : 0;
-  let needT = 0; CATS.forEach(c => { const f = forecast(c.k, 7); if (f) needT += f.needTrucks; });
-  const freeSal = salCandidates();
   const posSum = [...SAL.eur.values()].reduce((s, r) => s + Math.max(0, r.tot), 0);
   const k = (l, v, d, cls = "") => `<div class="kpi ${cls}"><span class="l">${l}</span><span class="v">${v}</span><span class="d" title="${esc(d.replace(/<[^>]+>/g, ""))}">${d}</span></div>`;
   $("#kpis").innerHTML = [
-    k("Stan placu", sd ? fmt1(stanT) + " <small>aut</small>" : "—", sd ? (sd === T ? "liczenie dziś" : "liczenie " + plDate(sd) + " · brak dzisiejszego") : "wpisz w Stany placu", sd && sd !== T ? "alert" : ""),
-    k("Dziś", `${tItems.length} <small>aut ${fmt1(tItems.reduce((s, i) => s + trucksQ(i.q), 0))}</small>`, `wydane ${done} z ${tItems.length}`, tItems.length && done === tItems.length ? "good" : ""),
-    k("Jutro", `${mItems.length} <small>aut ${fmt1(mItems.reduce((s, i) => s + trucksQ(i.q), 0))}</small>`, DOW[dowOf(TM)]),
-    k("7 dni", `${wkN} <small>aut ${fmt1(wk)}</small>`, "umówione do " + shortDate(addDays(T, 6))),
-    k("Do zaplanowania", needT + " <small>aut</small>", needT ? "w 7 dni, żeby nie przekroczyć maks." : "plan pokrywa zjazd", needT ? "alert" : "good"),
-    k("Saldo EUR", SAL.date ? fmt(posSum) : "—", SAL.date ? `${freeSal.length} bez awizacji · plik ${shortDate(SAL.date)}` : "wczytaj plik w Saldach", SAL.date && SAL.date < addDays(T, -1) ? "alert" : ""),
+    k("Stan placu", sd ? fmt1(stanT) + " <small>aut</small>" : "—", sd ? (sd === T ? "liczenie dziś" : "liczenie " + plDate(sd)) : "brak liczenia", sd && sd !== T ? "alert" : ""),
+    k("Wydane dziś", `${done} <small>z ${tItems.length}</small>`, `${fmt1(tItems.reduce((s, i) => s + trucksQ(i.q), 0))} aut umówionych na dziś`, tItems.length && done === tItems.length ? "good" : ""),
+    k("Umówione 7 dni", `${fmt1(wk)} <small>aut</small>`, `${wkN} awizacji do ${shortDate(addDays(T, 6))}`),
+    k("Saldo EUR do oddania", SAL.date ? fmt(posSum) : "—", SAL.date ? "plik z " + plDate(SAL.date) : "brak pliku sald", SAL.date && SAL.date < addDays(T, -1) ? "alert" : ""),
   ].join("");
+  $("#pAct").innerHTML = actionsHtml(7, true);
+  $("#pGroups").innerHTML = groupCards(7);
 
-  $("#pCatSub").textContent = sd ? "stan z " + plDate(sd) : "brak stanu placu";
-  $("#pCats").innerHTML = catTable(7, true);
-
-  const open = itemsOf(T).filter(active);
-  $("#pTodaySub").textContent = open.length ? `${done}/${open.length} wydane` : "";
-  $("#pToday").innerHTML = open.length ? `<table><thead><tr><th class="n">Nr</th><th>Okno</th><th>Firma</th><th>Ilość</th><th></th></tr></thead><tbody>${
-    open.map(it => `<tr class="click ${mainGroup(it.q, it.name) ? mainGroup(it.q, it.name) + " cat" : ""}" data-edit="${esc(it.id)}" data-date="${it.date}"><td class="n">${it.ord || ""}</td><td class="nw num" style="font-size:.74rem">${esc(it.slot)}</td><td class="cut" style="max-width:150px" title="${esc(it.name)}">${esc(it.name || it.code)}</td><td class="nw">${qChips(qOf(it))}</td><td>${ST_SHORT[it.st] ? `<span class="tag ${ST_TAG[it.st]}" title="${ST[it.st]}">${ST_SHORT[it.st]}</span>` : ""}</td></tr>`).join("")
-  }</tbody></table>` : '<p class="sub">Na dziś nic nie jest zaawizowane.</p>';
+  // dziś: postęp wydań EUR / PUL i najbliższe auta
+  const bar = (lab, its) => { const n = its.length, d = its.filter(i => i.st === "done").length; return `<div class="pbar"><span>${lab}</span><span class="tr"><i style="width:${n ? d / n * 100 : 0}%"></i></span><b>${d}/${n}</b></div>`; };
+  const next = tItems.filter(i => i.st !== "done").slice(0, 7);
+  $("#pTodaySub").textContent = tItems.length ? `${done} z ${tItems.length} wydane` : "";
+  $("#pToday").innerHTML = !tItems.length ? '<p class="sub">Na dziś nic nie jest zaawizowane.</p>' :
+    bar("EUR + pozostałe", tItems.filter(i => secOf(i) === "eur")) + bar("PUL · CHEP, LPR, IPP, NDHP", tItems.filter(i => secOf(i) === "pul")) +
+    (next.length ? `<div class="tbl-wrap"><table><thead><tr><th class="n">Nr</th><th>Okno</th><th>Firma</th><th>Ilość</th><th></th></tr></thead><tbody>${next.map(it => { const g = mainGroup(it.q, it.name);
+      return `<tr class="click ${g ? g + " cat" : ""}" data-edit="${esc(it.id)}" data-date="${it.date}"><td class="n">${it.ord || ""}</td><td class="nw num" style="font-size:.74rem">${esc(it.slot)}</td><td class="cut" style="max-width:170px" title="${esc(it.name)}">${esc(it.name || it.code)}</td><td class="nw">${qChips(it.q)}</td><td>${ST_SHORT[it.st] ? `<span class="tag ${ST_TAG[it.st]}">${ST_SHORT[it.st]}</span>` : ""}</td></tr>`; }).join("")}</tbody></table></div>${tItems.length - done > next.length ? `<p class="sub">…i ${tItems.length - done - next.length} kolejnych w Załadunkach.</p>` : ""}` : '<p class="sub">Wszystko na dziś wydane.</p>');
 
   // plan 14 dni — słupki dzielone na grupy
   const pts = [];
@@ -842,19 +878,54 @@ function renderPulpit() {
       segs: GORDER.filter(x => g[x]).map(x => ({ v: g[x], g: x })),
       tip: `<b>${DOW[dowOf(d)]} ${plDate(d)}</b><br>${its.length} awizacji · ${fmt1(v)} aut<br>` + GORDER.filter(x => g[x]).map(x => `${GROUPS[x]}: ${fmt1(g[x])}`).join("<br>") });
   }
-  $("#pPlan").innerHTML = barChart(pts, null, 100) + legend(GORDER.filter(g => pts.some(p => p.segs.some(s => s.g === g))));
-
-  $("#pSalSub").textContent = SAL.date ? `plik ${plDate(SAL.date)} · saldo ≥ ${fmt(CFG.salMin)} szt. · ${freeSal.length} firm` : "";
-  $("#pSal").innerHTML = !SAL.date ? '<p class="sub">Wczytaj plik z saldami w zakładce Salda.</p>' :
-    freeSal.length ? `<table><thead><tr><th>Kod</th><th>Dostawca</th><th class="n">Saldo</th><th class="n">Zmiana</th><th class="n">Aut EUR</th><th></th><th>Kod</th><th>Dostawca</th><th class="n">Saldo</th><th class="n">Zmiana</th><th class="n">Aut EUR</th><th></th></tr></thead><tbody>${
-      pairRows(freeSal.slice(0, 16).map(r => salCells(r, true)))}</tbody></table>${freeSal.length > 16 ? `<p class="sub">…i ${freeSal.length - 16} więcej w zakładce Salda (filtr „Bez awizacji”).</p>` : ""}` : '<p class="sub">Wszyscy dostawcy z dużym saldem mają umówiony odbiór.</p>';
+  $("#pPlan").innerHTML = barChart(pts, null, 120) + legend(GORDER.filter(g => pts.some(p => p.segs.some(s => s.g === g))));
 }
-// dwie kolumny w jednej tabeli (krócej na ekranie)
-function pairRows(cells) {
-  const h = Math.ceil(cells.length / 2); let o = "";
-  for (let i = 0; i < h; i++) o += `<tr>${cells[i]}${cells[i + h] || '<td colspan="6"></td>'}</tr>`;
-  return o;
+// karty działań: braki danych + kategorie, w których trzeba umówić auta (najpilniejsze pierwsze)
+const POOL = { chep: "616973", lpr: "637962" };
+function actionsHtml(H, withData) {
+  const T = today(), sd = lastStanDate(), out = [];
+  if (withData && sd !== T) out.push(`<div class="act data"><span class="t">Stan placu</span><span class="big">wpisz dzisiejszy</span><span class="s">${sd ? "ostatnie liczenie " + plDate(sd) + " — prognoza liczy się na starych danych" : "brak liczenia — bez tego nie ma prognozy"}</span><div class="row"><button class="btn xs primary" type="button" data-goto="stany">Stany placu →</button></div></div>`);
+  if (withData && (!SAL.date || SAL.date < addDays(T, -1))) out.push(`<div class="act data"><span class="t">Salda</span><span class="big">wczytaj plik</span><span class="s">${SAL.date ? "ostatni plik z " + plDate(SAL.date) : "brak pliku z saldami"}</span><div class="row"><button class="btn xs primary" type="button" data-goto="salda">Salda →</button></div></div>`);
+  const data = catData(H);
+  data.filter(x => x.f && x.f.needTrucks > 0).sort((a, b) => (a.f.firstOver || "9").localeCompare(b.f.firstOver || "9") || b.f.needTrucks - a.f.needTrucks).forEach(({ c, f, st }) => {
+    const n = f.needTrucks, when = !f.firstOver ? "" : f.firstOver <= T ? '<b class="pos">limit już przekroczony</b>' : `limit przekroczony od <b>${DOW[dowOf(f.firstOver)]} ${shortDate(f.firstOver)}</b>`;
+    out.push(`<div class="act g-${c.g}"><span class="t">${GROUPS[c.g]} · ${esc(c.n)}</span><span class="big">umów ${n} <small>${plural(n, "auto", "auta", "aut")} w ${H} dni</small></span>
+      <span class="s">${when}</span>
+      <span class="s">teraz <b>${fmt1((st || 0) / c.t)}</b> → za ${H} dni <b class="up">${fmt1(f.proj / c.t)}</b> aut · maks. ${fmt1(c.max)}</span>
+      <span class="s">zjeżdża ok. <b>${fmt1(f.rate / c.t)}</b> auta dziennie · umówione ${fmt1(f.planned / c.t)}</span>
+      <div class="row"><button class="btn xs primary" type="button" data-actcat="${c.k}">+ Awizacja ${esc(c.n)}</button><button class="btn xs" type="button" data-gocat="${c.k}">Wykres</button></div></div>`);
+  });
+  if (withData && SAL.date) { const fs = salCandidates(); if (fs.length) out.push(`<div class="act g-own"><span class="t">Saldo EUR bez odbioru</span><span class="big">${fs.length} <small>${plural(fs.length, "firma", "firmy", "firm")}</small></span><span class="s">saldo ≥ ${fmt(CFG.salMin)} szt. i brak awizacji · razem ${fmt(fs.reduce((s, r) => s + r.tot, 0))} szt. (${fmt1(fs.reduce((s, r) => s + r.tot, 0) / ((CAT.EUR && CAT.EUR.t) || 495))} aut)</span><span class="s">największe: ${fs.slice(0, 3).map(r => `<b>${esc(r.name.slice(0, 22))}</b> ${fmt(r.tot)}`).join(", ")}</span><div class="row"><button class="btn xs primary" type="button" data-salfree>Pokaż i awizuj →</button></div></div>`); }
+  const ok = data.filter(x => x.c.t > 0 && x.c.max && x.f && !x.f.needTrucks).map(x => x.c);
+  const need = data.some(x => x.f && x.f.needTrucks > 0);
+  return (out.length ? `<div class="acts-grid">${out.join("")}</div>` : "") +
+    (!need ? `<div class="notice ok">Opakowania w normie — w ciągu ${H} dni nic nie przekroczy maksymalnego stanu.</div>` : "") +
+    (ok.length ? `<p class="okline">W normie: ${ok.map(c => `<span class="q g-${c.g}">${esc(c.n)}</span>`).join("")}</p>` : "");
 }
+// karty grup: stan teraz i za H dni (w autach; wózki w sztukach)
+function groupCards(H) {
+  const data = catData(H);
+  return GORDER.map(g => {
+    const cats = data.filter(x => x.c.g === g); if (!cats.length) return "";
+    const useT = cats.some(x => x.c.t > 0), unit = useT ? "aut" : "szt.", F = useT ? fmt1 : fmt;
+    let st = 0, pr = 0, pl = 0, need = 0, has = false;
+    cats.forEach(({ c, f, st: s }) => { const div = useT ? c.t : 1; if (!div) return; if (s != null) { st += s / div; has = true; } if (f) { pr += f.proj / div; pl += f.planned / div; need += f.needTrucks; } });
+    if (!has) return "";
+    const d = pr - st, cls = d > 0.05 ? "up" : d < -0.05 ? "down" : "";
+    return `<div class="gcard g-${g}" data-gocat="${cats[0].c.k}" title="kliknij — prognoza"><span class="t">${GROUPS[g]}</span><span class="v">${F(st)} <small>${unit} na placu</small></span>
+      <span class="s">za ${H} dni <b class="${cls}">${F(pr)} ${cls === "up" ? "▲" : cls === "down" ? "▼" : ""}</b></span>
+      <span class="s">umówione ${F(pl)} ${unit}</span>
+      ${need ? `<span class="tag bad">umów ${need} ${plural(need, "auto", "auta", "aut")}</span>` : useT ? '<span class="tag ok">OK</span>' : ""}</div>`;
+  }).join("");
+}
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-gocat]"); if (g) { gCat = g.dataset.gocat; showTab("prog"); return; }
+  const f = e.target.closest("[data-salfree]");
+  if (f) { salFilter = "free"; $$("#salF button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.f === "free"))); showTab("salda"); return; }
+  const a = e.target.closest("[data-actcat]"); if (!a) return;
+  const c = CAT[a.dataset.actcat], code = POOL[c.g] || "";
+  openAw(null, { date: firstFreeDate(), code, name: code ? NAMES.get(code) || "" : "", q: { [c.k]: c.t || "" } });
+});
 function salCells(r, short) {
   const pv = SAL.prev.get(r.code), dlt = pv ? r.tot - pv.tot : null;
   const eurT = (CAT.EUR && CAT.EUR.t) || 495;
@@ -901,7 +972,7 @@ function catTable(H, compact) {
   });
   return `<table><thead><tr><th>Kategoria</th><th class="n">Stan · aut</th><th class="n">Zjazd/dzień</th><th class="n">Umówione ${H} d</th><th class="n">Za ${H} dni</th><th>Do planu</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="mut">Brak danych — wpisz stan placu albo zaimportuj plik w Ustawieniach.</td></tr>'}</tbody></table>`;
 }
-document.addEventListener("click", e => { const tr = e.target.closest("tr[data-cat]"); if (tr) { gCat = tr.dataset.cat; showTab("prog"); } });
+document.addEventListener("click", e => { const tr = e.target.closest("tr[data-cat]"); if (tr) { gCat = tr.dataset.cat; tab === "prog" ? renderProg() : showTab("prog"); } });
 const legend = gs => `<div class="legend">${gs.map(g => `<span class="g-${g}"><i class="dot"></i>${GROUPS[g]}</span>`).join("")}</div>`;
 
 /* wykres słupkowy CSS (opcjonalnie słupki dzielone na grupy) z dymkiem */
@@ -926,13 +997,19 @@ function renderDay() {
   $("#dName").textContent = DOW[dowOf(dayView)] + " " + plDate(dayView) + (dayView === today() ? " · dziś" : "");
   const all = itemsOf(dayView), act = all.filter(active);
   const list = all.filter(it => dayFilter === "all" || (dayFilter === "done" ? it.st === "done" : active(it) && it.st !== "done"));
-  const chips = CATS.map(c => {
-    const pl = act.reduce((s, it) => s + qSum(it.q, c.k), 0), wy = act.filter(i => i.st === "done").reduce((s, it) => s + qSum(qOf(it), c.k), 0);
-    return pl || wy ? `<span class="q ${gcls(c.k)}" title="wydane / umówione">${esc(c.n)} ${fmt(wy)}/${fmt(pl)}</span>` : "";
-  }).join("");
   const done = act.filter(i => i.st === "done").length;
-  $("#dSum").innerHTML = `<span class="tag info">${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag ok">wydane ${done}</span>${all.length - act.length ? `<span class="tag bad">anul./nie przyj. ${all.length - act.length}</span>` : ""}${chips}`;
-  $("#dList").innerHTML = list.length ? list.map(awRow).join("") : `<div class="panel"><p class="sub">${all.length ? "Brak pozycji w tym filtrze." : "Brak awizacji na ten dzień."} <button class="btn xs" type="button" data-new>+ Dodaj</button></p></div>`;
+  $("#dSum").innerHTML = `<span class="tag info">${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag ok">wydane ${done} z ${act.length}</span>${all.length - act.length ? `<span class="tag bad">anul./nie przyj. ${all.length - act.length}</span>` : ""}`;
+  if (!all.length) { $("#dList").innerHTML = '<div class="panel"><p class="sub">Brak awizacji na ten dzień. <button class="btn xs" type="button" data-new>+ Dodaj</button></p></div>'; return; }
+  $("#dList").innerHTML = ["eur", "pul"].map(k => {
+    const sAll = all.filter(it => secOf(it) === k), sAct = sAll.filter(active), sList = list.filter(it => secOf(it) === k);
+    const sDone = sAct.filter(i => i.st === "done").length;
+    const chips = CATS.map(c => {
+      const pl = sAct.reduce((s, it) => s + qSum(it.q, c.k), 0), wy = sAct.filter(i => i.st === "done").reduce((s, it) => s + qSum(qOf(it), c.k), 0);
+      return pl || wy ? `<span class="q ${gcls(c.k)}" title="wydane / umówione">${esc(c.n)} ${fmt(wy)}/${fmt(pl)}</span>` : "";
+    }).join("");
+    return `<div class="sec"><div class="sec-h"><h3>${SECS[k][0]}</h3><span class="sub">${SECS[k][1]}</span><span class="spacer"></span><span class="tag">${sAct.length} aw. · ${fmt1(sAct.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag">wydane ${sDone}/${sAct.length}</span>${chips}</div>
+      ${sList.length ? sList.map(awRow).join("") : `<p class="sub" style="padding:4px 8px">${sAll.length ? "Brak pozycji w tym filtrze." : "Brak awizacji."}</p>`}</div>`;
+  }).join("");
 }
 function awRow(it) {
   const s = salOf(it.code), q = qOf(it);
@@ -966,10 +1043,12 @@ $("#dList").addEventListener("click", e => {
   if (a === "undo") { n.st = it.st === "done" ? (it.tLoad ? "load" : it.tArr ? "arr" : "plan") : "plan"; delete n.tDone; if (it.st === "done") n.iq = null; }
   saveItem(n);
 });
+// przesuwanie w obrębie sekcji (EUR / PUL); numeracja dnia zostaje wspólna
 function move(it, dir) {
-  const list = itemsOf(it.date);
-  const i = list.findIndex(x => x.id === it.id), j = i + dir; if (j < 0 || j >= list.length) return;
-  [list[i], list[j]] = [list[j], list[i]];
+  const list = itemsOf(it.date), same = list.filter(x => secOf(x) === secOf(it));
+  const i = same.findIndex(x => x.id === it.id), j = i + dir; if (j < 0 || j >= same.length) return;
+  const a = list.indexOf(same[i]), b = list.indexOf(same[j]);
+  [list[a], list[b]] = [list[b], list[a]];
   S.setOrds(it.date, list.map((x, k) => [x.id, k + 1])).catch(fail);
 }
 $("#dRenum").addEventListener("click", () => {
@@ -1427,7 +1506,7 @@ function renderStany() {
     $("#sForm").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<div class="sgroup g-${g}"><h3>${GROUPS[g]}</h3>${CATS.filter(c => c.g === g).map(c => {
       const v = cur && cur[c.k] != null ? (c.s ? cur[c.k] / c.s : cur[c.k]) : "";
       const p = prev && prev[c.k] != null ? (c.s ? fmt1(prev[c.k] / c.s) + " st." : fmt(prev[c.k])) : "—";
-      return `<div class="it"><label for="s_${c.k}">${esc(c.n)}${c.s ? ` <small class="mut">stosy×${c.s}</small>` : ""}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p}</small></div>`;
+      return `<div class="it"><label for="s_${c.k}">${esc(c.n)}${c.s ? ` <small class="mut">stosy×${c.s}</small>` : ""}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p} <span data-d="${c.k}"></span></small></div>`;
     }).join("")}</div>`).join("");
   }
   sTotal();
@@ -1435,14 +1514,23 @@ function renderStany() {
   const ds = stanDates().filter(d => d <= today()).slice(-30).reverse(), cs = CATS.filter(c => c.t > 0 || ds.some(d => DAYS[d].stan[c.k]));
   const infl = Object.fromEntries(cs.map(c => [c.k, Object.fromEntries(inflow(c.k, 99999).rows.map(r => [r.b, r]))]));
   const groupsUsed = GORDER.filter(g => cs.some(c => c.g === g));
-  $("#sHist").innerHTML = ds.length ? `<table><thead><tr><th rowspan="2">Dzień</th><th class="n" rowspan="2">Aut</th>${groupsUsed.map(g => `<th colspan="${cs.filter(c => c.g === g).length}" class="g-${g}" style="color:var(--gc);background:var(--gb);text-align:center">${GROUPS[g]}</th>`).join("")}</tr>
+  const allD = stanDates(), prevOf = d => { const i = allD.indexOf(d); return i > 0 ? DAYS[allD[i - 1]].stan : null; };
+  $("#sHist").innerHTML = ds.length ? `<p class="sub">Pod stanem: zmiana względem poprzedniego liczenia — <b class="up">▲ wzrost zapasu</b>, <b class="down">▼ spadek</b>. Zjazd ze sklepów w dymku.</p><table><thead><tr><th rowspan="2">Dzień</th><th class="n" rowspan="2">Aut</th>${groupsUsed.map(g => `<th colspan="${cs.filter(c => c.g === g).length}" class="g-${g}" style="color:var(--gc);background:var(--gb);text-align:center">${GROUPS[g]}</th>`).join("")}</tr>
     <tr>${cs.map(c => `<th class="n g-${c.g}" style="top:20px;border-top:3px solid var(--gc)">${esc(c.n)}</th>`).join("")}</tr></thead><tbody>${ds.map(d => {
-    const st = DAYS[d].stan, tt = CATS.reduce((s, c) => s + (c.t > 0 ? (+st[c.k] || 0) / c.t : 0), 0);
-    return `<tr class="click" data-sday="${d}"><td class="nw">${DOW_S[dowOf(d)]} ${shortDate(d)}</td><td class="n"><b>${fmt1(tt)}</b></td>${cs.map(c => { const r = infl[c.k][d]; return `<td class="n">${st[c.k] == null ? "—" : fmt(st[c.k])}${r ? `<br><span class="mut" style="font-size:.68rem">${r.inf >= 0 ? "+" : ""}${fmt(r.inf)}</span>` : ""}</td>`; }).join("")}</tr>`;
+    const st = DAYS[d].stan, pv = prevOf(d), tot = x => CATS.reduce((s, c) => s + (c.t > 0 ? (+x[c.k] || 0) / c.t : 0), 0), tt = tot(st), dt = pv ? r1(tt - tot(pv)) : 0;
+    return `<tr class="click" data-sday="${d}"><td class="nw">${DOW_S[dowOf(d)]} ${shortDate(d)}</td><td class="n"><b>${fmt1(tt)}</b>${dt ? `<br><span class="${dt > 0 ? "up" : "down"}" style="font-size:.68rem">${dt > 0 ? "▲ +" : "▼ "}${fmt1(dt)}</span>` : ""}</td>${cs.map(c => {
+      const r = infl[c.k][d], dd = pv && st[c.k] != null && pv[c.k] != null ? st[c.k] - pv[c.k] : 0;
+      return `<td class="n" title="${r ? "zjazd ze sklepów: " + fmt(r.inf) + " szt., wydane: " + fmt(r.iss) + " szt." : ""}">${st[c.k] == null ? "—" : fmt(st[c.k])}${dd ? `<br><span class="${dd > 0 ? "up" : "down"}" style="font-size:.68rem">${dd > 0 ? "▲ +" : "▼ "}${fmt(dd)}</span>` : ""}</td>`; }).join("")}</tr>`;
   }).join("")}</tbody></table>` : '<p class="sub">Brak zapisanych stanów.</p>';
 }
+const dTag = d => !d ? "" : `<b class="${d > 0 ? "up" : "down"}">${d > 0 ? "▲ +" : "▼ "}${fmt(d)}</b>`;
 function sTotal() {
-  let t = 0; $$("#sForm [data-s]").forEach(i => { const c = CAT[i.dataset.s]; if (c && c.t > 0 && i.value !== "") t += (+i.value * (c.s || 1)) / c.t; });
+  const prevD = stanDates().filter(d => d < sDate).pop(), prev = prevD ? DAYS[prevD].stan : {};
+  let t = 0; $$("#sForm [data-s]").forEach(i => {
+    const c = CAT[i.dataset.s]; if (!c) return;
+    if (c.t > 0 && i.value !== "") t += (+i.value * (c.s || 1)) / c.t;
+    const el = $(`#sForm [data-d="${c.k}"]`); if (el) el.innerHTML = i.value !== "" && prev[c.k] != null ? dTag(Math.round(+i.value * (c.s || 1)) - prev[c.k]) : "";
+  });
   $("#sTot").textContent = "razem " + fmt1(t) + " aut";
 }
 $("#sForm").addEventListener("input", () => { sDirty = true; sTotal(); });
@@ -1457,6 +1545,8 @@ $("#sSave").addEventListener("click", async () => {
 /* ---------- PROGNOZA ---------- */
 function renderProg() {
   $$("#gH button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.h === horizon)));
+  $("#gActSub").textContent = `horyzont ${horizon} dni · najpilniejsze pierwsze`;
+  $("#gAct").innerHTML = actionsHtml(horizon, false);
   $("#gTbl").innerHTML = catTable(horizon, false);
   const sel = $("#gCat"); sel.innerHTML = CATS.map(c => `<option value="${c.k}">${esc(GROUPS[c.g])} · ${esc(c.n)}</option>`).join(""); sel.value = CAT[gCat] ? gCat : "EUR";
   const c = CAT[sel.value], f = forecast(c.k, Math.max(horizon, 7));
