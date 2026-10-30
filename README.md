@@ -84,7 +84,7 @@ Osobisty budżet: `https://czozen-source.github.io/ch0sen/budzet.html` (widżet:
 - Źródło jest w `budzet/kokosza.html`; `docs/budzet.html` to ten sam kod z nagłówkiem strony i skryptami Firebase.
 
 ## Awizacja opakowań (`docs/opakowania.html`)
-Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch0sen/opakowania.html`. Logowanie tym samym kontem co raport zmiany; dostęp mają wszyscy zalogowani (poza kontami tylko do budżetu). Ustawienia widzi właściciel i moderatorzy (`config/roles`).
+Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch0sen/opakowania.html`. **Dostęp tylko dla konta czozen@gmail.com** (stała `OWNER` w `docs/opakowania.html`, `isOwner()` dla kolekcji `pk_*` w `firestore.rules`); inne konta są wylogowywane z komunikatem o braku dostępu, a link „Awizacja opakowań →” w raporcie zmiany widzi tylko właściciel.
 
 - **Pulpit** — stan placu w autach, awizacje na dziś, jutro i 7 dni, ile aut trzeba jeszcze zaplanować, saldo EUR do oddania, kolejka dnia, wykres umówionych aut na 14 dni, tabela kategorii (stan, zjazd/dzień, umówione, prognoza, do zaplanowania) i dostawcy z saldem ≥ progu bez umówionego odbioru (przycisk **Awizuj**).
 - **Dzień · załadunki** — lista awizacji dnia w kolejności załadunku (▲▼, „Numeruj wg okien”), statusy *Umówione → Przyjechał → Załadunek → Wydane* (oraz Anulowane / Nie przyjechał), wydanie z rzeczywistymi ilościami i nr dokumentu, mail z awizacją (kopiuje treść, a gdy w kontakcie jest e-mail, otwiera program pocztowy), druk planu dnia.
@@ -96,7 +96,7 @@ Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch
 
 ### Jednorazowo
 1. Firebase → Firestore Database → **Reguły** → wklej aktualny `firestore.rules` (bloki `pk_*`) → **Opublikuj**.
-2. Zaloguj się jako właściciel → **Ustawienia → Import z pliku „OPAKOWANIA AWIZACJE”** → wybierz plik `.xlsx`. Przenosi awizacje z arkusza WYDANIA (przeszłe jako wydane), poranne stany placu, listę DOSTAWCY i SALDA. Arkusz z loginami i hasłami portali **nie jest importowany**. Ponowny import tego samego pliku nadpisuje te same pozycje.
+2. Zaloguj się → **Ustawienia → Import z pliku „OPAKOWANIA AWIZACJE”** → wybierz plik `.xlsx`. Przenosi awizacje z arkusza WYDANIA (przeszłe jako wydane), poranne stany placu, listę DOSTAWCY i SALDA. Arkusz z loginami i hasłami portali **nie jest importowany**. Ponowny import tego samego pliku nadpisuje te same pozycje.
 3. W **Ustawieniach** sprawdź przeliczniki „szt. na auto” i „maks. stan (auta)” dla kategorii — od nich zależy, ile aut prognoza każe planować.
 
 Tryb próbny bez bazy (dane tylko w tej przeglądarce): `opakowania.html#lokalnie`.

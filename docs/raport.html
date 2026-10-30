@@ -852,7 +852,7 @@ function subscribe() {
   auth.onAuthStateChanged(u => {
     unsubs.forEach(x => x()); unsubs = []; if (rlUnsub) { rlUnsub(); rlUnsub = null; }
     user = u; const inside = !!u;
-    $("#login").hidden = inside; $("#tabs").hidden = !inside; $("#who").hidden = !inside; $("#navPk").hidden = !inside;
+    $("#login").hidden = inside; $("#tabs").hidden = !inside; $("#who").hidden = !inside; $("#navPk").hidden = !inside || (u.email || "").toLowerCase() !== OWNER;
     if (!inside) { TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = true; return; }
     email = u.email || ""; $("#whoEmail").textContent = email;
     $("#navReg").hidden = email.toLowerCase() !== OWNER;
