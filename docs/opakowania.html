@@ -231,7 +231,7 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
 
   <section id="login" class="panel login" hidden>
     <h2>Zaloguj się</h2>
-    <p class="sub">To samo konto co w raporcie zmiany.</p>
+    <p class="sub">Dostęp tylko dla właściciela.</p>
     <form id="loginForm" class="panel" style="border:0;padding:0" novalidate>
       <label class="field">E-mail <input id="lEmail" type="email" autocomplete="username" required></label>
       <label class="field">Hasło <input id="lPass" type="password" autocomplete="current-password" required></label>
@@ -472,7 +472,7 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
 (() => {
 "use strict";
 const OWNER = "czozen@gmail.com";
-const BUDGET_ONLY = ["annakurnik90@gmail.com"]; // konta tylko do budżetu (to samo w firestore.rules)
+// Strona tylko dla właściciela (to samo w firestore.rules: kolekcje pk_* → isOwner()).
 
 /* ---------- narzędzia ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -1480,7 +1480,7 @@ function leave() {
     $("#login").hidden = !!u; $("#who").hidden = !u; $("#noAccess").hidden = true;
     if (!u) return;
     email = u.email || ""; $("#whoEmail").textContent = email;
-    if (BUDGET_ONLY.includes(email.toLowerCase())) { const n = $("#noAccess"); n.innerHTML = 'To konto ma dostęp tylko do <a href="budzet.html">budżetu</a>.'; n.hidden = false; return; }
+    if (email.toLowerCase() !== OWNER) { const n = $("#noAccess"); n.textContent = "To konto nie ma dostępu do awizacji opakowań."; n.hidden = false; auth.signOut(); return; }
     enter(fbStore(db));
   });
 })();
