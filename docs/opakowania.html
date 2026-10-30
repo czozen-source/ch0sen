@@ -798,7 +798,7 @@ function actionsHtml(H, withData) {
   const T = today(), sd = lastStanDate(), out = [];
   if (withData && sd !== T) out.push(`<div class="act data"><span class="t">Stan placu</span><span class="big">wpisz dzisiejszy</span><span class="s">${sd ? "ostatnie liczenie " + plDate(sd) + " — prognoza liczy się na starych danych" : "brak liczenia — bez tego nie ma prognozy"}</span><div class="row"><button class="btn xs primary" type="button" data-goto="stany">Stany placu →</button></div></div>`);
   if (withData && (!SAL.date || SAL.date < addDays(T, -1))) out.push(`<div class="act data"><span class="t">Salda</span><span class="big">wczytaj plik</span><span class="s">${SAL.date ? "ostatni plik z " + plDate(SAL.date) : "brak pliku z saldami"}</span><div class="row"><button class="btn xs primary" type="button" data-goto="salda">Salda →</button></div></div>`);
-  const data = catData(H);
+  const data = catData(H).filter(x => x.c.g === "own"); // planujemy tylko własne EUR
   data.filter(x => x.f && x.f.needTrucks > 0).sort((a, b) => (a.f.firstOver || "9").localeCompare(b.f.firstOver || "9") || b.f.needTrucks - a.f.needTrucks).forEach(({ c, f, st }) => {
     const n = f.needTrucks, when = !f.firstOver ? "" : f.firstOver <= T ? '<b class="pos">limit już przekroczony</b>' : `limit przekroczony od <b>${DOW[dowOf(f.firstOver)]} ${shortDate(f.firstOver)}</b>`;
     out.push(`<div class="act g-${c.g}"><span class="t">${GROUPS[c.g]} · ${esc(c.n)}</span><span class="big">umów ${n} <small>${plural(n, "auto", "auta", "aut")} w ${H} dni</small></span>
@@ -811,7 +811,7 @@ function actionsHtml(H, withData) {
   const ok = data.filter(x => x.c.t > 0 && x.c.max && x.f && !x.f.needTrucks).map(x => x.c);
   const need = data.some(x => x.f && x.f.needTrucks > 0);
   return (out.length ? `<div class="acts-grid">${out.join("")}</div>` : "") +
-    (!need ? `<div class="notice ok">Opakowania w normie — w ciągu ${H} dni nic nie przekroczy maksymalnego stanu.</div>` : "") +
+    (!need ? `<div class="notice ok">EUR w normie — w ciągu ${H} dni stan nie przekroczy maksimum.</div>` : "") +
     (ok.length ? `<p class="okline">W normie: ${ok.map(c => `<span class="q g-${c.g}">${esc(c.n)}</span>`).join("")}</p>` : "");
 }
 document.addEventListener("click", e => {
