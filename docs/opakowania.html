@@ -550,7 +550,6 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
     <div class="fgrid">
       <label class="field">Dok. wydania <input id="iDok"></label>
       <label class="field">Kierowca / nr rej. <input id="iDrv"></label>
-      <label class="field">Nr dostawy CHEP / LPR <input id="iDost"></label>
     </div>
     <div class="row"><span class="spacer"></span><button class="btn" type="button" data-close>Anuluj</button><button class="btn ok" type="submit">Zatwierdź wydanie</button></div>
   </form>
@@ -1348,14 +1347,14 @@ function openIss(it) {
   const g = (mainGroup(it.q, it.name) || "g-" + supGroup(it.code, it.name)).slice(2);
   const keys = new Set(CATS.filter(c => c.g === g).map(c => c.k)); Object.keys(it.q || {}).forEach(k => keys.add(k));
   $("#iQty").innerHTML = CATS.filter(c => keys.has(c.k)).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)}<input type="number" min="0" data-iq="${c.k}" value="${(it.iq || it.q || {})[c.k] || ""}"></label>`).join("");
-  $("#iDok").value = it.dok || ""; $("#iDrv").value = it.driver || ""; $("#iDost").value = it.dostChep || "";
+  $("#iDok").value = it.dok || ""; $("#iDrv").value = it.driver || "";
   $("#dlgIss").showModal();
   const f = $$("#iQty input").find(i => i.value) || $("#iDok"); f.focus(); f.select && f.select();
 }
 $("#issForm").addEventListener("submit", async e => {
   e.preventDefault(); if (!issuing) return;
   const iq = {}; $$("#iQty [data-iq]").forEach(i => { const v = +i.value; if (v > 0) iq[i.dataset.iq] = v; });
-  const n = Object.assign(issuing, { st: "done", iq, tDone: nowHM(), dok: $("#iDok").value.trim(), driver: $("#iDrv").value.trim(), dostChep: $("#iDost").value.trim(), by: email, at: Date.now() });
+  const n = Object.assign(issuing, { st: "done", iq, tDone: nowHM(), dok: $("#iDok").value.trim(), driver: $("#iDrv").value.trim(), by: email, at: Date.now() });
   editing = null;
   if (await saveItem(n)) { $("#dlgIss").close(); toast("Wydano · " + (n.name || n.code) + " · " + (qText(iq) || "0")); }
 });
