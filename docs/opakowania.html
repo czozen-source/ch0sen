@@ -213,6 +213,29 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .sp-doc .pills a:hover { background: var(--bad); color: #fff; }
 .sp-doc .okline2 { color: var(--ok); font-weight: 600; }
 
+/* panel „Do zrobienia” */
+.td { display: grid; gap: 3px; padding: 7px 9px; border-radius: 5px; border-left: 5px solid var(--muted); background: var(--surface-2); font-size: .8rem; }
+.td > b { font: 700 .86rem var(--f-cond); text-transform: uppercase; letter-spacing: .05em; }
+.td > span { color: var(--muted); font-size: .76rem; }
+.td.bad { border-left-color: var(--bad); background: var(--bad-bg); } .td.bad > b { color: var(--bad); }
+.td.warn { border-left-color: var(--warn); background: var(--warn-bg); } .td.warn > b { color: var(--warn); }
+.td.ok { border-left-color: var(--ok); background: var(--ok-bg); } .td.ok > b { color: var(--ok); }
+.td .row { margin-top: 3px; }
+.td .pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.td .pills a { font: 600 .72rem var(--f-mono); padding: 1px 7px; border-radius: 10px; background: var(--surface); color: var(--bad); text-decoration: none; border: 1px solid currentColor; }
+.td.warn .pills a { color: var(--warn); }
+.td .pills a:hover { background: var(--bad); color: #fff; }
+.td .fl { display: grid; grid-template-columns: 1fr 70px auto; gap: 6px; align-items: center; font-size: .76rem; cursor: pointer; }
+.td .fl > span:first-child { font-weight: 600; color: var(--gc); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.td .fl i { height: 7px; border-radius: 4px; background: color-mix(in srgb, var(--gc) 20%, transparent); overflow: hidden; display: block; }
+.td .fl em { display: block; height: 100%; background: var(--gc); border-radius: 4px; }
+.td .fl.over em { background: var(--bad); } .td .fl.over .num { color: var(--bad); font-weight: 700; }
+.td .fl .num { font: 600 .72rem var(--f-mono); }
+@media (prefers-reduced-motion: no-preference) {
+  .td.bad { animation: tdBlink 1.2s ease-in-out infinite; }
+  .td .fl.over { animation: spillBlink 1s steps(2, jump-none) infinite; }
+  @keyframes tdBlink { 50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 40%, transparent); background: #ffd6d2; } }
+}
 /* ruch: wejście zakładek, kaskada elementów, okna, wiersze, wykresy (wyłączone przy „ogranicz ruch”) */
 @media (prefers-reduced-motion: no-preference) {
   main > section.enter { animation: secIn .34s cubic-bezier(.2,.8,.2,1) both; }
@@ -1155,7 +1178,7 @@ function barChart(pts, lim, h, limLab) {
 }
 document.addEventListener("mouseover", e => { const b = e.target.closest("[data-tip]"); const t = $("#tip"); if (!b) { t.hidden = true; return; } t.innerHTML = b.dataset.tip; t.hidden = false; });
 document.addEventListener("mousemove", e => { const t = $("#tip"); if (t.hidden) return; t.style.left = Math.min(e.clientX + 14, innerWidth - t.offsetWidth - 8) + "px"; t.style.top = (e.clientY + 14) + "px"; });
-document.addEventListener("click", e => { const b = e.target.closest("[data-goday]"); if (b) { dayView = b.dataset.goday; showTab("dzien"); } });
+document.addEventListener("click", e => { const b = e.target.closest("[data-goday]"); if (b) { e.preventDefault(); dayView = b.dataset.goday; showTab("dzien"); } });
 
 /* ---------- ZAŁADUNKI (DZIEŃ) ---------- */
 let doneSeen = { day: null, ids: new Set() }, JUST_DONE = new Set();
@@ -1170,7 +1193,7 @@ function renderDay() {
   const list = all.filter(it => dayFilter === "all" || (dayFilter === "done" ? it.st === "done" : active(it) && it.st !== "done"));
   const done = act.filter(i => i.st === "done").length;
   $("#dSum").innerHTML = `<span class="tag info">${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag ok">wydane ${done} z ${act.length}</span>${all.length - act.length ? `<span class="tag bad">anul./nie przyj. ${all.length - act.length}</span>` : ""}`;
-  if (!all.length) { $("#dList").innerHTML = '<div class="panel"><p class="sub">Brak awizacji na ten dzień. <button class="btn xs" type="button" data-new>+ Dodaj</button></p></div>'; $("#dSide").innerHTML = `<div class="sp-head"><h3>Podsumowanie dnia</h3><span>${DOW_S[dowOf(dayView)]} ${shortDate(dayView)}</span></div><div class="sp-body"><p class="sub">Brak awizacji na ten dzień.</p>${docSide([])}</div>`; return; }
+  if (!all.length) { $("#dList").innerHTML = '<div class="panel"><p class="sub">Brak awizacji na ten dzień. <button class="btn xs" type="button" data-new>+ Dodaj</button></p></div>'; $("#dSide").innerHTML = sideTodo(); return; }
   const secs = SEC_ORDER.filter(k => k === "eur" || k === "pul" || all.some(it => secOf(it) === k));
   $("#dList").innerHTML = secs.map(k => {
     const sAll = all.filter(it => secOf(it) === k), sAct = sAll.filter(active), sList = list.filter(it => secOf(it) === k);
@@ -1179,27 +1202,35 @@ function renderDay() {
     return `<div class="sec sec-${k}" id="sec-${k}"><div class="sec-h g-${SECS[k][2]}"><h3>${SECS[k][0]}</h3><span class="sub">${SECS[k][1]}</span><span class="spacer"></span><span class="tag">${sAct.length} aw. · ${fmt1(sAct.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag">wydane ${sDone}/${sAct.length}</span></div>
       ${sOpen.map(awRow).join("")}${sDoneL.length ? `<div class="done-h">Wydane · ${sDoneL.length}</div>` + sDoneL.map(awRow).join("") : ""}${sList.length ? "" : `<p class="sub" style="padding:4px 8px">${sAll.length ? "Brak pozycji w tym filtrze." : "Brak awizacji."}</p>`}</div>`;
   }).join("");
-  // panel boczny: podsumowanie dnia — pierścień postępu, sekcje z paskami, dokumenty
-  const tr = act.reduce((s, i) => s + trucksQ(i.q), 0), off = 314.16 * (1 - (act.length ? done / act.length : 0));
-  const pulSz = its => its.reduce((s, it) => s + CATS.filter(c => PUL_G.has("g-" + c.g)).reduce((a, c) => a + qSum(it.q, c.k), 0), 0);
-  const wait = act.filter(i => i.st === "wait").length;
-  $("#dSide").innerHTML = `<div class="sp-head"><h3>Podsumowanie dnia</h3><span>${DOW_S[dowOf(dayView)]} ${shortDate(dayView)}</span></div><div class="sp-body">
-    <div class="ringbox"><div class="ringwrap"><svg class="ring" viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" cx="60" cy="60" r="50" stroke-dasharray="314.16" style="stroke-dashoffset:${ringOff[dayView] ?? 314.16}" data-off="${off}"/></svg>
-      <div class="ringtxt"><b>${done}/${act.length}</b><span>wydane</span></div></div>
-      <div class="rstats"><div><b>${fmt1(tr)}</b>aut</div><div><b>${fmt(act.reduce((s, i) => s + qSum(i.q, "EUR"), 0))}</b>EUR szt.</div><div><b>${fmt(pulSz(act))}</b>PUL szt.</div>${wait ? `<div class="w"><b>${wait}</b>czeka na potw.</div>` : ""}${all.length - act.length ? `<div><b class="pos">${all.length - act.length}</b>anul. / nie przyj.</div>` : ""}</div></div>
-    ${SEC_ORDER.filter(k => act.some(it => secOf(it) === k)).map(k => {
-      const its = act.filter(it => secOf(it) === k), d = its.filter(i => i.st === "done"), pct = its.length ? d.length / its.length * 100 : 0;
-      const cats = CATS.map(c => { const pl = its.reduce((s, it) => s + qSum(it.q, c.k), 0), wy = d.reduce((s, it) => s + qSum(qOf(it), c.k), 0); return pl || wy ? `<span class="q ${gcls(c.k)}" title="wydane / umówione">${esc(c.n)} ${fmt(wy)}/${fmt(pl)}</span>` : ""; }).join("");
-      return `<div class="sp-sec g-${SECS[k][2]}" data-jump="${k}"><div class="sp-top"><i class="dot"></i><b>${SECS[k][0]}</b><span class="num">${d.length}/${its.length}</span></div>
-        <div class="sp-bar"><i style="width:${barW[dayView + k] ?? 0}%" data-w="${pct}"></i></div>${cats ? `<div class="sp-cats">${cats}</div>` : ""}</div>`;
-    }).join("")}
-    ${docSide(act)}</div>`;
-  requestAnimationFrame(() => {
-    const fg = $("#dSide .ring .fg"); if (fg) { fg.style.strokeDashoffset = fg.dataset.off; ringOff[dayView] = fg.dataset.off; }
-    $$("#dSide .sp-sec .sp-bar i").forEach(i => { i.style.width = i.dataset.w + "%"; barW[dayView + i.closest("[data-jump]").dataset.jump] = i.dataset.w; });
-  });
+  $("#dSide").innerHTML = sideTodo();
 }
-const ringOff = {}, barW = {};
+// panel boczny „Do zrobienia”: ile aut EUR umówić, dni bez awizacji, zapełnianie placu, braki dokumentów
+function sideTodo() {
+  const T = today(), out = [];
+  // EUR: prognoza na 7 dni
+  const c = CAT.EUR, f = c && c.t ? forecast("EUR", 7) : null;
+  if (f && f.needTrucks) out.push(`<div class="td bad"><b>Umów ${f.needTrucks} ${plural(f.needTrucks, "auto", "auta", "aut")} EUR</b>
+    <span>${f.firstOver && f.firstOver > T ? `limit przekroczony od ${DOW[dowOf(f.firstOver)]} ${shortDate(f.firstOver)}` : "limit już przekroczony"} · za 7 dni ${fmt1(f.proj / c.t)}/${fmt1(c.max)} aut</span>
+    <div class="row"><button class="btn xs primary" type="button" data-actcat="EUR">+ Awizacja EUR</button><button class="btn xs" type="button" data-goto="harm">Propozycje →</button></div></div>`);
+  else if (f) out.push(`<div class="td ok"><b>EUR w normie</b><span>za 7 dni ${fmt1(f.proj / c.t)}/${fmt1(c.max)} aut</span></div>`);
+  // dni robocze bez awizacji (najbliższe 7)
+  const empty = []; for (let i = 0; i < 8 && empty.length < 7; i++) { const d = addDays(T, i); if (dowOf(d) && !itemsOf(d).filter(active).length) empty.push(d); }
+  if (empty.length) out.push(`<div class="td bad"><b>Dni bez awizacji</b><div class="pills">${empty.map(d => `<a href="#" data-goday="${d}">${DOW_S[dowOf(d)]} ${shortDate(d)}</a>`).join("")}</div></div>`);
+  // plac: kategorie blisko lub ponad maksimum (ostatnie liczenie)
+  const sd = lastStanDate(), st = sd ? DAYS[sd].stan : null;
+  if (!sd || sd !== T) out.push(`<div class="td warn"><b>Brak dzisiejszego liczenia placu</b><span>${sd ? "ostatnie " + plDate(sd) : "nie było liczenia"}</span><div class="row"><button class="btn xs" type="button" data-goto="stany">Wpisz stan →</button></div></div>`);
+  if (st) {
+    const full = CATS.filter(x => limOf(x) > 0 && st[x.k] != null && st[x.k] / limOf(x) >= .85).map(x => ({ x, r: st[x.k] / limOf(x) })).sort((a, b) => b.r - a.r);
+    out.push(full.length ? `<div class="td ${full.some(z => z.r > 1) ? "bad" : "warn"}"><b>Zapełnia się plac</b>${full.map(({ x, r }) => {
+      const u = x.t > 0 ? v => fmt1(v / x.t) : fmt;
+      return `<div class="fl ${gcls(x.k)} ${r > 1 ? "over" : ""}" data-goto="stany"><span>${esc(x.n)}</span><i><em style="width:${Math.min(100, r * 100)}%"></em></i><span class="num">${u(st[x.k])}/${u(limOf(x))}</span></div>`; }).join("")}</div>`
+      : `<div class="td ok"><b>Plac w normie</b><span>liczenie ${plDate(sd)}</span></div>`);
+  }
+  // dokumenty
+  const miss = docsMissing();
+  if (miss.length) out.push(`<div class="td warn"><b>Dokumenty bez zwrotu</b><div class="pills">${miss.map(([dd, n]) => `<a href="#" data-docday="${dd}">${DOW_S[dowOf(dd)]} ${shortDate(dd)} · ${n}</a>`).join("")}</div></div>`);
+  return `<div class="sp-head"><h3>Do zrobienia</h3><span>${DOW_S[dowOf(T)]} ${shortDate(T)}</span></div><div class="sp-body">${out.join("")}</div>`;
+}
 function docSide(act) {
   const d = act.filter(i => i.st === "done"), miss = docsMissing(); if (!d.length && !miss.length) return "";
   const back = d.filter(docBackOf).length, kor = d.filter(i => i.kor), korNo = kor.filter(i => !i.korFiled).length;
