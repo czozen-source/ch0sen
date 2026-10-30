@@ -90,7 +90,7 @@ Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch
 - **Harmonogram** — tydzień: okna × dni z obłożeniem (domyślnie 2 auta na 2-godzinne okno); klik w puste pole = nowa awizacja w tym oknie. Dłuższe okna (np. sobota 00:00-13:00) są w wierszu „inne / dłuższe”.
 - **Salda** — codzienne wgranie pliku „Stan rozliczeń opakowań” (xlsx/xls/csv). Zmiana względem poprzedniego pliku, umówione odbiory, saldo po odbiorach, filtry i wyszukiwarka.
 - **Stany** — poranny stan pustych opakowań na placu (te same kategorie co w arkuszu WYDANIA oraz Transportery: palety z transporterami Carlsberg, Kompania Piwowarska, Grupa Żywiec; plastik w stosach × 120/140). Zjazd ze sklepów = stan dziś − stan poprzedni + wydane w międzyczasie.
-- **Co trzeba zrobić** (na górze Prognozy) — karty z działaniami, najpilniejsze pierwsze: ile aut umówić w danej kategorii i od kiedy przekroczony limit, brak dzisiejszego stanu placu, nieaktualny plik sald, dostawcy z saldem bez awizacji.
+- **Co trzeba zrobić** (na górze Prognozy, tylko EUR własne: EUR i EUR REM) — karty z działaniami, najpilniejsze pierwsze: ile aut umówić i od kiedy przekroczony limit, brak dzisiejszego stanu placu, nieaktualny plik sald, dostawcy z saldem bez awizacji.
 - W Stanach placu zmiana zapasu względem poprzedniego liczenia: **▲ wzrost na czerwono, ▼ spadek na zielono**.
 - **Prognoza** — średni zjazd z 28 dni, prognoza stanu na 3/5/7/14 dni, dzień przekroczenia maks. stanu, liczba aut do zaplanowania, zjazd wg dnia tygodnia.
 - Kolory grup opakowań wszędzie (stany, tabele, harmonogram, ilości): EUR własne – sosna, CHEP – niebieski, LPR – czerwony, NDHP – zielony, IPP – brązowy, transportery – morski, wózki – szary, inne – fiolet. Grupę kategorii zmienia się w Ustawieniach.
