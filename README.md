@@ -86,7 +86,7 @@ Osobisty budżet: `https://czozen-source.github.io/ch0sen/budzet.html` (widżet:
 ## Awizacja opakowań (`docs/opakowania.html`)
 Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch0sen/opakowania.html`. **Dostęp tylko dla konta czozen@gmail.com** (stała `OWNER` w `docs/opakowania.html`, `isOwner()` dla kolekcji `pk_*` w `firestore.rules`); inne konta są wylogowywane z komunikatem o braku dostępu, a link „Awizacja opakowań →” w raporcie zmiany widzi tylko właściciel.
 
-- **Załadunki** — dwie sekcje: *Wydania EUR + pozostałe* (wózki, transportery, naprawa, sprzedaż) i *Wydania PUL* (CHEP, LPR, IPP, NDHP), każda z własnym podsumowaniem wydane/umówione. Lista awizacji dnia w kolejności załadunku (▲▼, „Numeruj wg okien”), statusy *Umówione → Przyjechał → Załadunek → Wydane* (oraz Anulowane / Nie przyjechał), wydanie z rzeczywistymi ilościami i nr dokumentu, mail z awizacją (kopiuje treść, a gdy w kontakcie jest e-mail, otwiera program pocztowy), druk planu dnia.
+- **Załadunki** — dwie sekcje: *Wydania EUR + pozostałe* (wózki, transportery, naprawa, sprzedaż) i *Wydania PUL* (CHEP, LPR, IPP, NDHP), każda z własnym podsumowaniem wydane/umówione. Lista awizacji dnia w kolejności załadunku (▲▼, „Numeruj wg okien”), statusy *Umówione → Wydane* (jedno kliknięcie „Wydaj”; oraz Anulowane / Nie przyjechał), wydanie z rzeczywistymi ilościami i nr dokumentu, mail z awizacją (kopiuje treść, a gdy w kontakcie jest e-mail, otwiera program pocztowy), druk planu dnia.
 - **Harmonogram** — tydzień: okna × dni z obłożeniem (domyślnie 2 auta na 2-godzinne okno); klik w puste pole = nowa awizacja w tym oknie. Dłuższe okna (np. sobota 00:00-13:00) są w wierszu „inne / dłuższe”.
 - **Salda** — codzienne wgranie pliku „Stan rozliczeń opakowań” (xlsx/xls/csv). Zmiana względem poprzedniego pliku, umówione odbiory, saldo po odbiorach, filtry i wyszukiwarka.
 - **Stany** — poranny stan pustych opakowań na placu (te same kategorie co w arkuszu WYDANIA oraz Transportery: palety z transporterami Carlsberg, Kompania Piwowarska, Grupa Żywiec; plastik w stosach × 120/140). Zjazd ze sklepów = stan dziś − stan poprzedni + wydane w międzyczasie.
@@ -95,6 +95,7 @@ Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch
 - **Prognoza** — średni zjazd z 28 dni, prognoza stanu na 3/5/7/14 dni, dzień przekroczenia maks. stanu, liczba aut do zaplanowania, zjazd wg dnia tygodnia.
 - Kolory grup opakowań wszędzie (stany, tabele, harmonogram, ilości): EUR własne – sosna, CHEP – niebieski, LPR – czerwony, NDHP – zielony, IPP – brązowy, transportery – morski, wózki – szary, inne – fiolet. Grupę kategorii zmienia się w Ustawieniach.
 - **Eksport do Excela** (przycisk „⤓ Excel”) na każdej zakładce: załadunki dnia, tydzień harmonogramu, salda (wszystkie przefiltrowane wiersze), stany i zjazdy, prognoza; w Ustawieniach eksport wszystkich awizacji i wydań z dowolnego okresu.
+- W awizacji wpisuje się ilości tylko jednej grupy: dostawca EUR — tylko EUR, CHEP — tylko CHEP, LPR — tylko LPR itd. Grupę aplikacja dobiera sama (z nazwy operatora palet albo z poprzednich awizacji dostawcy); w wyjątkach zmienia się ją przyciskiem nad polami.
 - Skróty: <kbd>N</kbd> nowa awizacja, ←/→ zmiana dnia, w formularzu <kbd>Enter</kbd> zapisuje. Podpowiedź firmy po kodzie SAP albo 2 literach nazwy (z listy DOSTAWCY i sald).
 
 ### Jednorazowo
