@@ -349,6 +349,9 @@ tr.cat td:first-child { border-left: 4px solid var(--gc); }
 .harm .hd .ov { background: var(--bad); color: #fff; }
 .harm .hd .nr { font: 700 .8rem var(--f-mono); text-transform: none; letter-spacing: 0; padding: 3px 6px; border-radius: 4px; background: var(--warn); color: #1a1000; }
 .harm .hd .eur.zero { color: #ff9a8f; }
+.harm .hd .cmp { font: 500 .72rem var(--f-mono); opacity: 1; color: var(--wood-mut); }
+.harm .hd .cmp b { color: var(--wood-fg); } .harm .hd.today .cmp, .harm .hd.today .cmp b { color: var(--pine-ink); }
+.f-rep { color: var(--g-ipp); margin-left: 4px; }
 .harm .hd .rst { font: 600 .74rem var(--f-mono); text-transform: none; letter-spacing: 0; color: var(--wood-mut); }
 /* przepływ EUR */
 .harm .flow-l { font: 700 .9rem var(--f-cond); color: var(--g-own); line-height: 1.1; }
@@ -1006,7 +1009,10 @@ const active = it => it.st !== "cancel" && it.st !== "noshow";
 const qOf = it => it.st === "done" ? (it.kor && it.korQ ? it.korQ : it.iq || it.q || {}) : (it.q || {});
 const qSum = (q, k) => +((q || {})[k]) || 0;
 const trucksQ = q => CATS.reduce((s, c) => s + (c.t > 0 ? qSum(q, c.k) / c.t : 0), 0);
-const issued = (d, k) => itemsOf(d).filter(active).reduce((s, it) => s + qSum(qOf(it), k), 0);
+// naprawa zabiera palety do remontu i przywozi naprawione EUR — na placu EUR przybywa, więc liczy się ze znakiem minus
+const issued = (d, k) => itemsOf(d).filter(active).reduce((s, it) => s + (kindOf(it) === "napr" ? -1 : 1) * qSum(qOf(it), k), 0);
+const eurOut = d => itemsOf(d).filter(i => active(i) && kindOf(i) !== "napr").reduce((s, it) => s + qSum(qOf(it), "EUR"), 0);
+const eurRep = d => itemsOf(d).filter(i => active(i) && kindOf(i) === "napr").reduce((s, it) => s + qSum(qOf(it), "EUR"), 0);
 const qText = q => CATS.filter(c => qSum(q, c.k)).map(c => fmt(q[c.k]) + " szt. " + c.n).join(", ");
 const qChips = q => CATS.filter(c => qSum(q, c.k)).map(c => `<span class="q ${gcls(c.k)}">${esc(c.n)} ${fmt(q[c.k])}</span>`).join("") || '<span class="mut" style="font-size:.72rem">bez ilości</span>';
 // grupa dominująca w awizacji (wg liczby aut, a gdy brak przelicznika — sztuk); bez ilości — wg nazwy operatora palet
@@ -1358,13 +1364,14 @@ function eurDays(from, to) {
   let s = DAYS[sd].stan.EUR; if (s == null) return null;
   for (let d = sd; d < T; d = addDays(d, 1)) s = s + rate - issued(d, "EUR");
   for (let d = T; d <= to; d = addDays(d, 1)) {
-    const booked = issued(d, "EUR"), end = s + rate - booked, work = dowOf(d) !== 0;
-    const deficit = work && end > lim ? Math.ceil((end - lim) / c.t) : 0;
+    const booked = eurOut(d), rep = eurRep(d), work = dowOf(d) !== 0, end = s + rate + rep - booked;
+    // dzień roboczy musi wydać co najmniej tyle, ile przybędzie (zjazd ze sklepów + naprawa), a wieczorem zmieścić się w limicie
+    const short = Math.max(rate + rep - booked, end - lim, 0), deficit = work ? Math.max(0, Math.ceil(short / c.t - 0.15)) : 0;
     const status = !work ? "rest" : deficit ? "bad" : end > lim * .85 ? "near" : "ok";
-    if (d >= from) out[d] = { start: s, end, booked, deficit, status, work, rate };
-    s = deficit ? lim : end;
+    if (d >= from) out[d] = { start: s, end, booked, rep, need: rate + rep, deficit, status, work, rate };
+    s = end - deficit * c.t; // zakładamy, że braki tego dnia zostaną domówione
   }
-  for (let d = from; d < T && d <= to; d = addDays(d, 1)) { const st = DAYS[d] && DAYS[d].stan; out[d] = { past: true, start: st && st.EUR != null ? st.EUR : null, booked: issued(d, "EUR") }; }
+  for (let d = from; d < T && d <= to; d = addDays(d, 1)) { const st = DAYS[d] && DAYS[d].stan; out[d] = { past: true, start: st && st.EUR != null ? st.EUR : null, booked: eurOut(d), rep: eurRep(d) }; }
   const bad = Object.keys(out).sort().filter(d => out[d].deficit);
   return { lim, t: c.t, max: c.max, rate, days: out, bad, need: bad.reduce((a, d) => a + out[d].deficit, 0) };
 }
@@ -1393,7 +1400,7 @@ function renderHarm() {
   let sug = "";
   if (!ep) sug = '<p class="sub">Brak stanu placu albo limitu dla EUR — wpisz stan w zakładce Stany placu.</p>';
   else if (days[6] < T) sug = '<p class="sub">Tydzień miniony — sprawdzanie dotyczy dni od dziś.</p>';
-  else if (!ep.need) sug = `<div class="notice ok">Każdy dzień ma wystarczająco umówionych odbiorów EUR — zjazd ok. ${fmt1(ep.rate / ep.t)} auta dziennie jest pokryty, wieczorem stan mieści się w limicie ${fmt1(ep.max)} aut.</div>`;
+  else if (!ep.need) sug = `<div class="notice ok">Każdy dzień wydaje co najmniej tyle EUR, ile przybywa (ze sklepów ok. ${fmt(ep.rate)} szt. dziennie + naprawa), a wieczorem stan mieści się w limicie ${fmt1(ep.max)} aut.</div>`;
   else {
     const free = {}, pool = d => free[d] || (free[d] = freeSlotList(99, d, d)), picks = [];
     ep.bad.forEach(d => { let k = ep.days[d].deficit;
@@ -1401,7 +1408,8 @@ function renderHarm() {
       for (let i = 0; i < k; i++) picks.push({ d: null, for: d }); });
     const cands = salCandidates();
     sug = `<div class="act g-lpr" style="margin-bottom:6px"><span class="t">Za mało awizacji</span><span class="big">domów ${ep.need} <small>${plural(ep.need, "auto", "auta", "aut")} EUR</small></span>
-      <span class="s">${ep.bad.map(d => `<b>${DOW_S[dowOf(d)]} ${shortDate(d)}</b> +${ep.days[d].deficit}`).join(" · ")} · zjeżdża ok. ${fmt1(ep.rate / ep.t)} auta dziennie, limit ${fmt1(ep.max)} aut</span></div>
+      <span class="s">${ep.bad.map(d => `<b>${DOW_S[dowOf(d)]} ${shortDate(d)}</b> +${ep.days[d].deficit}`).join(" · ")}</span>
+      <span class="s">każdy dzień musi wydać co najmniej tyle, ile przybędzie: ze sklepów ok. ${fmt(ep.rate)} szt. (${fmt1(ep.rate / ep.t)} auta) + to, co przywiezie naprawa; limit placu ${fmt1(ep.max)} aut</span></div>
       <table><thead><tr><th>Dla dnia</th><th>Termin</th><th>Okno</th><th>Proponowany dostawca</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${picks.map((sl, i) => { const r = cands[i];
         return `<tr><td class="nw"><b>${DOW_S[dowOf(sl.for)]} ${shortDate(sl.for)}</b></td><td class="nw">${sl.d ? `${DOW_S[dowOf(sl.d)]} ${shortDate(sl.d)}` : '<span class="pos">brak okna</span>'}</td><td class="num nw" style="font-size:.74rem">${sl.d ? esc(sl.slot) : ""}</td><td class="cut" style="max-width:200px">${r ? esc(r.name) : '<span class="mut">brak dostawcy z saldem — sprzedaż / naprawa</span>'}</td><td class="n">${r ? fmt(r.tot) : ""}</td>
         <td>${sl.d ? `<button class="btn xs primary" type="button" data-sugaw="${sl.d}|${esc(sl.slot)}|${r ? esc(r.code) : ""}">Awizuj</button>` : ""}</td></tr>`; }).join("")}</tbody></table>
@@ -1417,7 +1425,9 @@ function renderHarm() {
   $("#hWeek").innerHTML = `<table><thead><tr><th>Awizacje</th>${days.map(d => `<th class="n">${DOW_S[dowOf(d)]}</th>`).join("")}<th class="n">Razem</th><th class="n">Aut</th><th class="n">Wyd.</th></tr></thead><tbody>
     ${SEC_ORDER.filter(k => wk.some(i => secOf(i) === k)).map(k => row(SECS[k][0], "g-" + SECS[k][2], wk.filter(i => secOf(i) === k))).join("")}
     <tr><td><b>Razem</b></td>${days.map(d => `<td class="n"><b>${wk.filter(i => i.date === d).length || ""}</b></td>`).join("")}<td class="n"><b>${wk.length}</b></td><td class="n"><b>${fmt1(wk.reduce((s, i) => s + trucksQ(i.q), 0))}</b></td><td class="n mut">${wk.filter(i => i.st === "done").length}/${wk.length}</td></tr>
-    <tr><td class="mut nw">EUR szt.</td>${days.map(d => `<td class="n">${fmt(wk.filter(i => i.date === d).reduce((s, i) => s + qSum(i.q, "EUR"), 0)) || ""}</td>`).join("")}<td class="n"><b>${fmt(wk.reduce((s, i) => s + qSum(i.q, "EUR"), 0))}</b></td><td colspan="2"></td></tr>
+    <tr><td class="mut nw">EUR wyjedzie</td>${days.map(d => `<td class="n">${fmt(eurOut(d)) || ""}</td>`).join("")}<td class="n"><b>${fmt(days.reduce((s, d) => s + eurOut(d), 0))}</b></td><td colspan="2"></td></tr>
+    ${days.some(d => eurRep(d)) ? `<tr><td class="mut nw">Naprawa przywiezie</td>${days.map(d => `<td class="n">${eurRep(d) ? "+" + fmt(eurRep(d)) : ""}</td>`).join("")}<td class="n"><b>+${fmt(days.reduce((s, d) => s + eurRep(d), 0))}</b></td><td colspan="2"></td></tr>` : ""}
+    ${ep ? `<tr><td class="mut nw">Zjedzie ze sklepów</td>${days.map(d => `<td class="n mut">${dowOf(d) && d >= today() ? "~" + fmt(ep.rate) : ""}</td>`).join("")}<td colspan="3"></td></tr>` : ""}
     <tr><td class="mut nw">PUL szt.</td>${days.map(d => `<td class="n">${fmt(wk.filter(i => i.date === d).reduce((s, i) => s + pulSzt(i.q), 0)) || ""}</td>`).join("")}<td class="n"><b>${fmt(wk.reduce((s, i) => s + pulSzt(i.q), 0))}</b></td><td colspan="2"></td></tr>
     <tr><td class="mut nw">Wolne okna</td>${days.map(d => `<td class="n mut">${dowOf(d) ? Math.max(0, capDay - usedSlots(d)) : ""}</td>`).join("")}<td colspan="3"></td></tr>
     ${ep ? `<tr><td class="mut nw">EUR wieczorem</td>${days.map(d => { const x = ep.days[d]; if (!x || x.past) return `<td class="n mut">${x && x.start != null ? fmt1(x.start / ep.t) : ""}</td>`; return `<td class="n ${x.deficit ? "pos" : "neg"}">${fmt1(x.end / ep.t)}</td>`; }).join("")}<td colspan="3" class="mut">limit ${fmt1(ep.max)} aut</td></tr>
@@ -1433,15 +1443,16 @@ function renderHarm() {
   });
   let h = "<div></div>";
   per.forEach(p => {
-    const act = p.its.filter(active), x = ep && ep.days[p.d], eurSzt = act.reduce((s, i) => s + qSum(i.q, "EUR"), 0);
+    const act = p.its.filter(active), x = ep && ep.days[p.d], eurSzt = eurOut(p.d), rp = eurRep(p.d);
     const u = v => fmt1(v / ep.t);
     const st = !x ? "" : x.past ? `<small>stan rano ${x.start != null ? u(x.start) + " aut" : "—"}</small>`
       : x.status === "rest" ? `<span class="rst">niedziela · zjazd przechodzi na pn</span>`
       : x.status === "bad" ? `<span class="ov">⚠ za mało — domów +${x.deficit} ${plural(x.deficit, "auto", "auta", "aut")} EUR</span>`
       : x.status === "near" ? `<span class="nr">na styk · wieczorem ${u(x.end)}/${fmt1(ep.max)}</span>`
-      : `<span class="okk">✓ umówione wystarczy</span>`;
+      : `<span class="okk">✓ wystarczy · wyjedzie więcej niż zjedzie</span>`;
     h += `<div class="hd ${p.d === T ? "today" : ""} ${x && x.status === "bad" ? "need" : x && x.status === "near" ? "near" : ""}" data-goday="${p.d}" title="kliknij — Załadunki tego dnia">${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}
-      <span class="eur ${eurSzt || !x || x.past || !x.work ? "" : "zero"}">${fmt(eurSzt)}<small>EUR</small></span>
+      <span class="eur ${!x || x.past || !x.work ? "" : x.status === "bad" ? "zero" : ""}">${fmt(eurSzt)}<small>EUR</small></span>
+      ${x && !x.past && x.work ? `<small class="cmp">wyjedzie <b>${fmt(eurSzt)}</b> · przybędzie ~<b>${fmt(x.need)}</b>${rp ? ` <span title="naprawa przywozi naprawione EUR">(w tym naprawa ${fmt(rp)})</span>` : ""}</small>` : ""}
       <small>${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut · PUL ${fmt(act.reduce((s, i) => s + pulSzt(i.q), 0))}</small>
       ${st}</div>`;
   });
@@ -1455,8 +1466,8 @@ function renderHarm() {
       const n = Math.round((x.booked || 0) / ep.t), miss = x.deficit || 0;
       const trucks = Array.from({ length: Math.min(n, 9) }, (_, i) => truck("go").replace("<svg", `<svg style="--i:${i}"`)).join("") + (n > 9 ? `<b>+${n - 9}</b>` : "")
         + Array.from({ length: Math.min(miss, 6) }, (_, i) => truck("miss").replace("<svg", `<svg style="--i:${n + i}"`)).join("");
-      h += `<div class="flow st-${x.past ? "past" : x.status}" data-goday="${d}" title="${x.past ? "" : `rano ${u0(x.start)} → wieczorem ${u0(x.end)} aut · zjazd +${u0(x.rate)} · umówione ${u0(x.booked)}`}">
-        ${x.past || !x.work ? "<div class='f-in mut'>&nbsp;</div>" : `<div class="f-in">⬇ +${u0(x.rate)} <small>ze sklepów</small></div>`}
+      h += `<div class="flow st-${x.past ? "past" : x.status}" data-goday="${d}" title="${x.past ? "" : `rano ${u0(x.start)} → wieczorem ${u0(x.end)} aut · zjazd +${u0(x.rate)}${x.rep ? " · naprawa +" + u0(x.rep) : ""} · wyjedzie ${u0(x.booked)}`}">
+        ${x.past || !x.work ? "<div class='f-in mut'>&nbsp;</div>" : `<div class="f-in">⬇ +${u0(x.rate)} <small>ze sklepów</small>${x.rep ? ` <span class="f-rep">🔧 +${u0(x.rep)} <small>naprawa</small></span>` : ""}</div>`}
         <div class="f-tank"><div class="f-lim" style="bottom:${pct(ep.lim)}%"></div>
           ${x.start != null ? `<div class="f-am" style="height:${pct(x.start)}%"></div>` : ""}
           ${x.past ? "" : `<div class="f-pm ${x.end > ep.lim ? "over" : ""}" style="height:${pct(x.end)}%"></div>`}</div>
