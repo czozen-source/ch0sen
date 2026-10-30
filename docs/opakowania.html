@@ -141,6 +141,7 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .side .sg b { font: 700 .8rem var(--f-cond); text-transform: uppercase; letter-spacing: .06em; color: var(--gc); }
 .side .sg span { font-size: .74rem; color: var(--muted); }
 .side .sg .q { background: var(--surface); }
+.side .sg a { color: inherit; font-weight: 600; }
 .side .tot { font: 400 1.4rem var(--f-stamp); }
 .pbar2 { height: 8px; background: var(--line-2); border-radius: 4px; overflow: hidden; }
 .pbar2 i { display: block; height: 100%; background: var(--ok); }
@@ -183,7 +184,15 @@ tr.cat td:first-child { border-left: 4px solid var(--gc); }
 .sum { display: flex; flex-wrap: wrap; gap: 4px; }
 .aw-list { display: grid; gap: 3px; }
 .aw { display: grid; grid-template-columns: 44px 92px minmax(150px, 1.3fr) minmax(130px, 1.4fr) 62px 190px; gap: 4px 10px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-left: 5px solid var(--gc, var(--line)); border-radius: var(--r); padding: 3px 8px; min-height: 36px; }
-.aw.st-done { background: var(--surface-2); } .aw.st-done .firm b { text-decoration: line-through; text-decoration-color: var(--ok); text-decoration-thickness: 2px; }
+.aw.st-done { background: #e4f3df; border-color: #b9dcb1; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .aw.st-done { background: #1c3220; border-color: #2f5532; } }
+.sec-pul .aw:not(.st-done) { background: var(--gb); }
+.done-h { font: 700 .74rem var(--f-cond); text-transform: uppercase; letter-spacing: .08em; color: var(--ok); padding: 4px 8px 0; display: flex; gap: 8px; align-items: center; }
+.done-h::after { content: ""; flex: 1; border-top: 1px dashed #b9dcb1; }
+.docb { font: 600 .7rem var(--f-mono); padding: 1px 6px; border-radius: 3px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--muted); white-space: nowrap; }
+.docb.ok { background: var(--ok); border-color: var(--ok); color: #fff; } .docb.warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); } .docb.bad { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
+.chk { display: flex; gap: 8px; align-items: center; font-size: .88rem; font-weight: 600; cursor: pointer; }
+.chk input { width: 18px; height: 18px; }
 .aw.st-cancel, .aw.st-noshow { opacity: .5; }
 .aw.st-arr { box-shadow: inset 0 0 0 1px var(--info); } .aw.st-load { box-shadow: inset 0 0 0 1px var(--warn); }
 .aw .ord { display: flex; align-items: center; gap: 3px; font: 400 1.1rem var(--f-stamp); }
@@ -532,8 +541,7 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
     <div class="qgrid" id="aQty"></div>
     <div class="fgrid">
       <label class="field">Kierowca / nr rej. <input id="aDrv"></label>
-      <label class="field">Kontakt (mail / tel.) <input id="aCon"></label>
-      <label class="field">Nr dostawy CHEP / LPR <input id="aDost"></label>
+      <label class="field" id="aDostF">Nr dostawy CHEP / LPR <input id="aDost"></label>
       <label class="field">Dok. wydania <input id="aDok"></label>
     </div>
     <label class="field">Uwagi <input id="aNote"></label>
@@ -545,6 +553,25 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       <button class="btn" type="button" id="aSaveMail" title="Zapisuje awizację i kopiuje mail z prośbą o potwierdzenie terminu">Zapisz i kopiuj prośbę do dostawcy</button>
       <button class="btn primary" type="submit" id="aSave">Zapisz <kbd>Enter</kbd></button>
     </div>
+  </form>
+</dialog>
+
+<!-- Dokumenty wydania -->
+<dialog id="dlgDoc">
+  <form method="dialog" id="docForm" novalidate>
+    <div class="dh"><h2>Dokumenty wydania</h2><button class="btn xs" type="button" data-close>✕</button></div>
+    <p class="sub" id="docInfo"></p>
+    <label class="field">Nr dok. wydania <input id="docNr"></label>
+    <label class="chk"><input type="checkbox" id="docBack"> Dokumenty wróciły fizycznie</label>
+    <div class="row"><span class="field" style="display:block">Korekta</span>
+      <div class="seg" id="docKor"><button type="button" data-k="0" aria-pressed="true">Bez korekty</button><button type="button" data-k="1" aria-pressed="false">Była korekta</button></div></div>
+    <div id="docKorF" class="panel" style="background:var(--warn-bg);border-color:var(--warn)">
+      <span class="sub">Właściwa ilość po korekcie (zastępuje ilość wydaną w prognozie i eksporcie):</span>
+      <div class="qgrid" id="docQty"></div>
+      <label class="chk"><input type="checkbox" id="docFiled"> Korekta dołączona do dokumentacji</label>
+    </div>
+    <label class="field">Uwagi do dokumentów <input id="docNote"></label>
+    <div class="row"><span class="spacer"></span><button class="btn" type="button" data-close>Anuluj</button><button class="btn primary" type="submit">Zapisz</button></div>
   </form>
 </dialog>
 
@@ -758,7 +785,7 @@ function ensureRange(from, to) {
 const itemsIn = (src, d) => Object.values((src[d] && src[d].items) || {}).sort((a, b) => (a.ord || 999) - (b.ord || 999) || String(a.slot).localeCompare(String(b.slot)) || (a.at || 0) - (b.at || 0));
 const itemsOf = d => itemsIn(DAYS, d);
 const active = it => it.st !== "cancel" && it.st !== "noshow";
-const qOf = it => (it.st === "done" && it.iq) ? it.iq : (it.q || {});
+const qOf = it => it.st === "done" ? (it.kor && it.korQ ? it.korQ : it.iq || it.q || {}) : (it.q || {});
 const qSum = (q, k) => +((q || {})[k]) || 0;
 const trucksQ = q => CATS.reduce((s, c) => s + (c.t > 0 ? qSum(q, c.k) / c.t : 0), 0);
 const issued = (d, k) => itemsOf(d).filter(active).reduce((s, it) => s + qSum(qOf(it), k), 0);
@@ -782,6 +809,10 @@ function mainGroup(q, name) {
 }
 // sekcja w załadunkach: PUL (palety poolingowe CHEP, LPR, IPP, NDHP) albo EUR + pozostałe (wózki, transportery, naprawa, sprzedaż)
 const PUL_G = new Set(["g-chep", "g-lpr", "g-ipp", "g-ndhp"]);
+// EUR REM (palety po remoncie) tylko dla: LUK-PAL, EUROPAX / P.H.U. EPAL Krzysztof Litwin, Jachna, Polskie Opakowania
+const REM_CODES = new Set(["654233", "642153", "615826", "655181"]);
+const isRem = (code, name) => REM_CODES.has(String(code || "").trim()) || /luk-?pal|europax|epal|litwin|jachna|polskie opakowania/i.test(name || "");
+const catAllowed = (c, code, name, q) => c.k !== "EUR_REM" || isRem(code, name) || qSum(q, c.k) > 0;
 // odbiorcy z arkusza „Sprzedaż dane” (kupują palety / banany / narożniki)
 const SALE_CODES = new Set(["657504", "215269", "215300", "636199", "644842", "656814", "633436", "642153", "615826", "657560", "655181", "615803"]);
 function kindOf(it) {
@@ -981,8 +1012,9 @@ function renderDay() {
   $("#dList").innerHTML = secs.map(k => {
     const sAll = all.filter(it => secOf(it) === k), sAct = sAll.filter(active), sList = list.filter(it => secOf(it) === k);
     const sDone = sAct.filter(i => i.st === "done").length;
-    return `<div class="sec" id="sec-${k}"><div class="sec-h g-${SECS[k][2]}"><h3>${SECS[k][0]}</h3><span class="sub">${SECS[k][1]}</span><span class="spacer"></span><span class="tag">${sAct.length} aw. · ${fmt1(sAct.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag">wydane ${sDone}/${sAct.length}</span></div>
-      ${sList.length ? sList.map(awRow).join("") : `<p class="sub" style="padding:4px 8px">${sAll.length ? "Brak pozycji w tym filtrze." : "Brak awizacji."}</p>`}</div>`;
+    const sOpen = sList.filter(i => i.st !== "done"), sDoneL = sList.filter(i => i.st === "done");
+    return `<div class="sec sec-${k}" id="sec-${k}"><div class="sec-h g-${SECS[k][2]}"><h3>${SECS[k][0]}</h3><span class="sub">${SECS[k][1]}</span><span class="spacer"></span><span class="tag">${sAct.length} aw. · ${fmt1(sAct.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag">wydane ${sDone}/${sAct.length}</span></div>
+      ${sOpen.map(awRow).join("")}${sDoneL.length ? `<div class="done-h">Wydane · ${sDoneL.length}</div>` + sDoneL.map(awRow).join("") : ""}${sList.length ? "" : `<p class="sub" style="padding:4px 8px">${sAll.length ? "Brak pozycji w tym filtrze." : "Brak awizacji."}</p>`}</div>`;
   }).join("");
   // panel boczny: podsumowanie dnia wg sekcji
   const tr = act.reduce((s, i) => s + trucksQ(i.q), 0);
@@ -994,15 +1026,38 @@ function renderDay() {
       const cats = CATS.map(c => { const pl = its.reduce((s, it) => s + qSum(it.q, c.k), 0), wy = d.reduce((s, it) => s + qSum(qOf(it), c.k), 0); return pl || wy ? `<span class="q ${gcls(c.k)}" title="wydane / umówione">${esc(c.n)} ${fmt(wy)}/${fmt(pl)}</span>` : ""; }).join(" ");
       return `<div class="sg g-${SECS[k][2]}" data-jump="${k}"><b>${SECS[k][0]}</b><span>${its.length} aw. · wydane ${d.length}/${its.length} · ${fmt1(its.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><div style="display:flex;flex-wrap:wrap;gap:3px">${cats || '<span>bez ilości</span>'}</div></div>`;
     }).join("")}
-    ${all.length - act.length ? `<span class="tag bad">anulowane / nie przyjechał: ${all.length - act.length}</span>` : ""}`;
+    ${all.length - act.length ? `<span class="tag bad">anulowane / nie przyjechał: ${all.length - act.length}</span>` : ""}
+    ${docSide(act)}`;
 }
+function docSide(act) {
+  const d = act.filter(i => i.st === "done"); if (!d.length && !docsMissing().length) return "";
+  const back = d.filter(docBackOf).length, kor = d.filter(i => i.kor), korNo = kor.filter(i => !i.korFiled).length;
+  const miss = docsMissing();
+  return `<div class="sg g-woz"><b>Dokumenty wydania</b>
+    <span>wróciły ${back}/${d.length}${kor.length ? ` · korekty ${kor.length}${korNo ? `, <span class="pos">${korNo} bez dokumentacji</span>` : ""}` : ""}</span>
+    ${miss.length ? `<span>brak zwrotu (14 dni): ${miss.map(([dd, n]) => `<a href="#" data-docday="${dd}">${shortDate(dd)} (${n})</a>`).join(", ")}</span>` : "<span>wszystkie z 14 dni wróciły</span>"}</div>`;
+}
+function docsMissing() {
+  const out = []; for (let i = 0; i <= 14; i++) { const d = addDays(today(), -i), n = itemsOf(d).filter(it => it.st === "done" && (!docBackOf(it) || (it.kor && !it.korFiled))).length; if (n) out.push([d, n]); } return out;
+}
+$("#dSide").addEventListener("click", e => { const a = e.target.closest("[data-docday]"); if (a) { e.preventDefault(); dayView = a.dataset.docday; dayFilter = "done"; $$("#dFilter button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.f === "done"))); renderDay(); } });
 $("#dSide").addEventListener("click", e => { const g = e.target.closest("[data-jump]"); if (g) { const el = $("#sec-" + g.dataset.jump); if (el) scrollTo({ top: el.getBoundingClientRect().top + scrollY - 80, behavior: "smooth" }); } });
+// stan dokumentów wydania: wróciły / brak, korekta i czy jest w dokumentacji
+// wydania zaimportowane jako już wydane traktujemy jak z dokumentami (chyba że ktoś zmieni to ręcznie)
+const docBackOf = it => it.docBack != null ? !!it.docBack : !!(it.imp && !it.tDone); // tDone = wydane w aplikacji
+function docState(it) {
+  if (!docBackOf(it)) return ["bad", "brak dok."];
+  if (it.kor) return it.korFiled ? ["ok", "dok ✓ · kor. ✓"] : ["warn", "dok ✓ · kor. brak w dok."];
+  return ["ok", "dok ✓"];
+}
+const docBtn = it => { const [c, t] = docState(it); return `<button class="docb ${c}" type="button" data-act="doc" title="Dokumenty wydania — kliknij, aby uzupełnić">${t}</button>`; };
 function awRow(it) {
   const s = salOf(it.code), q = qOf(it);
   const meta = [it.code, it.driver, it.dostChep && "dost. " + it.dostChep, it.dok && "dok. " + it.dok, it.note].filter(Boolean).join(" · ");
   let acts = "";
   if (it.st === "wait") acts = `<span class="tag warn" title="wysłano prośbę, dostawca jeszcze nie potwierdził">czeka</span><button class="btn xs" data-act="conf" title="Dostawca potwierdził termin">Potwierdź</button><button class="btn xs ok" data-act="iss">Wydaj</button>`;
   else if (it.st === "plan" || it.st === "arr" || it.st === "load") acts = `<button class="btn xs ok" data-act="iss">Wydaj</button>`;
+  else if (it.st === "done") acts = docBtn(it) + `<button class="btn xs" data-act="undo" title="Cofnij wydanie">↶</button>`;
   else acts = `<span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span><button class="btn xs" data-act="undo" title="Cofnij status">↶</button>`;
   const times = it.tDone ? "wyd. " + it.tDone : "";
   return `<div class="aw st-${it.st} ${itCls(q, it.name)}" data-id="${esc(it.id)}">
@@ -1021,6 +1076,7 @@ $("#dList").addEventListener("click", e => {
   if (a === "edit") return openAw(it);
   if (a === "mail") return sendMail(it);
   if (a === "iss") return openIss(it);
+  if (a === "doc") return openDoc(it);
   if (a === "up" || a === "down") return move(it, a === "up" ? -1 : 1);
   const n = clone(it);
   if (a === "conf") { n.st = "plan"; n.tConf = nowHM(); }
@@ -1217,7 +1273,9 @@ function qInputs(q) {
   q = q || keep;
   $("#aGrp").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<button type="button" class="g-${g} ${g === aGrp ? "g-on" : ""}" data-grp="${g}" aria-pressed="${g === aGrp}">${GROUPS[g]}</button>`).join("");
   $("#aKindF").hidden = aGrp !== "own";
-  $("#aQty").innerHTML = CATS.filter(c => c.g === aGrp).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)}${c.t ? ` <small>${fmt(c.t)}/auto</small>` : ""}<input type="number" min="0" data-q="${c.k}" value="${q && q[c.k] ? q[c.k] : ""}"></label>`).join("");
+  $("#aDostF").hidden = !PUL_G.has("g-" + aGrp);
+  const code = $("#aCode").value.trim(), name = $("#aName").value.trim();
+  $("#aQty").innerHTML = CATS.filter(c => c.g === aGrp && catAllowed(c, code, name, q)).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)}${c.t ? ` <small>${fmt(c.t)}/auto</small>` : ""}<input type="number" min="0" data-q="${c.k}" value="${q && q[c.k] ? q[c.k] : ""}"></label>`).join("");
 }
 $("#aGrp").addEventListener("click", e => { const b = e.target.closest("[data-grp]"); if (!b || b.dataset.grp === aGrp) return; aGrp = b.dataset.grp; aGrpManual = true; qInputs({}); updSal(); const f = $("#aQty input"); if (f) f.focus(); });
 function autoGrp() { if (aGrpManual) return; const g = supGroup($("#aCode").value.trim(), $("#aName").value.trim()); if (g !== aGrp) { aGrp = g; qInputs({}); } }
@@ -1231,7 +1289,7 @@ function openAw(it, pre = {}) {
   $("#aSt").innerHTML = ["wait", "plan", "done", "cancel", "noshow"].map(k => `<option value="${k}">${ST[k]}</option>`).join(""); $("#aSt").value = v.st === "arr" || v.st === "load" ? "plan" : v.st || "wait";
   $("#aOrd").value = v.ord || "";
   $("#aCode").value = v.code || ""; $("#aName").value = v.name || "";
-  $("#aDrv").value = v.driver || ""; $("#aCon").value = v.contact || ""; $("#aDost").value = v.dostChep || ""; $("#aDok").value = v.dok || ""; $("#aNote").value = v.note || "";
+  $("#aDrv").value = v.driver || ""; $("#aDost").value = v.dostChep || ""; $("#aDok").value = v.dok || ""; $("#aNote").value = v.note || "";
   aGrpManual = !!(it || (v.q && Object.keys(v.q).length));
   const g0 = mainGroup(v.q); aGrp = g0 ? g0.slice(2) : supGroup(v.code, v.name);
   $("#aKind").value = kindOf(v);
@@ -1282,13 +1340,13 @@ function showSugg(src) {
 function pickSugg(i) {
   const r = suggList[i]; if (!r) return;
   $("#aCode").value = r.code; $("#aName").value = r.name; $("#aSugg").hidden = true;
-  aGrpManual = false; autoGrp();
+  aGrpManual = false; autoGrp(); qInputs();
   const eur = $("[data-q=EUR]"); if (eur && !eur.value && r.tot > 0) eur.value = Math.min(r.tot, (CAT.EUR && CAT.EUR.t) || 495);
   updSal(); const f = eur || $("#aQty input"); if (f) { f.focus(); f.select(); }
 }
 ["#aCode", "#aName"].forEach(s => {
   $(s).addEventListener("input", e => {
-    if (s === "#aCode") { const n = NAMES.get(e.target.value.trim()); if (n) { $("#aName").value = n; autoGrp(); } updSal(); }
+    if (s === "#aCode") { const n = NAMES.get(e.target.value.trim()); if (n) { $("#aName").value = n; autoGrp(); qInputs(); } updSal(); }
     showSugg(e.target);
   });
   $(s).addEventListener("keydown", e => {
@@ -1310,8 +1368,8 @@ function readAw() {
   const base = editing || { id: uid(), createdBy: email, createdAt: Date.now() };
   const it = Object.assign(clone(base), {
     date, slot: $("#aSlot").value, code, name: name || NAMES.get(code) || "", q,
-    kind: aGrp === "own" ? $("#aKind").value : "wyd", st: $("#aSt").value, driver: $("#aDrv").value.trim(), contact: $("#aCon").value.trim(),
-    dostChep: $("#aDost").value.trim(), dok: $("#aDok").value.trim(), note: $("#aNote").value.trim(),
+    kind: aGrp === "own" ? $("#aKind").value : "wyd", st: $("#aSt").value, driver: $("#aDrv").value.trim(),
+    dostChep: PUL_G.has("g-" + aGrp) ? $("#aDost").value.trim() : "", dok: $("#aDok").value.trim(), note: $("#aNote").value.trim(),
     by: email, at: Date.now(),
   });
   const ord = +$("#aOrd").value;
@@ -1364,13 +1422,35 @@ async function copyMail(it) {
   else toast("Prośba do dostawcy skopiowana — wklej ją w Outlooku (Ctrl+V).");
 }
 
+/* ---------- DIALOG DOKUMENTÓW ---------- */
+let docIt = null, docKor = false;
+function openDoc(it) {
+  docIt = clone(it); docKor = !!it.kor;
+  const iq = it.iq || it.q || {};
+  $("#docInfo").textContent = `${it.name || it.code} · ${plDate(it.date)} ${it.slot} · wydano: ${qText(iq) || "bez ilości"}`;
+  $("#docNr").value = it.dok || ""; $("#docBack").checked = docBackOf(it); $("#docFiled").checked = !!it.korFiled; $("#docNote").value = it.docNote || "";
+  const keys = CATS.filter(c => qSum(iq, c.k) || qSum(it.korQ, c.k));
+  $("#docQty").innerHTML = (keys.length ? keys : CATS.filter(c => c.g === (mainGroup(it.q, it.name) || "g-own").slice(2))).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)} <small>wydano ${fmt(qSum(iq, c.k))}</small><input type="number" min="0" data-kq="${c.k}" value="${it.korQ && it.korQ[c.k] != null ? it.korQ[c.k] : qSum(iq, c.k) || ""}"></label>`).join("");
+  docKorUI(); $("#dlgDoc").showModal(); $("#docNr").focus();
+}
+function docKorUI() { $$("#docKor button").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.k === "1") === docKor))); $("#docKorF").hidden = !docKor; }
+$("#docKor").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) { docKor = b.dataset.k === "1"; docKorUI(); } });
+$("#docForm").addEventListener("submit", async e => {
+  e.preventDefault(); if (!docIt) return;
+  const korQ = {}; $$("#docQty [data-kq]").forEach(i => { if (i.value !== "") korQ[i.dataset.kq] = +i.value; });
+  const n = Object.assign(docIt, { dok: $("#docNr").value.trim(), docBack: $("#docBack").checked, docAt: $("#docBack").checked ? (docIt.docAt || Date.now()) : null,
+    kor: docKor, korQ: docKor ? korQ : null, korFiled: docKor && $("#docFiled").checked, docNote: $("#docNote").value.trim(), by: email, at: Date.now() });
+  editing = null;
+  if (await saveItem(n)) { $("#dlgDoc").close(); toast("Zapisano dokumenty · " + (n.name || n.code)); }
+});
+
 /* ---------- DIALOG WYDANIA ---------- */
 let issuing = null;
 function openIss(it) {
   issuing = clone(it);
   $("#iInfo").textContent = `${it.name || it.code} · ${plDate(it.date)} ${it.slot} · umówione: ${qText(it.q) || "bez ilości"}`;
   const g = (mainGroup(it.q, it.name) || "g-" + supGroup(it.code, it.name)).slice(2);
-  const keys = new Set(CATS.filter(c => c.g === g).map(c => c.k)); Object.keys(it.q || {}).forEach(k => keys.add(k));
+  const keys = new Set(CATS.filter(c => c.g === g && catAllowed(c, it.code, it.name, it.q)).map(c => c.k)); Object.keys(it.q || {}).forEach(k => keys.add(k));
   $("#iQty").innerHTML = CATS.filter(c => keys.has(c.k)).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)}<input type="number" min="0" data-iq="${c.k}" value="${(it.iq || it.q || {})[c.k] || ""}"></label>`).join("");
   $("#iDok").value = it.dok || ""; $("#iDrv").value = it.driver || "";
   $("#dlgIss").showModal();
@@ -1412,12 +1492,12 @@ const xDate = s => s ? plDate(s) : "";
 function itemRows(list) {
   const head = ["Data", "Dzień", "Okno", "Nr załadunku", "Kod", "Firma", "Status", "Rodzaj",
     ...CATS.map(c => c.n + " umówione"), ...CATS.map(c => c.n + " wydane"), "Auta",
-    "Kierowca / nr rej.", "Kontakt", "Nr dostawy CHEP/LPR", "Dok. wydania", "Uwagi", "Przyjazd", "Załadunek", "Wydanie", "Saldo EUR"];
+    "Kierowca / nr rej.", "Nr dostawy CHEP/LPR", "Dok. wydania", "Dok. wrócił", "Korekta", "Ilość po korekcie", "Korekta w dokumentacji", "Uwagi do dok.", "Uwagi", "Wydanie", "Saldo EUR"];
   const rows = list.map(it => {
     const iq = it.st === "done" ? qOf(it) : {}, s = salOf(it.code);
     return [xDate(it.date), DOW[dowOf(it.date)], it.slot || "", it.ord || "", it.code || "", it.name || "", ST[it.st] || it.st, SECS[secOf(it)][0],
       ...CATS.map(c => qSum(it.q, c.k) || ""), ...CATS.map(c => qSum(iq, c.k) || ""), r1(trucksQ(it.q)),
-      it.driver || "", it.contact || "", it.dostChep || "", it.dok || "", it.note || "", it.tArr || "", it.tLoad || "", it.tDone || "", s ? s.tot : ""];
+      it.driver || "", it.dostChep || "", it.dok || "", it.st === "done" ? (docBackOf(it) ? "tak" : "nie") : "", it.kor ? "tak" : "", it.kor && it.korQ ? qText(it.korQ) : "", it.kor ? (it.korFiled ? "tak" : "nie") : "", it.docNote || "", it.note || "", it.tDone || "", s ? s.tot : ""];
   });
   // usuń puste kolumny kategorii, żeby arkusz był czytelny
   const keep = head.map((h, i) => i < 8 || i >= 8 + CATS.length * 2 || rows.some(r => r[i] !== ""));
