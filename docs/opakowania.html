@@ -2089,22 +2089,23 @@ $("#sSave").addEventListener("click", async () => {
 
 // zbiorniki placu: wypełnienie = stan / maksimum (auta; przy kategoriach bez przelicznika — ich jednostki); ponad limit mruga na czerwono
 const limOf = c => c.max > 0 ? (c.t > 0 ? c.max * c.t : c.max) : 0;
-// mapa placu: schemat obszarów z planu magazynu (hala tylko jako mały punkt odniesienia), układ 1000×620
+// mapa placu: ten sam układ co na planie magazynu (hala zmniejszona, obszary placu powiększone), układ 1000×640
+// dir: "up" — wypełnia się od dołu, "right" — od lewej
 const YARD = [
-  { id: "17", n: "EUR", cats: ["EUR"], x: 200, y: 20, w: 330, h: 185 },
-  { id: "18", n: "EUR remont", cats: ["EUR_REM"], x: 200, y: 215, w: 330, h: 85 },
-  { id: "15", n: "CHEP", cats: ["CH_E", "CH_D", "CH_P"], x: 545, y: 20, w: 150, h: 280 },
-  { id: "29a", n: "Carlsberg", cats: ["TR_CARL"], x: 710, y: 20, w: 87, h: 280, col: "#6aa84f" },
-  { id: "29b", n: "Kompania Piwowarska", sn: "Kompania", cats: ["TR_KP"], x: 802, y: 20, w: 87, h: 280, col: "#7b1fa2" },
-  { id: "29c", n: "Grupa Żywiec", sn: "Żywiec", cats: ["TR_ZYW"], x: 894, y: 20, w: 86, h: 280, col: "#d32f2f" },
-  { id: "28", n: "NDHP EUR", cats: ["GR_E"], x: 20, y: 320, w: 110, h: 280 },
-  { id: "27", n: "NDHP DHP + plastik", sn: "NDHP DHP", cats: ["GR_D", "GR_P"], x: 140, y: 320, w: 110, h: 280 },
-  { id: "21", n: "Wózki i półki", cats: ["WOZ", "POL"], x: 270, y: 320, w: 710, h: 42 },
-  { id: "22", n: "Jednorazówki i bananówki", cats: ["JED", "BAN"], x: 270, y: 367.6, w: 710, h: 42 },
-  { id: "23", n: "IPP DHP", cats: ["IPP_D", "IPP_P"], x: 270, y: 415.2, w: 710, h: 42 },
-  { id: "24", n: "IPP EUR", cats: ["IPP_E"], x: 270, y: 462.8, w: 710, h: 42 },
-  { id: "25", n: "LPR DHP + plastik", cats: ["LPR_D", "LPR_P"], x: 270, y: 510.4, w: 710, h: 42 },
-  { id: "26", n: "LPR EUR", cats: ["LPR_E"], x: 270, y: 558, w: 710, h: 42 },
+  { id: "15", n: "CHEP", cats: ["CH_E", "CH_D", "CH_P"], x: 820, y: 12, w: 160, h: 86, dir: "up" },
+  { id: "17", n: "EUR", cats: ["EUR"], x: 430, y: 110, w: 550, h: 192, dir: "up" },
+  { id: "18", n: "EUR remont", cats: ["EUR_REM"], x: 430, y: 308, w: 550, h: 102, dir: "up" },
+  { id: "29a", n: "Carlsberg", cats: ["TR_CARL"], x: 40, y: 470, w: 98, h: 158, dir: "up", col: "#6aa84f" },
+  { id: "29b", n: "Kompania Piwowarska", sn: "Kompania", cats: ["TR_KP"], x: 142, y: 470, w: 98, h: 158, dir: "up", col: "#7b1fa2" },
+  { id: "29c", n: "Grupa Żywiec", sn: "Żywiec", cats: ["TR_ZYW"], x: 244, y: 470, w: 98, h: 158, dir: "up", col: "#d32f2f" },
+  { id: "28", n: "NDHP EUR", sn: "NDHP EUR", cats: ["GR_E"], x: 350, y: 470, w: 56, h: 158, dir: "up" },
+  { id: "27", n: "NDHP DHP + plastik", sn: "NDHP DHP", cats: ["GR_D", "GR_P"], x: 410, y: 470, w: 56, h: 158, dir: "up" },
+  { id: "21", n: "Wózki i półki", cats: ["WOZ", "POL"], x: 474, y: 426, w: 420, h: 30, dir: "right" },
+  { id: "22", n: "Jednorazówki i bananówki", cats: ["JED", "BAN"], x: 486, y: 460, w: 420, h: 30, dir: "right" },
+  { id: "23", n: "IPP DHP", cats: ["IPP_D", "IPP_P"], x: 486, y: 494, w: 420, h: 30, dir: "right" },
+  { id: "24", n: "IPP EUR", cats: ["IPP_E"], x: 486, y: 528, w: 420, h: 30, dir: "right" },
+  { id: "25", n: "LPR DHP + plastik", cats: ["LPR_D", "LPR_P"], x: 486, y: 562, w: 420, h: 31, dir: "right" },
+  { id: "26", n: "LPR EUR", cats: ["LPR_E"], x: 486, y: 597, w: 420, h: 31, dir: "right" },
 ];
 const GCOL = { own: "var(--g-own)", chep: "var(--g-chep)", lpr: "var(--g-lpr)", ndhp: "var(--g-ndhp)", ipp: "var(--g-ipp)", woz: "var(--g-woz)", inne: "var(--g-inne)", tr: "var(--g-tr)" };
 const yardRatio = {};
@@ -2123,24 +2124,24 @@ function renderYard() {
     const cats = a.cats.map(k => CAT[k]).filter(Boolean), g = cats[0] ? cats[0].g : "inne";
     const lim = cats.reduce((s2, c) => s2 + limOf(c), 0), v = cats.reduce((s2, c) => s2 + (val(c.k) || 0), 0);
     const r = lim ? v / lim : 0, st = !lim ? "nolim" : r > 1 ? "over" : r >= .85 ? "near" : "ok";
-    const horiz = a.w > a.h * 1.6, prev = yardRatio[a.id] ?? 0; yardRatio[a.id] = Math.min(r, 1);
+    const horiz = a.dir ? a.dir === "right" : a.w > a.h * 1.6, prev = yardRatio[a.id] ?? 0; yardRatio[a.id] = Math.min(r, 1);
     const u = cats.length && cats.every(c => c.t > 0) ? x => fmt1(x / cats[0].t) + " aut" : x => fmt(x);
     const detail = cats.map(c => `${c.n}: ${val(c.k) == null ? "—" : fmt(val(c.k))} / ${limOf(c) ? fmt(limOf(c)) : "bez maks."}`).join("\n");
     const tx = horiz ? a.x + 12 : a.x + a.w / 2, ty = horiz ? a.y + a.h / 2 + 6 : a.y + 26, anchor = horiz ? "start" : "middle";
-    const label = horiz ? `${a.id} · ${a.n}` : a.id;
+    const label = horiz ? `${a.id} · ${a.n}` : a.w > 200 ? `${a.id} · ${a.n}` : a.id;
     return `<g class="yarea ya-${st}" data-goto="stany"><title>${esc(a.id + " · " + a.n)}\n${esc(detail)}${lim ? `\nzapełnienie ${Math.round(r * 100)}%` : ""}</title>
       <rect class="yb" x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" rx="3" style="stroke:${a.col || GCOL[g]}"/>
       <rect class="yf" x="${a.x + 2}" y="${a.y + 2}" width="${a.w - 4}" height="${a.h - 4}" rx="2" fill="url(#pl-${st === "over" ? "bad" : a.col ? a.id : g})" data-r="${Math.min(r, 1)}"
         style="transform-origin:${horiz ? "left center" : "center bottom"};transform:${horiz ? "scaleX" : "scaleY"}(${prev})"/>
       <text x="${tx}" y="${ty}" text-anchor="${anchor}" class="yl">${esc(label)}</text>
-      ${!horiz ? `<text x="${tx}" y="${a.y + 46}" text-anchor="middle" class="yl yn">${esc(a.sn || a.n)}</text>` : ""}
+      ${!horiz && a.w <= 200 && a.w >= 80 && a.h > 100 ? `<text x="${tx}" y="${a.y + 46}" text-anchor="middle" class="yl yn">${esc(a.sn || a.n)}</text>` : ""}
       <text x="${horiz ? a.x + a.w - 12 : tx}" y="${horiz ? ty : a.y + a.h - 14}" text-anchor="${horiz ? "end" : "middle"}" class="yl ys">${lim ? Math.round(r * 100) + "%" : "bez maks."}</text>
-      ${st === "over" ? `<g class="ybadge"> <rect x="${horiz ? a.x + a.w - 148 : a.x + a.w / 2 - 40}" y="${horiz ? a.y + a.h / 2 - 11 : a.y + 58}" width="${horiz ? 72 : 80}" height="22" rx="5"/> <text x="${horiz ? a.x + a.w - 112 : a.x + a.w / 2}" y="${horiz ? a.y + a.h / 2 + 5 : a.y + 74}" text-anchor="middle">+${u(v - lim)}</text></g>` : ""}</g>`;
+      ${st === "over" ? `<g class="ybadge"> <rect x="${horiz ? a.x + a.w - 148 : a.x + a.w / 2 - 40}" y="${horiz ? a.y + a.h / 2 - 11 : a.y + (a.w > 200 ? 36 : 58)}" width="${horiz ? 72 : 80}" height="22" rx="5"/> <text x="${horiz ? a.x + a.w - 112 : a.x + a.w / 2}" y="${horiz ? a.y + a.h / 2 + 5 : a.y + (a.w > 200 ? 52 : 74)}" text-anchor="middle">+${u(v - lim)}</text></g>` : ""}</g>`;
   };
   const names = YARD.map(a => { const cats = a.cats.map(k => CAT[k]).filter(Boolean), lim = cats.reduce((s2, c) => s2 + limOf(c), 0), v = cats.reduce((s2, c) => s2 + (val(c.k) || 0), 0), r = lim ? v / lim : 0;
     return `<div class="yleg ${r > 1 ? "over" : r >= .85 ? "near" : ""}" style="--gc:${a.col || GCOL[cats[0] ? cats[0].g : "inne"]}"><b>${a.id}</b><span>${esc(a.n)}</span><i><em style="width:${Math.min(100, r * 100)}%"></em></i><small>${lim ? Math.round(r * 100) + "%" : "bez maks."}</small></div>`; }).join("");
-  $("#yard").innerHTML = `<svg viewBox="0 0 1000 620" class="ysvg" role="img" aria-label="Mapa placu"><defs>${defs}</defs>
-    <rect x="20" y="20" width="165" height="280" class="yhall" rx="6"/><text x="102" y="166" text-anchor="middle" class="yhl">HALA</text>
+  $("#yard").innerHTML = `<svg viewBox="0 0 1000 640" class="ysvg" role="img" aria-label="Mapa placu"><defs>${defs}</defs>
+    <rect x="20" y="110" width="390" height="300" class="yhall" rx="6"/><rect x="40" y="410" width="350" height="44" class="yhall" rx="4"/><text x="215" y="268" text-anchor="middle" class="yhl">HALA</text>
     ${YARD.map(area).join("")}</svg><div class="ylegs">${names}</div>`;
   requestAnimationFrame(() => $$("#yard .yf").forEach(el => { const h = el.style.transformOrigin.startsWith("left"); el.style.transform = `${h ? "scaleX" : "scaleY"}(${el.dataset.r})`; }));
 }
