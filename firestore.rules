@@ -65,6 +65,22 @@ service cloud.firestore {
     match /damages/{id} {
       allow read, write: if isOwner();
     }
+    // Awizacja opakowań (docs/opakowania.html): wszyscy zalogowani poza kontami tylko do budżetu.
+    // pk_dni/{RRRR-MM-DD} – awizacje dnia i stan placu; pk_salda/{data} – plik z saldami; pk_meta – indeks sald i lista dostawców.
+    // Ustawienia (kategorie, okna, mail) zmienia właściciel albo moderator.
+    match /pk_dni/{day} {
+      allow read, write: if isStaff();
+    }
+    match /pk_salda/{day} {
+      allow read, write: if isStaff();
+    }
+    match /pk_meta/{doc} {
+      allow read, write: if isStaff();
+    }
+    match /pk_config/{doc} {
+      allow read: if isStaff();
+      allow write: if isOwner() || isMod();
+    }
     // Budżet Kokosza: tylko konta z isBudgetUser(), każde wyłącznie swój dokument (uid).
     match /budgets/{uid}/{document=**} {
       allow read, write: if isBudgetUser() && request.auth.uid == uid;

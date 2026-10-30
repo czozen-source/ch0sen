@@ -82,3 +82,22 @@ Osobisty budżet: `https://czozen-source.github.io/ch0sen/budzet.html` (widżet:
 - Konto dla Anny: Authentication → Users → **Add user** (annakurnik90@gmail.com + hasło tymczasowe); hasło zmieni sama przez „Nie pamiętam hasła”.
 - Jednorazowo: wklej aktualne `firestore.rules` w konsoli Firebase → Firestore → Reguły → **Opublikuj** (dochodzi blok `budgets`).
 - Źródło jest w `budzet/kokosza.html`; `docs/budzet.html` to ten sam kod z nagłówkiem strony i skryptami Firebase.
+
+## Awizacja opakowań (`docs/opakowania.html`)
+Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch0sen/opakowania.html`. Logowanie tym samym kontem co raport zmiany; dostęp mają wszyscy zalogowani (poza kontami tylko do budżetu). Ustawienia widzi właściciel i moderatorzy (`config/roles`).
+
+- **Pulpit** — stan placu w autach, awizacje na dziś, jutro i 7 dni, ile aut trzeba jeszcze zaplanować, saldo EUR do oddania, kolejka dnia, wykres umówionych aut na 14 dni, tabela kategorii (stan, zjazd/dzień, umówione, prognoza, do zaplanowania) i dostawcy z saldem ≥ progu bez umówionego odbioru (przycisk **Awizuj**).
+- **Dzień · załadunki** — lista awizacji dnia w kolejności załadunku (▲▼, „Numeruj wg okien”), statusy *Umówione → Przyjechał → Załadunek → Wydane* (oraz Anulowane / Nie przyjechał), wydanie z rzeczywistymi ilościami i nr dokumentu, mail z awizacją (kopiuje treść, a gdy w kontakcie jest e-mail, otwiera program pocztowy), druk planu dnia.
+- **Harmonogram** — tydzień: okna × dni z obłożeniem (domyślnie 2 auta na 2-godzinne okno); klik w puste pole = nowa awizacja w tym oknie. Dłuższe okna (np. sobota 00:00-13:00) są w wierszu „inne / dłuższe”.
+- **Salda** — codzienne wgranie pliku „Stan rozliczeń opakowań” (xlsx/xls/csv). Zmiana względem poprzedniego pliku, umówione odbiory, saldo po odbiorach, filtry i wyszukiwarka.
+- **Stany** — poranny stan pustych opakowań na placu (te same kategorie co w arkuszu WYDANIA; plastik w stosach × 120/140). Zjazd ze sklepów = stan dziś − stan poprzedni + wydane w międzyczasie.
+- **Prognoza** — średni zjazd z 28 dni, prognoza stanu na 3/5/7/14 dni, dzień przekroczenia maks. stanu, liczba aut do zaplanowania, zjazd wg dnia tygodnia.
+- Skróty: <kbd>N</kbd> nowa awizacja, ←/→ zmiana dnia, w formularzu <kbd>Enter</kbd> zapisuje. Podpowiedź firmy po kodzie SAP albo 2 literach nazwy (z listy DOSTAWCY i sald).
+
+### Jednorazowo
+1. Firebase → Firestore Database → **Reguły** → wklej aktualny `firestore.rules` (bloki `pk_*`) → **Opublikuj**.
+2. Zaloguj się jako właściciel → **Ustawienia → Import z pliku „OPAKOWANIA AWIZACJE”** → wybierz plik `.xlsx`. Przenosi awizacje z arkusza WYDANIA (przeszłe jako wydane), poranne stany placu, listę DOSTAWCY i SALDA. Arkusz z loginami i hasłami portali **nie jest importowany**. Ponowny import tego samego pliku nadpisuje te same pozycje.
+3. W **Ustawieniach** sprawdź przeliczniki „szt. na auto” i „maks. stan (auta)” dla kategorii — od nich zależy, ile aut prognoza każe planować.
+
+Tryb próbny bez bazy (dane tylko w tej przeglądarce): `opakowania.html#lokalnie`.
+Dane: `pk_dni/{RRRR-MM-DD}` (awizacje dnia + stan placu, jeden dokument na dzień), `pk_salda/{data}` (cały plik sald w jednym dokumencie), `pk_meta/salda`, `pk_meta/dostawcy`, `pk_config/main`.
