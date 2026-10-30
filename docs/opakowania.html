@@ -535,7 +535,7 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       <button class="btn danger" type="button" id="aDel" hidden>Usuń</button>
       <span class="spacer"></span>
       <button class="btn" type="button" data-close>Anuluj</button>
-      <button class="btn" type="button" id="aSaveMail">Zapisz i kopiuj mail</button>
+      <button class="btn" type="button" id="aSaveMail" title="Zapisuje awizację i kopiuje mail z prośbą o potwierdzenie terminu">Zapisz i kopiuj prośbę do dostawcy</button>
       <button class="btn primary" type="submit" id="aSave">Zapisz <kbd>Enter</kbd></button>
     </div>
   </form>
@@ -623,10 +623,13 @@ const DEF_CATS = [
 ].map(([k, n, g, t, s, max, aw]) => ({ k, n, g, t, s, max, aw: !!aw }));
 const DEF_G = Object.fromEntries(DEF_CATS.map(c => [c.k, c.g]));
 const DEF_SLOTS = Array.from({ length: 12 }, (_, i) => ({ t: pad(i * 2) + ":00-" + pad((i * 2 + 2) % 24) + ":00", cap: 2 }));
+// mail z prośbą o umówienie odbioru (dostawca potwierdza termin)
+const MAIL_SUBJ = "Prośba o potwierdzenie odbioru palet {data} {okno} – {kod} {nazwa}";
+const MAIL_TPL = "Dzień dobry,\n\nproszę o umówienie odbioru palet dla dostawcy/odbiorcy {kod} {nazwa} w dniu {data} ({dzien}) w godzinach {okno}.\nIlość do odbioru: {ilosc}.\nAktualne saldo palet EUR na Państwa koncie wynosi: {saldo} szt.\n\nProszę o potwierdzenie terminu w odpowiedzi na tę wiadomość. Jeśli ten termin nie pasuje, proszę o propozycję innego dnia.\nW razie podstawienia samochodu w innych godzinach załadunek może się wydłużyć.\n\nPozdrawiam";
+const OLD_MAIL = /^Witam,\nDla dostawcy\/odbiorcy \{kod\} \{nazwa\} zaawizowano/;
 const DEF_CFG = () => ({
   cats: clone(DEF_CATS), slots: clone(DEF_SLOTS), opak: "4997", salMin: 300,
-  mailSubj: "Awizacja odbioru palet {data} {okno} – {kod} {nazwa}",
-  mailTpl: "Witam,\nDla dostawcy/odbiorcy {kod} {nazwa} zaawizowano odbiór palet w dniu {data} ({dzien}) w godzinach {okno} w ilości {ilosc}.\nW RAZIE PODSTAWIENIA SAMOCHODU W INNYCH GODZINACH ZAŁADUNEK MOŻE SIĘ WYDŁUŻYĆ.\nAktualne saldo wynosi: {saldo} szt. palet EUR.",
+  mailSubj: MAIL_SUBJ, mailTpl: MAIL_TPL,
 });
 const ST = { plan: "Umówione", arr: "Przyjechał", load: "Załadunek", done: "Wydane", cancel: "Anulowane", noshow: "Nie przyjechał" };
 const ST_SHORT = { plan: "", arr: "przyj.", load: "zał.", done: "✓", cancel: "✗", noshow: "✗" };
@@ -992,7 +995,7 @@ function awRow(it) {
     <div class="firm"><b data-act="edit" title="${esc(it.name)}">${esc(it.name || "(bez nazwy)")}</b><small title="${esc(meta)}">${esc(meta)}</small></div>
     <div class="qty">${qChips(q)}</div>
     <div class="sal">${s ? `<small>saldo</small><span class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</span>` : ""}</div>
-    <div class="acts">${acts}<button class="btn xs" data-act="mail" title="Kopiuj mail z awizacją">✉</button><button class="btn xs" data-act="edit" title="Edytuj">✎</button></div>
+    <div class="acts">${acts}<button class="btn xs" data-act="mail" title="Kopiuj prośbę do dostawcy o potwierdzenie terminu">✉</button><button class="btn xs" data-act="edit" title="Edytuj">✎</button></div>
   </div>`;
 }
 $("#dList").addEventListener("click", e => {
@@ -1336,7 +1339,7 @@ async function copyMail(it) {
   try { await navigator.clipboard.writeText(body); } catch { prompt("Skopiuj treść maila:", body); }
   const to = (it.contact || "").match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
   if (to) { location.href = "mailto:" + encodeURIComponent(to[0]) + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body); toast("Treść skopiowana · otwieram program pocztowy"); }
-  else toast("Treść maila skopiowana — wklej ją w Outlooku (Ctrl+V).");
+  else toast("Prośba do dostawcy skopiowana — wklej ją w Outlooku (Ctrl+V).");
 }
 
 /* ---------- DIALOG WYDANIA ---------- */
@@ -1785,6 +1788,8 @@ document.addEventListener("keydown", e => {
 function applyConfig(c) {
   const d = DEF_CFG();
   CFG = Object.assign(d, c || {});
+  // stary domyślny mail („zaawizowano odbiór”) zamieniamy na prośbę o potwierdzenie; własne treści zostają
+  if (OLD_MAIL.test(CFG.mailTpl || "")) { CFG.mailTpl = MAIL_TPL; if (/^Awizacja odbioru palet/.test(CFG.mailSubj || "")) CFG.mailSubj = MAIL_SUBJ; }
   if (!Array.isArray(CFG.cats) || !CFG.cats.length) CFG.cats = d.cats;
   else { const have = new Set(CFG.cats.map(x => x.k)); d.cats.forEach(x => { if (!have.has(x.k)) CFG.cats.push(x); }); }
   if (!Array.isArray(CFG.slots) || !CFG.slots.length) CFG.slots = d.slots;
