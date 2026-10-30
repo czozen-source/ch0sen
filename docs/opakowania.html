@@ -225,6 +225,12 @@ tr.cat td:first-child { border-left: 4px solid var(--gc); }
 .bars .lim { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--bad); pointer-events: none; }
 .bars .lim em { position: absolute; left: 0; top: -14px; font: 500 .62rem var(--f-mono); color: var(--bad); font-style: normal; background: var(--surface); padding: 0 3px; }
 .axis { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(14px, 1fr); gap: 2px; font: 500 .6rem var(--f-mono); color: var(--muted); text-align: center; line-height: 1.2; }
+.big .bars .b i { max-width: 52px; }
+.big .bars .b span { font-size: .78rem; font-weight: 600; color: var(--fg); }
+.big .bars .lim { z-index: 2; }
+.big .bars .lim em { font-size: .74rem; top: auto; bottom: 2px; left: auto; right: 0; border: 1px solid var(--bad); border-radius: 3px; }
+.big .axis { font-size: .74rem; }
+.big .cols, .cols.big { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
 .tip { position: fixed; z-index: 30; pointer-events: none; background: var(--fg); color: var(--bg); font-size: .74rem; padding: 5px 8px; border-radius: 3px; max-width: 260px; }
 
 /* dialogi */
@@ -387,13 +393,8 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
   <!-- PROGNOZA -->
   <section id="p-prog" role="tabpanel" hidden>
     <div class="panel" style="border-top:4px solid var(--wood-1)">
-      <header><h2>Co trzeba zrobić</h2><span class="sub" id="gActSub"></span></header>
-      <div id="gAct"></div>
-    </div>
-    <div class="panel">
       <div class="row">
-        <h3>Szczegóły prognozy</h3>
-        <span class="sub">zjazd: średnia z 28 dni · stan za N dni = stan + zjazd × dni − awizacje</span>
+        <h2>Co trzeba zrobić</h2><span class="sub" id="gActSub"></span>
         <span class="spacer"></span>
         <div class="seg" id="gH">
           <button type="button" data-h="3" aria-pressed="false">3 dni</button>
@@ -403,9 +404,9 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
         </div>
         <button class="btn xl" type="button" data-xls="prog">⤓ Excel</button>
       </div>
-      <div class="tbl-wrap" id="gTbl"></div>
+      <div id="gAct"></div>
     </div>
-    <div class="cols">
+    <div class="cols big">
       <div class="panel">
         <header><h3>Stan dzień po dniu</h3><select id="gCat" style="width:auto" class="spacer"></select></header>
         <div id="gChart"></div>
@@ -414,6 +415,10 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
         <header><h3>Zjazd wg dnia tygodnia</h3><span class="sub" id="gWdSub"></span></header>
         <div id="gWd"></div>
       </div>
+    </div>
+    <div class="panel">
+      <header><h3>Szczegóły prognozy · wszystkie grupy</h3><span class="sub">zjazd: średnia z 28 dni · stan za N dni = stan + zjazd × dni − awizacje</span></header>
+      <div class="tbl-wrap" id="gTbl"></div>
     </div>
   </section>
 
@@ -872,14 +877,14 @@ document.addEventListener("click", e => { const tr = e.target.closest("tr[data-c
 const legend = gs => `<div class="legend">${gs.map(g => `<span class="g-${g}"><i class="dot"></i>${GROUPS[g]}</span>`).join("")}</div>`;
 
 /* wykres słupkowy CSS (opcjonalnie słupki dzielone na grupy) z dymkiem */
-function barChart(pts, lim, h) {
+function barChart(pts, lim, h, limLab) {
   const max = Math.max(1, lim || 0, ...pts.map(p => p.v)) * 1.1;
   const bars = pts.map(p => {
     const hh = Math.max(0, p.v) / max * 100;
     const segs = p.segs ? p.segs.map(s => `<i class="g-${s.g}" style="height:${s.v / max * 100}%"></i>`).join("") : `<i style="height:${hh}%"></i>`;
     return `<div class="b ${p.cls || ""} ${p.g ? "g-" + p.g : ""}" style="--h:${hh}%" data-tip="${esc(p.tip)}" ${p.go ? `data-goday="${p.go}"` : ""}>${segs}${p.lab ? `<span>${esc(p.lab)}</span>` : ""}</div>`;
   }).join("");
-  const limL = lim ? `<div class="lim" style="bottom:${lim / max * 100}%"><em>maks. ${fmt(lim)}</em></div>` : "";
+  const limL = lim ? `<div class="lim" style="bottom:${lim / max * 100}%"><em>${limLab || "maks. " + fmt(lim)}</em></div>` : "";
   return `<div class="bars" style="--bh:${h || 110}px">${limL}${bars}</div><div class="axis">${pts.map(p => `<div>${p.x}</div>`).join("")}</div>`;
 }
 document.addEventListener("mouseover", e => { const b = e.target.closest("[data-tip]"); const t = $("#tip"); if (!b) { t.hidden = true; return; } t.innerHTML = b.dataset.tip; t.hidden = false; });
@@ -1454,11 +1459,11 @@ function renderProg() {
   const c = CAT[sel.value], f = forecast(c.k, Math.max(horizon, 7));
   $("#gChart").innerHTML = !f ? '<p class="sub">Brak stanu placu dla tej kategorii.</p>' :
     barChart(f.series.map(p => ({ v: p.v, g: c.g, lab: c.t ? fmt1(p.v / c.t) : fmt(p.v), x: DOW_S[dowOf(p.d)] + "<br>" + shortDate(p.d), cls: f.lim && p.v > f.lim ? "over" : "", go: p.d,
-      tip: `<b>${DOW[dowOf(p.d)]} ${plDate(p.d)}</b> rano<br>prognoza: ${fmt(p.v)} szt.${c.t ? " (" + fmt1(p.v / c.t) + " aut)" : ""}<br>wydania tego dnia: ${fmt(issued(p.d, c.k))} szt.` })), f.lim || null, 130)
+      tip: `<b>${DOW[dowOf(p.d)]} ${plDate(p.d)}</b> rano<br>prognoza: ${fmt(p.v)} szt.${c.t ? " (" + fmt1(p.v / c.t) + " aut)" : ""}<br>wydania tego dnia: ${fmt(issued(p.d, c.k))} szt.` })), f.lim || null, 260, c.t ? `maks. ${fmt1(c.max)} ${plural(c.max, "auto", "auta", "aut")}` : "")
     + `<p class="sub">Stan ${fmt(f.s0)} szt. z ${plDate(f.c)} · zjazd ${fmt(f.rate)} szt./dzień${c.t ? " (" + fmt1(f.rate / c.t) + " aut)" : ""} · etykiety w ${c.t ? "autach" : "sztukach"}.${f.needTrucks ? ` <b class="pos">Umów jeszcze ${f.needTrucks} ${plural(f.needTrucks, "auto", "auta", "aut")}${f.firstOver ? " — limit przekroczony od " + plDate(f.firstOver) : ""}.</b>` : ""}</p>`;
   const inf = inflow(c.k), wd = [1, 2, 3, 4, 5, 6, 0];
   $("#gWdSub").textContent = c.n + " · pon. obejmuje weekend";
-  $("#gWd").innerHTML = inf.rows.length ? barChart(wd.map(d => { const [s, n] = inf.wd[d]; const v = n ? s / n : 0; return { v, g: c.g, lab: n ? fmt(v) : "", x: DOW_S[d], tip: `${DOW[d]}: śr. ${fmt(v)} szt. (${n} pomiarów)` }; }), null, 90)
+  $("#gWd").innerHTML = inf.rows.length ? barChart(wd.map(d => { const [s, n] = inf.wd[d]; const v = n ? s / n : 0; return { v, g: c.g, lab: n ? fmt(v) : "", x: DOW_S[d], tip: `${DOW[d]}: śr. ${fmt(v)} szt. (${n} pomiarów)` }; }), null, 200)
     + `<div class="tbl-wrap" style="max-height:200px"><table><thead><tr><th>Okres</th><th class="n">Dni</th><th class="n">Wydane</th><th class="n">Zjazd</th></tr></thead><tbody>${inf.rows.slice(-14).reverse().map(r => `<tr><td>${shortDate(r.a)} → ${shortDate(r.b)}</td><td class="n">${r.n}</td><td class="n">${fmt(r.iss)}</td><td class="n">${fmt(r.inf)}</td></tr>`).join("")}</tbody></table></div>`
     : '<p class="sub">Za mało liczeń stanu (potrzeba co najmniej dwóch w odstępie do 4 dni).</p>';
 }
