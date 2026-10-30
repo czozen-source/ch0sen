@@ -159,21 +159,21 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 }
 /* mapa placu */
 .ymap { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 12px; align-items: start; }
-.ysvg { width: 100%; height: auto; max-height: 640px; background: radial-gradient(ellipse at 70% 40%, color-mix(in srgb, var(--g-own) 8%, var(--surface)), var(--surface-2)); border-radius: 8px; border: 1px solid var(--line); }
+.ysvg { width: 100%; height: auto; max-height: 720px; background: radial-gradient(ellipse at 70% 40%, color-mix(in srgb, var(--g-own) 8%, var(--surface)), var(--surface-2)); border-radius: 8px; border: 1px solid var(--line); }
 .yhall { fill: url(#hatch); stroke: var(--line); stroke-width: 1.5; }
 .yfree { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 5 4; }
-.yhl { font: 700 26px var(--f-stamp); fill: var(--muted); opacity: .55; letter-spacing: 3px; }
+.yhl { font: 400 22px var(--f-stamp); fill: var(--muted); opacity: .5; letter-spacing: 3px; }
 .yhs { font: 600 12px var(--f-mono); fill: var(--muted); }
 .yarea { cursor: pointer; }
 .yarea .yb { fill: var(--surface); stroke-width: 2.4; }
 .yarea .yf { transform-box: fill-box; transition: transform 1s cubic-bezier(.2,.8,.2,1); }
 .yarea:hover .yb { stroke-width: 4; filter: drop-shadow(0 3px 6px rgba(40, 25, 10, .25)); }
-.yl { font: 700 12.5px var(--f-cond); fill: var(--fg); paint-order: stroke; stroke: var(--surface); stroke-width: 3.5px; letter-spacing: .3px; }
-.ys { font: 700 13px var(--f-mono); }
+.yl { font: 700 19px var(--f-cond); fill: var(--fg); paint-order: stroke; stroke: var(--surface); stroke-width: 3.5px; letter-spacing: .3px; }
+.ys { font: 700 19px var(--f-mono); } .yn { font-size: 15px; font-weight: 600; }
 .ya-near .yb { stroke: var(--warn) !important; stroke-width: 3.5; }
 .ya-over .yb { stroke: var(--bad) !important; stroke-width: 4; }
 .ya-nolim .yb { stroke-dasharray: 4 3; }
-.ybadge rect { fill: var(--bad); } .ybadge text { font: 700 11px var(--f-mono); fill: #fff; }
+.ybadge rect { fill: var(--bad); } .ybadge text { font: 700 14px var(--f-mono); fill: #fff; }
 .ylegs { display: grid; gap: 4px; }
 .yleg { display: grid; grid-template-columns: 34px 1fr 56px 38px; gap: 6px; align-items: center; font-size: .76rem; padding: 3px 6px; border-left: 4px solid var(--gc); border-radius: 3px; background: var(--surface-2); }
 .yleg b { font: 700 .8rem var(--f-mono); color: var(--gc); } .yleg span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2089,24 +2089,23 @@ $("#sSave").addEventListener("click", async () => {
 
 // zbiorniki placu: wypełnienie = stan / maksimum (auta; przy kategoriach bez przelicznika — ich jednostki); ponad limit mruga na czerwono
 const limOf = c => c.max > 0 ? (c.t > 0 ? c.max * c.t : c.max) : 0;
-// mapa placu wg planu magazynu (współrzędne w układzie rysunku 1072×740); hala i obszar 14 nie są liczone
+// mapa placu: schemat obszarów z planu magazynu (hala tylko jako mały punkt odniesienia), układ 1000×620
 const YARD = [
-  { id: "15", n: "CHEP", cats: ["CH_E", "CH_D", "CH_P"], x: 978, y: 6, w: 52, h: 96 },
-  { id: "17", n: "EUR", cats: ["EUR"], x: 892, y: 134, w: 94, h: 266 },
-  { id: "18", n: "EUR remont", cats: ["EUR_REM"], x: 892, y: 405, w: 94, h: 138 },
-  { id: "21", n: "Wózki i półki", cats: ["WOZ", "POL"], x: 578, y: 557, w: 226, h: 25 },
-  { id: "22", n: "Jednorazówki i bananówki", cats: ["JED", "BAN"], x: 593, y: 585, w: 214, h: 24 },
-  { id: "23", n: "IPP DHP", cats: ["IPP_D", "IPP_P"], x: 593, y: 612, w: 214, h: 24 },
-  { id: "24", n: "IPP EUR", cats: ["IPP_E"], x: 593, y: 639, w: 214, h: 24 },
-  { id: "25", n: "LPR DHP + plastik", cats: ["LPR_D", "LPR_P"], x: 593, y: 666, w: 214, h: 25 },
-  { id: "26", n: "LPR EUR", cats: ["LPR_E"], x: 593, y: 694, w: 214, h: 28 },
-  { id: "27", n: "NDHP DHP + plastik", cats: ["GR_D", "GR_P"], x: 539, y: 640, w: 39, h: 86 },
-  { id: "28", n: "NDHP EUR", cats: ["GR_E"], x: 499, y: 640, w: 39, h: 86 },
-  { id: "29a", n: "Carlsberg", cats: ["TR_CARL"], x: 199, y: 638, w: 98, h: 88, col: "#6aa84f" },
-  { id: "29b", n: "Kompania Piwowarska", cats: ["TR_KP"], x: 298, y: 638, w: 98, h: 88, col: "#7b1fa2" },
-  { id: "29c", n: "Grupa Żywiec", cats: ["TR_ZYW"], x: 397, y: 638, w: 97, h: 88, col: "#d32f2f" },
+  { id: "17", n: "EUR", cats: ["EUR"], x: 200, y: 20, w: 330, h: 185 },
+  { id: "18", n: "EUR remont", cats: ["EUR_REM"], x: 200, y: 215, w: 330, h: 85 },
+  { id: "15", n: "CHEP", cats: ["CH_E", "CH_D", "CH_P"], x: 545, y: 20, w: 150, h: 280 },
+  { id: "29a", n: "Carlsberg", cats: ["TR_CARL"], x: 710, y: 20, w: 87, h: 280, col: "#6aa84f" },
+  { id: "29b", n: "Kompania Piwowarska", sn: "Kompania", cats: ["TR_KP"], x: 802, y: 20, w: 87, h: 280, col: "#7b1fa2" },
+  { id: "29c", n: "Grupa Żywiec", sn: "Żywiec", cats: ["TR_ZYW"], x: 894, y: 20, w: 86, h: 280, col: "#d32f2f" },
+  { id: "28", n: "NDHP EUR", cats: ["GR_E"], x: 20, y: 320, w: 110, h: 280 },
+  { id: "27", n: "NDHP DHP + plastik", sn: "NDHP DHP", cats: ["GR_D", "GR_P"], x: 140, y: 320, w: 110, h: 280 },
+  { id: "21", n: "Wózki i półki", cats: ["WOZ", "POL"], x: 270, y: 320, w: 710, h: 42 },
+  { id: "22", n: "Jednorazówki i bananówki", cats: ["JED", "BAN"], x: 270, y: 367.6, w: 710, h: 42 },
+  { id: "23", n: "IPP DHP", cats: ["IPP_D", "IPP_P"], x: 270, y: 415.2, w: 710, h: 42 },
+  { id: "24", n: "IPP EUR", cats: ["IPP_E"], x: 270, y: 462.8, w: 710, h: 42 },
+  { id: "25", n: "LPR DHP + plastik", cats: ["LPR_D", "LPR_P"], x: 270, y: 510.4, w: 710, h: 42 },
+  { id: "26", n: "LPR EUR", cats: ["LPR_E"], x: 270, y: 558, w: 710, h: 42 },
 ];
-const YARD_FREE = [{ id: "16", x: 790, y: 134, w: 98, h: 409, n: "wiata" }, { id: "20", x: 1018, y: 134, w: 30, h: 410, n: "" }];
 const GCOL = { own: "var(--g-own)", chep: "var(--g-chep)", lpr: "var(--g-lpr)", ndhp: "var(--g-ndhp)", ipp: "var(--g-ipp)", woz: "var(--g-woz)", inne: "var(--g-inne)", tr: "var(--g-tr)" };
 const yardRatio = {};
 function renderYard() {
@@ -2117,7 +2116,7 @@ function renderYard() {
   $("#yardTot").className = "yardtot" + (over ? " over" : "");
   $("#yardTot").innerHTML = totMax > 0 ? `<span>Plac razem</span><span class="tr"><i style="width:${Math.min(100, tot / totMax * 100)}%"></i></span><b class="${over ? "pos" : ""}">${fmt1(tot)} / ${fmt1(totMax)} aut${over ? ` · +${fmt1(tot - totMax)} ponad` : ""}</b>` : "";
   // wzorki „minipalet” w kolorach grup (deski widziane z góry)
-  const pat = (id, col) => `<pattern id="pl-${id}" width="13" height="11" patternUnits="userSpaceOnUse"><rect x=".8" y=".8" width="11.4" height="9.4" rx="1.2" style="fill:${col}"/><path d="M.8 3.9h11.4M.8 7h11.4" stroke="rgba(0,0,0,.38)" stroke-width="1"/><path d="M4.4 .8v9.4M8.6 .8v9.4" stroke="rgba(255,255,255,.18)" stroke-width=".8"/></pattern>`;
+  const pat = (id, col) => `<pattern id="pl-${id}" width="18" height="15" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="16" height="13" rx="1.6" style="fill:${col}"/><path d="M1 5.3h16M1 9.7h16" stroke="rgba(0,0,0,.38)" stroke-width="1.3"/><path d="M6 1v13M12 1v13" stroke="rgba(255,255,255,.2)" stroke-width="1"/></pattern>`;
   const defs = Object.entries(GCOL).map(([g, c]) => pat(g, c)).join("") + YARD.filter(a => a.col).map(a => pat(a.id, a.col)).join("") + pat("bad", "var(--bad)")
     + `<pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" style="fill:var(--surface-2)"/><path d="M0 0v8" stroke="var(--line)" stroke-width="3"/></pattern>`;
   const area = a => {
@@ -2127,24 +2126,21 @@ function renderYard() {
     const horiz = a.w > a.h * 1.6, prev = yardRatio[a.id] ?? 0; yardRatio[a.id] = Math.min(r, 1);
     const u = cats.length && cats.every(c => c.t > 0) ? x => fmt1(x / cats[0].t) + " aut" : x => fmt(x);
     const detail = cats.map(c => `${c.n}: ${val(c.k) == null ? "—" : fmt(val(c.k))} / ${limOf(c) ? fmt(limOf(c)) : "bez maks."}`).join("\n");
-    const tx = horiz ? a.x + 6 : a.x + a.w / 2, ty = horiz ? a.y + a.h / 2 + 4 : a.y + 16, anchor = horiz ? "start" : "middle";
-    const label = horiz ? `${a.id} · ${a.n}${lim ? ` · ${Math.round(r * 100)}%` : ""}` : a.id;
+    const tx = horiz ? a.x + 12 : a.x + a.w / 2, ty = horiz ? a.y + a.h / 2 + 6 : a.y + 26, anchor = horiz ? "start" : "middle";
+    const label = horiz ? `${a.id} · ${a.n}` : a.id;
     return `<g class="yarea ya-${st}" data-goto="stany"><title>${esc(a.id + " · " + a.n)}\n${esc(detail)}${lim ? `\nzapełnienie ${Math.round(r * 100)}%` : ""}</title>
       <rect class="yb" x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" rx="3" style="stroke:${a.col || GCOL[g]}"/>
       <rect class="yf" x="${a.x + 2}" y="${a.y + 2}" width="${a.w - 4}" height="${a.h - 4}" rx="2" fill="url(#pl-${st === "over" ? "bad" : a.col ? a.id : g})" data-r="${Math.min(r, 1)}"
         style="transform-origin:${horiz ? "left center" : "center bottom"};transform:${horiz ? "scaleX" : "scaleY"}(${prev})"/>
       <text x="${tx}" y="${ty}" text-anchor="${anchor}" class="yl">${esc(label)}</text>
-      ${!horiz ? `<text x="${tx}" y="${a.y + a.h - 8}" text-anchor="middle" class="yl ys">${lim ? Math.round(r * 100) + "%" : "—"}</text>` : ""}
-      ${st === "over" ? `<g class="ybadge"><rect x="${a.x + a.w / 2 - 34}" y="${Math.max(1, a.y - 21)}" width="68" height="17" rx="4"/><text x="${a.x + a.w / 2}" y="${Math.max(1, a.y - 21) + 12}" text-anchor="middle">+${u(v - lim)}</text></g>` : ""}</g>`;
+      ${!horiz ? `<text x="${tx}" y="${a.y + 46}" text-anchor="middle" class="yl yn">${esc(a.sn || a.n)}</text>` : ""}
+      <text x="${horiz ? a.x + a.w - 12 : tx}" y="${horiz ? ty : a.y + a.h - 14}" text-anchor="${horiz ? "end" : "middle"}" class="yl ys">${lim ? Math.round(r * 100) + "%" : "bez maks."}</text>
+      ${st === "over" ? `<g class="ybadge"> <rect x="${horiz ? a.x + a.w - 148 : a.x + a.w / 2 - 40}" y="${horiz ? a.y + a.h / 2 - 11 : a.y + 58}" width="${horiz ? 72 : 80}" height="22" rx="5"/> <text x="${horiz ? a.x + a.w - 112 : a.x + a.w / 2}" y="${horiz ? a.y + a.h / 2 + 5 : a.y + 74}" text-anchor="middle">+${u(v - lim)}</text></g>` : ""}</g>`;
   };
   const names = YARD.map(a => { const cats = a.cats.map(k => CAT[k]).filter(Boolean), lim = cats.reduce((s2, c) => s2 + limOf(c), 0), v = cats.reduce((s2, c) => s2 + (val(c.k) || 0), 0), r = lim ? v / lim : 0;
     return `<div class="yleg ${r > 1 ? "over" : r >= .85 ? "near" : ""}" style="--gc:${a.col || GCOL[cats[0] ? cats[0].g : "inne"]}"><b>${a.id}</b><span>${esc(a.n)}</span><i><em style="width:${Math.min(100, r * 100)}%"></em></i><small>${lim ? Math.round(r * 100) + "%" : "bez maks."}</small></div>`; }).join("");
-  $("#yard").innerHTML = `<svg viewBox="0 0 1072 740" class="ysvg" role="img" aria-label="Mapa placu"><defs>${defs}</defs>
-    <rect x="165" y="134" width="608" height="410" class="yhall" rx="4"/><rect x="160" y="540" width="390" height="92" class="yhall" rx="4"/><rect x="28" y="132" width="137" height="238" class="yhall" rx="4"/>
-    <text x="470" y="330" text-anchor="middle" class="yhl">MAGAZYN</text><text x="470" y="352" text-anchor="middle" class="yhs">obszary 1–13 · nie liczymy</text>
-    <rect x="780" y="10" width="98" height="112" class="yhall" rx="3"/><text x="829" y="70" text-anchor="middle" class="yhs">14</text>
-    ${YARD_FREE.map(a => `<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" class="yfree" rx="3"/><text x="${a.x + a.w / 2}" y="${a.y + 22}" text-anchor="middle" class="yhs">${a.id}</text>${a.n ? `<text x="${a.x + a.w / 2}" y="${a.y + a.h / 2}" text-anchor="middle" class="yhs" transform="rotate(-90 ${a.x + a.w / 2} ${a.y + a.h / 2})">${a.n.toUpperCase()}</text>` : ""}`).join("")}
-    <text x="348" y="630" text-anchor="middle" class="yhs">29 · transportery</text>
+  $("#yard").innerHTML = `<svg viewBox="0 0 1000 620" class="ysvg" role="img" aria-label="Mapa placu"><defs>${defs}</defs>
+    <rect x="20" y="20" width="165" height="280" class="yhall" rx="6"/><text x="102" y="166" text-anchor="middle" class="yhl">HALA</text>
     ${YARD.map(area).join("")}</svg><div class="ylegs">${names}</div>`;
   requestAnimationFrame(() => $$("#yard .yf").forEach(el => { const h = el.style.transformOrigin.startsWith("left"); el.style.transform = `${h ? "scaleX" : "scaleY"}(${el.dataset.r})`; }));
 }
