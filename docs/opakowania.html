@@ -166,16 +166,18 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .yhs { font: 600 12px var(--f-mono); fill: var(--muted); }
 .yarea { cursor: pointer; }
 .yarea .yb { fill: var(--surface); stroke-width: 2.4; }
-.yarea .yf { transform-box: fill-box; transition: transform 1s cubic-bezier(.2,.8,.2,1); }
+.yarea .ysh { fill: rgba(40, 25, 10, .16); }
+.yn { font-size: 13px !important; }
+.yarea .yf { transition: clip-path 1.1s cubic-bezier(.2,.8,.2,1); }
 .yarea:hover .yb { stroke-width: 4; filter: drop-shadow(0 3px 6px rgba(40, 25, 10, .25)); }
 .yl { font: 700 19px var(--f-cond); fill: var(--fg); paint-order: stroke; stroke: var(--surface); stroke-width: 3.5px; letter-spacing: .3px; }
-.ys { font: 700 19px var(--f-mono); } .yn { font-size: 15px; font-weight: 600; }
+.ys { font: 700 19px var(--f-mono); } .yn { font-weight: 700; }
 .ya-near .yb { stroke: var(--warn) !important; stroke-width: 3.5; }
 .ya-over .yb { stroke: var(--bad) !important; stroke-width: 4; }
 .ya-nolim .yb { stroke-dasharray: 4 3; }
 .ybadge rect { fill: var(--bad); } .ybadge text { font: 700 14px var(--f-mono); fill: #fff; }
 .ylegs { display: grid; gap: 4px; }
-.yleg { display: grid; grid-template-columns: 34px 1fr 56px 38px; gap: 6px; align-items: center; font-size: .76rem; padding: 3px 6px; border-left: 4px solid var(--gc); border-radius: 3px; background: var(--surface-2); }
+.yleg { display: grid; grid-template-columns: 1fr 56px 38px; gap: 6px; align-items: center; font-size: .76rem; padding: 3px 6px; border-left: 4px solid var(--gc); border-radius: 3px; background: var(--surface-2); }
 .yleg b { font: 700 .8rem var(--f-mono); color: var(--gc); } .yleg span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .yleg i { display: block; height: 7px; border-radius: 4px; background: var(--line-2); overflow: hidden; } .yleg em { display: block; height: 100%; background: var(--gc); }
 .yleg small { font: 600 .72rem var(--f-mono); text-align: right; color: var(--muted); }
@@ -755,6 +757,8 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
         <div class="fgrid">
           <label class="field">Kod opakowania EUR w saldach <input id="cfgOpak" class="num"></label>
           <label class="field">Min. saldo „do zaawizowania” <input id="cfgMin" type="number" min="0"></label>
+          <label class="field">Norma dzienna EUR — od (szt.) <input id="cfgEurMin" type="number" min="0" step="50"></label>
+          <label class="field">Norma dzienna EUR — do (szt.) <input id="cfgEurMax" type="number" min="0" step="50"></label>
         </div>
       </div>
       <div class="panel">
@@ -910,7 +914,7 @@ const MAIL_SUBJ = "Prośba o potwierdzenie odbioru palet {data} {okno} – {kod}
 const MAIL_TPL = "Dzień dobry,\n\nproszę o umówienie odbioru palet dla dostawcy/odbiorcy {kod} {nazwa} w dniu {data} ({dzien}) w godzinach {okno}.\nIlość do odbioru: {ilosc}.\nAktualne saldo palet EUR na Państwa koncie wynosi: {saldo} szt.\n\nProszę o potwierdzenie terminu w odpowiedzi na tę wiadomość. Jeśli ten termin nie pasuje, proszę o propozycję innego dnia.\nW razie podstawienia samochodu w innych godzinach załadunek może się wydłużyć.\n\nPozdrawiam";
 const OLD_MAIL = /^Witam,\nDla dostawcy\/odbiorcy \{kod\} \{nazwa\} zaawizowano/;
 const DEF_CFG = () => ({
-  cats: clone(DEF_CATS), slots: clone(DEF_SLOTS), opak: "4997", salMin: 300,
+  cats: clone(DEF_CATS), slots: clone(DEF_SLOTS), opak: "4997", salMin: 300, eurMin: 2000, eurMax: 2500,
   mailSubj: MAIL_SUBJ, mailTpl: MAIL_TPL,
 });
 const ST = { wait: "Czeka na potwierdzenie", plan: "Umówione", arr: "Przyjechał", load: "Załadunek", done: "Wydane", cancel: "Anulowane", noshow: "Nie przyjechał" };
@@ -1294,7 +1298,7 @@ function sideTodo() {
   // EUR: dni z za małą liczbą awizacji (najbliższe 7)
   const ed = eurDays(T, addDays(T, 6));
   if (ed && ed.need) out.push(`<div class="td bad"><b>Domów ${ed.need} ${plural(ed.need, "auto", "auta", "aut")} EUR</b>
-    <span>za mało awizacji — zjeżdża ok. ${fmt1(ed.rate / ed.t)} auta dziennie</span>
+    <span>poniżej normy ${fmt(CFG.eurMin)}–${fmt(CFG.eurMax)} szt. dziennie</span>
     <div class="pills">${ed.bad.map(d => `<a href="#" data-goday="${d}">${DOW_S[dowOf(d)]} ${shortDate(d)} · +${ed.days[d].deficit}</a>`).join("")}</div>
     <div class="row"><button class="btn xs primary" type="button" data-actcat="EUR">+ Awizacja EUR</button><button class="btn xs" type="button" data-goto="harm">Propozycje →</button></div></div>`);
   else if (ed) out.push(`<div class="td ok"><b>EUR — umówione wystarczy</b><span>na 7 dni każdy dzień pokrywa zjazd</span></div>`);
@@ -1397,10 +1401,10 @@ function eurDays(from, to) {
   for (let d = sd; d < T; d = addDays(d, 1)) s = s + rate - issued(d, "EUR");
   for (let d = T; d <= to; d = addDays(d, 1)) {
     const booked = eurOut(d), rep = eurRep(d), work = dowOf(d) !== 0, end = s + rate + rep - booked;
-    // dzień roboczy musi wydać co najmniej tyle, ile przybędzie (zjazd ze sklepów + naprawa), a wieczorem zmieścić się w limicie
-    const short = Math.max(rate + rep - booked, end - lim, 0), deficit = work ? Math.max(0, Math.ceil(short / c.t - 0.15)) : 0;
+    // norma: każdy dzień roboczy ma mieć umówione co najmniej eurMin szt. EUR (+ to, co przywiezie naprawa), a wieczorem zmieścić się w limicie
+    const need = (+CFG.eurMin || 0) + rep, short = Math.max(need - booked, end - lim, 0), deficit = work ? Math.max(0, Math.ceil(short / c.t - 0.15)) : 0;
     const status = !work ? "rest" : deficit ? "bad" : end > lim * .85 ? "near" : "ok";
-    if (d >= from) out[d] = { start: s, end, booked, rep, need: rate + rep, deficit, status, work, rate };
+    if (d >= from) out[d] = { start: s, end, booked, rep, need, deficit, status, work, rate };
     s = end - deficit * c.t; // zakładamy, że braki tego dnia zostaną domówione
   }
   for (let d = from; d < T && d <= to; d = addDays(d, 1)) { const st = DAYS[d] && DAYS[d].stan; out[d] = { past: true, start: st && st.EUR != null ? st.EUR : null, booked: eurOut(d), rep: eurRep(d) }; }
@@ -1432,7 +1436,7 @@ function renderHarm() {
   let sug = "";
   if (!ep) sug = '<p class="sub">Brak stanu placu albo limitu dla EUR — wpisz stan w zakładce Stany placu.</p>';
   else if (days[6] < T) sug = '<p class="sub">Tydzień miniony — sprawdzanie dotyczy dni od dziś.</p>';
-  else if (!ep.need) sug = `<div class="notice ok">Każdy dzień wydaje co najmniej tyle EUR, ile przybywa (ze sklepów ok. ${fmt(ep.rate)} szt. dziennie + naprawa), a wieczorem stan mieści się w limicie ${fmt1(ep.max)} aut.</div>`;
+  else if (!ep.need) sug = `<div class="notice ok">Każdy dzień ma umówione co najmniej ${fmt(CFG.eurMin)} szt. EUR (norma ${fmt(CFG.eurMin)}–${fmt(CFG.eurMax)} + naprawa), a wieczorem stan mieści się w limicie ${fmt1(ep.max)} aut.</div>`;
   else {
     const free = {}, pool = d => free[d] || (free[d] = freeSlotList(99, d, d)), picks = [];
     ep.bad.forEach(d => { let k = ep.days[d].deficit;
@@ -1441,7 +1445,7 @@ function renderHarm() {
     const cands = salCandidates();
     sug = `<div class="act g-lpr" style="margin-bottom:6px"><span class="t">Za mało awizacji</span><span class="big">domów ${ep.need} <small>${plural(ep.need, "auto", "auta", "aut")} EUR</small></span>
       <span class="s">${ep.bad.map(d => `<b>${DOW_S[dowOf(d)]} ${shortDate(d)}</b> +${ep.days[d].deficit}`).join(" · ")}</span>
-      <span class="s">każdy dzień musi wydać co najmniej tyle, ile przybędzie: ze sklepów ok. ${fmt(ep.rate)} szt. (${fmt1(ep.rate / ep.t)} auta) + to, co przywiezie naprawa; limit placu ${fmt1(ep.max)} aut</span></div>
+      <span class="s">norma dzienna: ${fmt(CFG.eurMin)}–${fmt(CFG.eurMax)} szt. EUR (+ to, co przywiezie naprawa) · ze sklepów zjeżdża ok. ${fmt(ep.rate)} szt. dziennie · limit placu ${fmt1(ep.max)} aut</span></div>
       <table><thead><tr><th>Dla dnia</th><th>Termin</th><th>Okno</th><th>Proponowany dostawca</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${picks.map((sl, i) => { const r = cands[i];
         return `<tr><td class="nw"><b>${DOW_S[dowOf(sl.for)]} ${shortDate(sl.for)}</b></td><td class="nw">${sl.d ? `${DOW_S[dowOf(sl.d)]} ${shortDate(sl.d)}` : '<span class="pos">brak okna</span>'}</td><td class="num nw" style="font-size:.74rem">${sl.d ? esc(sl.slot) : ""}</td><td class="cut" style="max-width:200px">${r ? esc(r.name) : '<span class="mut">brak dostawcy z saldem — sprzedaż / naprawa</span>'}</td><td class="n">${r ? fmt(r.tot) : ""}</td>
         <td>${sl.d ? `<button class="btn xs primary" type="button" data-sugaw="${sl.d}|${esc(sl.slot)}|${r ? esc(r.code) : ""}">Awizuj</button>` : ""}</td></tr>`; }).join("")}</tbody></table>
@@ -1481,10 +1485,10 @@ function renderHarm() {
       : x.status === "rest" ? `<span class="rst">niedziela · zjazd przechodzi na pn</span>`
       : x.status === "bad" ? `<span class="ov">⚠ za mało — domów +${x.deficit} ${plural(x.deficit, "auto", "auta", "aut")} EUR</span>`
       : x.status === "near" ? `<span class="nr">na styk · wieczorem ${u(x.end)}/${fmt1(ep.max)}</span>`
-      : `<span class="okk">✓ wystarczy · wyjedzie więcej niż zjedzie</span>`;
+      : `<span class="okk">✓ w normie</span>`;
     h += `<div class="hd ${p.d === T ? "today" : ""} ${x && x.status === "bad" ? "need" : x && x.status === "near" ? "near" : ""}" data-goday="${p.d}" title="kliknij — Załadunki tego dnia">${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}
       <span class="eur ${!x || x.past || !x.work ? "" : x.status === "bad" ? "zero" : ""}">${fmt(eurSzt)}<small>EUR</small></span>
-      ${x && !x.past && x.work ? `<small class="cmp">wyjedzie <b>${fmt(eurSzt)}</b> · przybędzie ~<b>${fmt(x.need)}</b>${rp ? ` <span title="naprawa przywozi naprawione EUR">(w tym naprawa ${fmt(rp)})</span>` : ""}</small>` : ""}
+      ${x && !x.past && x.work ? `<small class="cmp">norma <b>${fmt(CFG.eurMin)}–${fmt(CFG.eurMax)}</b>${rp ? ` <span title="naprawa przywozi naprawione EUR — trzeba wydać więcej">+ naprawa ${fmt(rp)}</span>` : ""}</small>` : ""}
       <small>${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut · PUL ${fmt(act.reduce((s, i) => s + pulSzt(i.q), 0))}</small>
       ${st}</div>`;
   });
@@ -2090,7 +2094,7 @@ $("#sSave").addEventListener("click", async () => {
 // zbiorniki placu: wypełnienie = stan / maksimum (auta; przy kategoriach bez przelicznika — ich jednostki); ponad limit mruga na czerwono
 const limOf = c => c.max > 0 ? (c.t > 0 ? c.max * c.t : c.max) : 0;
 // mapa placu: ten sam układ co na planie magazynu (hala zmniejszona, obszary placu powiększone), układ 1000×640
-// dir: "up" — wypełnia się od dołu, "right" — od lewej
+// dir: "up" — wypełnia się od dołu, "right" — od lewej; cap — pojemność obszaru (zamiast sumy „Maks.” kategorii), np. 20 miejsc na komplety wózków i półek
 const YARD = [
   { id: "15", n: "CHEP", cats: ["CH_E", "CH_D", "CH_P"], x: 820, y: 12, w: 160, h: 86, dir: "up" },
   { id: "17", n: "EUR", cats: ["EUR"], x: 430, y: 110, w: 550, h: 192, dir: "up" },
@@ -2100,8 +2104,8 @@ const YARD = [
   { id: "29c", n: "Grupa Żywiec", sn: "Żywiec", cats: ["TR_ZYW"], x: 244, y: 470, w: 98, h: 158, dir: "up", col: "#d32f2f" },
   { id: "28", n: "NDHP EUR", sn: "NDHP EUR", cats: ["GR_E"], x: 350, y: 470, w: 56, h: 158, dir: "up" },
   { id: "27", n: "NDHP DHP + plastik", sn: "NDHP DHP", cats: ["GR_D", "GR_P"], x: 410, y: 470, w: 56, h: 158, dir: "up" },
-  { id: "21", n: "Wózki i półki", cats: ["WOZ", "POL"], x: 474, y: 426, w: 420, h: 30, dir: "right" },
-  { id: "22", n: "Jednorazówki i bananówki", cats: ["JED", "BAN"], x: 486, y: 460, w: 420, h: 30, dir: "right" },
+  { id: "21", n: "Wózki i półki", cap: 20, unit: "miejsc", cats: ["WOZ", "POL"], x: 474, y: 426, w: 420, h: 30, dir: "right" },
+  { id: "22", n: "Jednorazówki i bananówki", cap: 170, unit: "szt.", cats: ["JED", "BAN"], x: 486, y: 460, w: 420, h: 30, dir: "right" },
   { id: "23", n: "IPP DHP", cats: ["IPP_D", "IPP_P"], x: 486, y: 494, w: 420, h: 30, dir: "right" },
   { id: "24", n: "IPP EUR", cats: ["IPP_E"], x: 486, y: 528, w: 420, h: 30, dir: "right" },
   { id: "25", n: "LPR DHP + plastik", cats: ["LPR_D", "LPR_P"], x: 486, y: 562, w: 420, h: 31, dir: "right" },
@@ -2117,33 +2121,42 @@ function renderYard() {
   $("#yardTot").className = "yardtot" + (over ? " over" : "");
   $("#yardTot").innerHTML = totMax > 0 ? `<span>Plac razem</span><span class="tr"><i style="width:${Math.min(100, tot / totMax * 100)}%"></i></span><b class="${over ? "pos" : ""}">${fmt1(tot)} / ${fmt1(totMax)} aut${over ? ` · +${fmt1(tot - totMax)} ponad` : ""}</b>` : "";
   // wzorki „minipalet” w kolorach grup (deski widziane z góry)
-  const pat = (id, col) => `<pattern id="pl-${id}" width="18" height="15" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="16" height="13" rx="1.6" style="fill:${col}"/><path d="M1 5.3h16M1 9.7h16" stroke="rgba(0,0,0,.38)" stroke-width="1.3"/><path d="M6 1v13M12 1v13" stroke="rgba(255,255,255,.2)" stroke-width="1"/></pattern>`;
+  // stos palet w rzucie izometrycznym: jasny wierzch z deskami, dwie ścianki z warstwami palet
+  const pat = (id, col) => `<pattern id="pl-${id}" width="24" height="21" patternUnits="userSpaceOnUse">
+    <polygon points="12,1 23,6.5 12,12 1,6.5" style="fill:color-mix(in srgb, ${col} 55%, white)"/>
+    <polygon points="1,6.5 12,12 12,20 1,14.5" style="fill:${col}"/>
+    <polygon points="12,12 23,6.5 23,14.5 12,20" style="fill:color-mix(in srgb, ${col} 58%, black)"/>
+    <path d="M4.7 4.65L15.7 10.15M8.4 2.85L19.4 8.35" stroke="rgba(0,0,0,.22)" stroke-width=".9"/>
+    <path d="M1 9.2L12 14.7M1 11.9L12 17.4M12 14.7L23 9.2M12 17.4L23 11.9" stroke="rgba(0,0,0,.28)" stroke-width=".8"/>
+    <path d="M12 1L23 6.5" stroke="rgba(255,255,255,.55)" stroke-width=".8"/></pattern>`;
   const defs = Object.entries(GCOL).map(([g, c]) => pat(g, c)).join("") + YARD.filter(a => a.col).map(a => pat(a.id, a.col)).join("") + pat("bad", "var(--bad)")
     + `<pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" style="fill:var(--surface-2)"/><path d="M0 0v8" stroke="var(--line)" stroke-width="3"/></pattern>`;
   const area = a => {
     const cats = a.cats.map(k => CAT[k]).filter(Boolean), g = cats[0] ? cats[0].g : "inne";
-    const lim = cats.reduce((s2, c) => s2 + limOf(c), 0), v = cats.reduce((s2, c) => s2 + (val(c.k) || 0), 0);
+    const lim = a.cap || cats.reduce((s2, c) => s2 + limOf(c), 0), v = cats.reduce((s2, c) => s2 + (val(c.k) || 0), 0);
     const r = lim ? v / lim : 0, st = !lim ? "nolim" : r > 1 ? "over" : r >= .85 ? "near" : "ok";
     const horiz = a.dir ? a.dir === "right" : a.w > a.h * 1.6, prev = yardRatio[a.id] ?? 0; yardRatio[a.id] = Math.min(r, 1);
-    const u = cats.length && cats.every(c => c.t > 0) ? x => fmt1(x / cats[0].t) + " aut" : x => fmt(x);
-    const detail = cats.map(c => `${c.n}: ${val(c.k) == null ? "—" : fmt(val(c.k))} / ${limOf(c) ? fmt(limOf(c)) : "bez maks."}`).join("\n");
+    const u = !a.cap && cats.length && cats.every(c => c.t > 0) ? x => fmt1(x / cats[0].t) + " aut" : x => fmt(x) + (a.unit ? " " + a.unit : "");
+    const detail = cats.map(c => `${c.n}: ${val(c.k) == null ? "—" : fmt(val(c.k))}${a.cap ? "" : " / " + (limOf(c) ? fmt(limOf(c)) : "bez maks.")}`).join("\n") + (a.cap ? `\npojemność: ${fmt(a.cap)} ${a.unit || ""}` : "");
     const tx = horiz ? a.x + 12 : a.x + a.w / 2, ty = horiz ? a.y + a.h / 2 + 6 : a.y + 26, anchor = horiz ? "start" : "middle";
-    const label = horiz ? `${a.id} · ${a.n}` : a.w > 200 ? `${a.id} · ${a.n}` : a.id;
-    return `<g class="yarea ya-${st}" data-goto="stany"><title>${esc(a.id + " · " + a.n)}\n${esc(detail)}${lim ? `\nzapełnienie ${Math.round(r * 100)}%` : ""}</title>
+    const label = horiz || a.w > 200 ? a.n : a.w >= 80 ? a.sn || a.n : "";
+    const narrow = !horiz && a.w < 80 ? (a.sn || a.n).split(" ") : null;
+    return `<g class="yarea ya-${st}" data-goto="stany"><title>${esc(a.n)}\n${esc(detail)}${lim ? `\nzapełnienie ${Math.round(r * 100)}%` : ""}</title>
+      <rect class="ysh" x="${a.x + 5}" y="${a.y + 6}" width="${a.w}" height="${a.h}" rx="4"/>
       <rect class="yb" x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" rx="3" style="stroke:${a.col || GCOL[g]}"/>
       <rect class="yf" x="${a.x + 2}" y="${a.y + 2}" width="${a.w - 4}" height="${a.h - 4}" rx="2" fill="url(#pl-${st === "over" ? "bad" : a.col ? a.id : g})" data-r="${Math.min(r, 1)}"
-        style="transform-origin:${horiz ? "left center" : "center bottom"};transform:${horiz ? "scaleX" : "scaleY"}(${prev})"/>
-      <text x="${tx}" y="${ty}" text-anchor="${anchor}" class="yl">${esc(label)}</text>
-      ${!horiz && a.w <= 200 && a.w >= 80 && a.h > 100 ? `<text x="${tx}" y="${a.y + 46}" text-anchor="middle" class="yl yn">${esc(a.sn || a.n)}</text>` : ""}
+        style="clip-path:${horiz ? `inset(0 ${(1 - prev) * 100}% 0 0)` : `inset(${(1 - prev) * 100}% 0 0 0)`}" data-h="${horiz ? 1 : 0}"/>
+      ${label ? `<text x="${tx}" y="${ty}" text-anchor="${anchor}" class="yl">${esc(label)}</text>` : ""}
+      ${narrow ? narrow.map((w2, i) => `<text x="${tx}" y="${a.y + 20 + i * 16}" text-anchor="middle" class="yl yn">${esc(w2)}</text>`).join("") : ""}
       <text x="${horiz ? a.x + a.w - 12 : tx}" y="${horiz ? ty : a.y + a.h - 14}" text-anchor="${horiz ? "end" : "middle"}" class="yl ys">${lim ? Math.round(r * 100) + "%" : "bez maks."}</text>
       ${st === "over" ? `<g class="ybadge"> <rect x="${horiz ? a.x + a.w - 148 : a.x + a.w / 2 - 40}" y="${horiz ? a.y + a.h / 2 - 11 : a.y + (a.w > 200 ? 36 : 58)}" width="${horiz ? 72 : 80}" height="22" rx="5"/> <text x="${horiz ? a.x + a.w - 112 : a.x + a.w / 2}" y="${horiz ? a.y + a.h / 2 + 5 : a.y + (a.w > 200 ? 52 : 74)}" text-anchor="middle">+${u(v - lim)}</text></g>` : ""}</g>`;
   };
-  const names = YARD.map(a => { const cats = a.cats.map(k => CAT[k]).filter(Boolean), lim = cats.reduce((s2, c) => s2 + limOf(c), 0), v = cats.reduce((s2, c) => s2 + (val(c.k) || 0), 0), r = lim ? v / lim : 0;
-    return `<div class="yleg ${r > 1 ? "over" : r >= .85 ? "near" : ""}" style="--gc:${a.col || GCOL[cats[0] ? cats[0].g : "inne"]}"><b>${a.id}</b><span>${esc(a.n)}</span><i><em style="width:${Math.min(100, r * 100)}%"></em></i><small>${lim ? Math.round(r * 100) + "%" : "bez maks."}</small></div>`; }).join("");
+  const names = YARD.map(a => { const cats = a.cats.map(k => CAT[k]).filter(Boolean), lim = a.cap || cats.reduce((s2, c) => s2 + limOf(c), 0), v = cats.reduce((s2, c) => s2 + (val(c.k) || 0), 0), r = lim ? v / lim : 0;
+    return `<div class="yleg ${r > 1 ? "over" : r >= .85 ? "near" : ""}" style="--gc:${a.col || GCOL[cats[0] ? cats[0].g : "inne"]}"><span>${esc(a.n)}</span><i><em style="width:${Math.min(100, r * 100)}%"></em></i><small>${lim ? Math.round(r * 100) + "%" : "bez maks."}</small></div>`; }).join("");
   $("#yard").innerHTML = `<svg viewBox="0 0 1000 640" class="ysvg" role="img" aria-label="Mapa placu"><defs>${defs}</defs>
     <rect x="20" y="110" width="390" height="300" class="yhall" rx="6"/><rect x="40" y="410" width="350" height="44" class="yhall" rx="4"/><text x="215" y="268" text-anchor="middle" class="yhl">HALA</text>
     ${YARD.map(area).join("")}</svg><div class="ylegs">${names}</div>`;
-  requestAnimationFrame(() => $$("#yard .yf").forEach(el => { const h = el.style.transformOrigin.startsWith("left"); el.style.transform = `${h ? "scaleX" : "scaleY"}(${el.dataset.r})`; }));
+  requestAnimationFrame(() => $$("#yard .yf").forEach(el => { const k = (1 - el.dataset.r) * 100; el.style.clipPath = el.dataset.h === "1" ? `inset(0 ${k}% 0 0)` : `inset(${k}% 0 0 0)`; }));
 }
 
 /* ---------- PROGNOZA ---------- */
@@ -2241,7 +2254,7 @@ function renderSet() {
     <td><input type="number" min="0" step="0.5" data-cf="max" value="${c.max}" style="width:70px"></td><td><input type="checkbox" data-cf="aw" ${c.aw ? "checked" : ""}></td>
     <td class="nw"><button class="btn xs" type="button" data-cmove="-1">▲</button> <button class="btn xs" type="button" data-cmove="1">▼</button></td></tr>`).join("")}</tbody></table>`;
   $("#cfgSlots").value = cfgDraft.slots.map(s => s.t + " | " + s.cap).join("\n");
-  $("#cfgSubj").value = cfgDraft.mailSubj; $("#cfgMail").value = cfgDraft.mailTpl; $("#cfgOpak").value = cfgDraft.opak; $("#cfgMin").value = cfgDraft.salMin;
+  $("#cfgSubj").value = cfgDraft.mailSubj; $("#cfgMail").value = cfgDraft.mailTpl; $("#cfgOpak").value = cfgDraft.opak; $("#cfgMin").value = cfgDraft.salMin; $("#cfgEurMin").value = cfgDraft.eurMin ?? 2000; $("#cfgEurMax").value = cfgDraft.eurMax ?? 2500;
 }
 $("#cfgCats").addEventListener("input", e => {
   const tr = e.target.closest("[data-ci]"), f = e.target.dataset.cf; if (!tr || !f) return;
@@ -2257,7 +2270,7 @@ $("#cfgReset").addEventListener("click", () => { if (!confirm("Przywrócić domy
 $("#cfgSave").addEventListener("click", async () => {
   const slots = $("#cfgSlots").value.split("\n").map(l => l.trim()).filter(Boolean).map(l => { const [t, cap] = l.split("|").map(x => x.trim()); return { t: t.replace(/\s/g, ""), cap: Math.max(0, parseInt(cap, 10) || 1) }; });
   if (!slots.length) return toast("Podaj co najmniej jedno okno.", true);
-  const c = Object.assign(clone(cfgDraft), { slots, mailSubj: $("#cfgSubj").value, mailTpl: $("#cfgMail").value, opak: $("#cfgOpak").value.trim() || "4997", salMin: Math.max(0, +$("#cfgMin").value || 0), by: email, at: Date.now() });
+  const c = Object.assign(clone(cfgDraft), { slots, mailSubj: $("#cfgSubj").value, mailTpl: $("#cfgMail").value, opak: $("#cfgOpak").value.trim() || "4997", salMin: Math.max(0, +$("#cfgMin").value || 0), eurMin: Math.max(0, +$("#cfgEurMin").value || 0), eurMax: Math.max(0, +$("#cfgEurMax").value || 0), by: email, at: Date.now() });
   try { await S.saveConfig(c); cfgDraft = null; toast("Zapisano ustawienia"); } catch (e) { fail(e); }
 });
 
