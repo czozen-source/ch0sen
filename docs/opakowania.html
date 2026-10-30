@@ -324,11 +324,18 @@ tr.cat td:first-child { border-left: 4px solid var(--gc); }
 .harm .hd small { font: 500 .74rem var(--f-mono); text-transform: none; letter-spacing: 0; opacity: .9; }
 .harm .hd .ov, .harm .hd .okk { font: 700 .8rem var(--f-mono); text-transform: none; letter-spacing: 0; padding: 3px 6px; border-radius: 4px; opacity: 1; }
 .harm .hd .ov { background: var(--bad); color: #fff; }
+.harm .hd .nr { font: 700 .8rem var(--f-mono); padding: 3px 6px; border-radius: 4px; background: var(--warn); color: #1a1000; }
+.harm .hd .eur.zero { color: #ff9a8f; }
+.harm .hd.near { box-shadow: 0 0 0 2px var(--warn); }
 .harm .hd .okk { background: rgba(110, 200, 110, .18); color: #9be29f; } .harm .hd.today .okk { color: var(--ok); background: rgba(46, 125, 50, .15); }
 .harm .hd.need { box-shadow: 0 0 0 2px var(--bad); }
 @media (prefers-reduced-motion: no-preference) {
   .harm .hd .ov { animation: needBlink 1.1s ease-in-out infinite; }
   .harm .hd.need { animation: needRing 1.1s ease-in-out infinite; }
+  .harm .hd .nr { animation: nearBlink 1.6s ease-in-out infinite; }
+  .harm .hd.near { animation: nearRing 1.6s ease-in-out infinite; }
+  @keyframes nearBlink { 50% { background: #ffe2a8; } }
+  @keyframes nearRing { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 40%, transparent); } }
   @keyframes needBlink { 50% { background: #ffd3cf; color: #8e0d06; } }
   @keyframes needRing { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--bad) 45%, transparent); } }
 }
@@ -1347,11 +1354,17 @@ function renderHarm() {
   per.forEach(p => {
     const act = p.its.filter(active), ev = ep && ep.v[p.d];
     // dzień wymaga działania, gdy prognozowany stan EUR przekracza limit — nagłówek miga i podpowiada, ile aut umówić
-    const over = ev != null && ev > ep.lim && p.d >= T, need = over ? Math.ceil((ev - ep.lim) / ep.t) : 0;
-    h += `<div class="hd ${p.d === T ? "today" : ""} ${over ? "need" : ""}" data-goday="${p.d}" title="kliknij — Załadunki tego dnia">${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}
-      <span class="eur">${fmt(act.reduce((s, i) => s + qSum(i.q, "EUR"), 0))}<small>EUR</small></span>
+    // co wymaga działania: stan EUR ponad limitem, blisko limitu (≥ 85%) albo dzień roboczy bez żadnej awizacji
+    const fut = p.d >= T, work = dowOf(p.d) !== 0, eurSzt = act.reduce((s, i) => s + qSum(i.q, "EUR"), 0);
+    const over = fut && ev != null && ev > ep.lim, near = fut && ev != null && !over && ev >= ep.lim * .85, empty = fut && work && !act.length;
+    const need = over ? Math.ceil((ev - ep.lim) / ep.t) : 0;
+    const stanTxt = ev == null ? "" : `stan EUR ${fmt1(ev / ep.t)}/${fmt1(ep.max)} aut`;
+    h += `<div class="hd ${p.d === T ? "today" : ""} ${over || empty ? "need" : near ? "near" : ""}" data-goday="${p.d}" title="kliknij — Załadunki tego dnia">${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}
+      <span class="eur ${eurSzt ? "" : "zero"}">${fmt(eurSzt)}<small>EUR</small></span>
       <small>${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut · PUL ${fmt(act.reduce((s, i) => s + pulSzt(i.q), 0))}</small>
-      ${ev != null ? `<span class="${ev > ep.lim ? "ov" : "okk"}">stan EUR ${fmt1(ev / ep.t)}/${fmt1(ep.max)}${ev > ep.lim ? "" : " ✓"}</span>${need ? `<span class="ov" title="tyle aut EUR trzeba wydać do tego dnia (łącznie od dziś), żeby zmieścić się w limicie">⚠ umów do tego dnia +${need}</span>` : ""}` : "<small>&nbsp;</small>"}</div>`;
+      ${ev == null ? "" : over ? `<span class="ov">${stanTxt} · ponad limit</span>` : near ? `<span class="nr">${stanTxt} · blisko limitu</span>` : `<span class="okk">${stanTxt} · w normie</span>`}
+      ${need ? `<span class="ov" title="tyle aut EUR trzeba wydać do tego dnia (łącznie od dziś), żeby zmieścić się w limicie">⚠ umów do tego dnia +${need} aut</span>` : ""}
+      ${empty ? `<span class="ov">⚠ brak awizacji — umów</span>` : ""}</div>`;
   });
   const chip = it => `<div class="chip st-${it.st} ${itCls(it.q, it.name)}" data-hedit="${esc(it.id)}" data-date="${it.date}" title="${esc((it.name || "") + " · " + it.slot + " · " + ST[it.st] + " · " + qText(it.q) + (it.note ? " · " + it.note : ""))}">${it.ord ? `<b>${it.ord}</b> ` : ""}${esc((it.name || it.code || "").slice(0, 20))} <b>${fmt(CATS.reduce((s, c) => s + qSum(it.q, c.k), 0))}</b></div>`;
   CFG.slots.forEach((s, i) => {
