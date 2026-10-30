@@ -103,7 +103,7 @@ Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch
 - Animacje przejść (zakładki, okna, wiersze, wykresy, świeżo wydane) — wyłączają się, gdy system ma ustawione „ogranicz ruch”.
 - **Salda**: kafelki „ile jest teraz” (do oddania, zmiana od poprzedniego pliku, winni nam, netto, bez awizacji) i **archiwum** — każdy wczytany plik zostaje w bazie (`pk_salda/{data}`), wybór dnia albo klik w historii otwiera podgląd archiwalny.
 - **Stany placu — zapełnienie**: zbiorniki w kolorach grup (stan / maks. z Ustawień), ponad limitem mrugają na czerwono z „wylewającym się” stosem; pasek „plac razem”.
-- **Harmonogram**: duży nagłówek dnia z sumą umówionych EUR; dzień, w którym prognozowany stan EUR przekracza limit, miga i podpowiada, ile aut umówić.
+- **Harmonogram — EUR dzień po dniu**: stan rano + zjazd ze sklepów − umówione odbiory = stan wieczorem. Dzień jest zielony („umówione wystarczy”), gdy wieczorem mieścimy się w limicie; czerwony i migający („za mało — domów +N aut EUR”), gdy awizacji jest za mało; żółty „na styk” od 85% limitu. Wiersz **przepływu EUR** pokazuje zbiornik dnia (rano → wieczorem) z linią limitu, zjazd ze sklepów, auta, które wyjadą, i brakujące auta. Propozycje terminów: najpierw ten sam dzień, potem wcześniejsze.
 - Skróty: <kbd>N</kbd> nowa awizacja, ←/→ zmiana dnia, w formularzu <kbd>Enter</kbd> zapisuje. Podpowiedź firmy po kodzie SAP albo 2 literach nazwy (z listy DOSTAWCY i sald).
 
 ### Jednorazowo
