@@ -92,6 +92,8 @@ Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch
 - **Salda** — codzienne wgranie pliku „Stan rozliczeń opakowań” (xlsx/xls/csv). Zmiana względem poprzedniego pliku, umówione odbiory, saldo po odbiorach, filtry i wyszukiwarka.
 - **Stany** — poranny stan pustych opakowań na placu (te same kategorie co w arkuszu WYDANIA; plastik w stosach × 120/140). Zjazd ze sklepów = stan dziś − stan poprzedni + wydane w międzyczasie.
 - **Prognoza** — średni zjazd z 28 dni, prognoza stanu na 3/5/7/14 dni, dzień przekroczenia maks. stanu, liczba aut do zaplanowania, zjazd wg dnia tygodnia.
+- Kolory grup opakowań wszędzie (stany, tabele, harmonogram, ilości): EUR własne – sosna, CHEP – niebieski, LPR – czerwony, NDHP – zielony, IPP – brązowy, wózki – szary, inne – fiolet. Grupę kategorii zmienia się w Ustawieniach.
+- **Eksport do Excela** (przycisk „⤓ Excel”) na każdej zakładce: pulpit (4 arkusze), załadunki dnia, tydzień harmonogramu, salda (wszystkie przefiltrowane wiersze), stany i zjazdy, prognoza; w Ustawieniach eksport wszystkich awizacji i wydań z dowolnego okresu.
 - Skróty: <kbd>N</kbd> nowa awizacja, ←/→ zmiana dnia, w formularzu <kbd>Enter</kbd> zapisuje. Podpowiedź firmy po kodzie SAP albo 2 literach nazwy (z listy DOSTAWCY i sald).
 
 ### Jednorazowo

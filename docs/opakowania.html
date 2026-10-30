@@ -6,199 +6,243 @@
 <meta name="robots" content="noindex">
 <title>Awizacja opakowań</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Saira+Condensed:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Ten sam nagłówek i paleta co raport zmiany; szerszy układ pod tabele i harmonogram */
+/* Motyw „paleta”: nagłówek z desek, papier pakowy w tle, stemple w szablonie (stencil).
+   Kolory grup opakowań: własne EUR – sosna, CHEP – niebieski, LPR – czerwony, NDHP – zielony, IPP – brązowy, wózki – szary. */
 :root {
-  --bg: #eef1f4; --surface: #ffffff; --surface-2: #f5f7f9; --line: #d5dbe2;
-  --fg: #17202b; --muted: #5b6878; --accent: #e8a200; --accent-ink: #1a1400;
-  --head: #1d2733; --head-fg: #f3f5f7;
-  --ok: #1f8a4c; --ok-bg: #e2f4ea; --warn: #b26b00; --warn-bg: #fff1d6;
-  --busy: #1f62b8; --busy-bg: #e3edfa; --bad: #c0332b; --bad-bg: #fbe4e2;
-  --bar: #2f6fb8; --bar-2: #9db9dd;
-  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
-  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --r: 6px;
+  --bg: #ece5d8; --surface: #fffcf6; --surface-2: #f5efe4; --line: #dcd1bf; --line-2: #e9e1d3;
+  --fg: #241b12; --muted: #74624e;
+  --wood-1: #3a2b1d; --wood-2: #33261a; --wood-gap: #1d150e; --wood-fg: #f4ead8; --wood-mut: #c9b393;
+  --pine: #e6c28c; --pine-ink: #2a1d10;
+  --btn: #3a2b1d; --btn-fg: #fbf3e4;
+  --ok: #2e7d32; --ok-bg: #e3f1e1; --warn: #a15c00; --warn-bg: #fbecd2; --bad: #c62828; --bad-bg: #f9e1df; --info: #1f5fbf; --info-bg: #e2ebf8;
+  --g-own: #b07a2f; --g-own-bg: #f6ead6;
+  --g-chep: #1f5fbf; --g-chep-bg: #e2ebf8;
+  --g-lpr: #c62828; --g-lpr-bg: #f9e1df;
+  --g-ndhp: #2e7d32; --g-ndhp-bg: #e3f1e1;
+  --g-ipp: #6d4223; --g-ipp-bg: #efe2d6;
+  --g-woz: #6b7280; --g-woz-bg: #ebecee;
+  --g-inne: #7b5fb0; --g-inne-bg: #ece6f6;
+  --f-stamp: "Saira Stencil One", "Saira Condensed", Impact, sans-serif;
+  --f-cond: "Saira Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r: 4px;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #11161c; --surface: #1a2129; --surface-2: #151b22; --line: #2e3844;
-  --fg: #e6eaef; --muted: #96a3b3; --accent: #f2b31d; --accent-ink: #1a1400;
-  --head: #0b0f14; --head-fg: #e6eaef;
-  --ok: #4cc47f; --ok-bg: #173323; --warn: #f0a63a; --warn-bg: #3a2a10;
-  --busy: #6ea6f0; --busy-bg: #172a44; --bad: #f07067; --bad-bg: #3e1a18;
-  --bar: #6ea6f0; --bar-2: #34557e; color-scheme: dark;
+  --bg: #15110d; --surface: #1f1913; --surface-2: #19140f; --line: #3a3026; --line-2: #2c241c;
+  --fg: #efe6d8; --muted: #b09c84; --wood-1: #2a1f15; --wood-2: #241a11; --wood-gap: #0e0a06;
+  --pine: #d9b27a; --btn: #e6c28c; --btn-fg: #20160c;
+  --ok: #6cc070; --ok-bg: #1b2e1b; --warn: #f0a63a; --warn-bg: #3a2a10; --bad: #f07067; --bad-bg: #3e1a18; --info: #6ea6f0; --info-bg: #172a44;
+  --g-own: #e0a95a; --g-own-bg: #3a2a14; --g-chep: #6ea6f0; --g-chep-bg: #172a44; --g-lpr: #f07067; --g-lpr-bg: #3e1a18;
+  --g-ndhp: #6cc070; --g-ndhp-bg: #1b2e1b; --g-ipp: #c8946a; --g-ipp-bg: #33241a; --g-woz: #a3a9b4; --g-woz-bg: #2a2c30; --g-inne: #b49ae6; --g-inne-bg: #2c2440;
+  color-scheme: dark;
 } }
 :root[data-theme="dark"] {
-  --bg: #11161c; --surface: #1a2129; --surface-2: #151b22; --line: #2e3844;
-  --fg: #e6eaef; --muted: #96a3b3; --accent: #f2b31d; --accent-ink: #1a1400;
-  --head: #0b0f14; --head-fg: #e6eaef;
-  --ok: #4cc47f; --ok-bg: #173323; --warn: #f0a63a; --warn-bg: #3a2a10;
-  --busy: #6ea6f0; --busy-bg: #172a44; --bad: #f07067; --bad-bg: #3e1a18;
-  --bar: #6ea6f0; --bar-2: #34557e; color-scheme: dark;
+  --bg: #15110d; --surface: #1f1913; --surface-2: #19140f; --line: #3a3026; --line-2: #2c241c;
+  --fg: #efe6d8; --muted: #b09c84; --wood-1: #2a1f15; --wood-2: #241a11; --wood-gap: #0e0a06;
+  --pine: #d9b27a; --btn: #e6c28c; --btn-fg: #20160c;
+  --ok: #6cc070; --ok-bg: #1b2e1b; --warn: #f0a63a; --warn-bg: #3a2a10; --bad: #f07067; --bad-bg: #3e1a18; --info: #6ea6f0; --info-bg: #172a44;
+  --g-own: #e0a95a; --g-own-bg: #3a2a14; --g-chep: #6ea6f0; --g-chep-bg: #172a44; --g-lpr: #f07067; --g-lpr-bg: #3e1a18;
+  --g-ndhp: #6cc070; --g-ndhp-bg: #1b2e1b; --g-ipp: #c8946a; --g-ipp-bg: #33241a; --g-woz: #a3a9b4; --g-woz-bg: #2a2c30; --g-inne: #b49ae6; --g-inne-bg: #2c2440;
+  color-scheme: dark;
 }
+.g-own { --gc: var(--g-own); --gb: var(--g-own-bg); } .g-chep { --gc: var(--g-chep); --gb: var(--g-chep-bg); }
+.g-lpr { --gc: var(--g-lpr); --gb: var(--g-lpr-bg); } .g-ndhp { --gc: var(--g-ndhp); --gb: var(--g-ndhp-bg); }
+.g-ipp { --gc: var(--g-ipp); --gb: var(--g-ipp-bg); } .g-woz { --gc: var(--g-woz); --gb: var(--g-woz-bg); }
+.g-inne { --gc: var(--g-inne); --gb: var(--g-inne-bg); }
+
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; padding-top: env(safe-area-inset-top, 0px); background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+body { margin: 0; padding-top: env(safe-area-inset-top, 0px); background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.4; }
 [hidden] { display: none !important; }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--head); }
-.wrap { max-width: 1200px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--head); color: var(--head-fg); border-bottom: 3px solid var(--accent); }
-.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-block: 10px 0; }
-.brand { display: flex; align-items: baseline; gap: 12px; margin-right: auto; flex-wrap: wrap; }
-.brand h1 { font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; letter-spacing: .02em; text-transform: uppercase; margin: 0; }
-.brand a { color: #b8c4d1; font-size: .82rem; }
-.brand .mode { font: 600 .72rem var(--f-mono); background: var(--warn); color: #1a1400; padding: 2px 6px; border-radius: 4px; }
-.who { font-size: .8rem; color: #b8c4d1; display: inline-flex; gap: 10px; align-items: center; }
-.who button { font: inherit; background: transparent; color: #fff; border: 1px solid #4a5868; border-radius: var(--r); padding: 3px 9px; cursor: pointer; }
-nav.tabs { display: flex; gap: 2px; width: 100%; overflow-x: auto; }
-nav.tabs button { font-family: var(--f-display); font-size: 1.05rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; background: transparent; color: #b8c4d1; border: 0; padding: 8px 14px 9px; cursor: pointer; border-radius: var(--r) var(--r) 0 0; white-space: nowrap; }
-nav.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
-main { padding-block: 18px 80px; display: grid; gap: 14px; }
-main > section { display: grid; gap: 14px; min-width: 0; }
-h2 { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
-h3 { font-family: var(--f-display); font-weight: 600; font-size: 1.1rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
-.sub { color: var(--muted); margin: 0; font-size: .88rem; }
-.row { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
-.row .grow { flex: 1 1 200px; }
+.wrap { max-width: 1280px; margin: 0 auto; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+
+/* nagłówek z desek palety */
+header.top { position: sticky; top: 0; z-index: 5; color: var(--wood-fg);
+  background: repeating-linear-gradient(180deg, var(--wood-1) 0 15px, var(--wood-2) 15px 28px, var(--wood-gap) 28px 30px); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding-block: 7px 0; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.brand svg { width: 34px; height: 22px; flex: none; }
+.brand h1 { font: 400 1.45rem/1 var(--f-stamp); letter-spacing: .04em; margin: 0; text-transform: uppercase; color: var(--pine); }
+.brand .mode { font: 600 .66rem var(--f-mono); background: var(--warn); color: #1a1000; padding: 1px 5px; border-radius: 3px; }
+.who { font-size: .78rem; color: var(--wood-mut); display: inline-flex; gap: 8px; align-items: center; }
+.who button { font: inherit; background: transparent; color: var(--wood-fg); border: 1px solid #6a5440; border-radius: var(--r); padding: 2px 8px; cursor: pointer; }
+nav.tabs { display: flex; gap: 2px; width: 100%; overflow-x: auto; scrollbar-width: none; }
+nav.tabs button { font: 600 .98rem var(--f-cond); letter-spacing: .06em; text-transform: uppercase; background: transparent; color: var(--wood-mut); border: 0; padding: 5px 12px 6px; cursor: pointer; border-radius: var(--r) var(--r) 0 0; white-space: nowrap; }
+nav.tabs button:hover { color: var(--wood-fg); }
+nav.tabs button[aria-selected="true"] { color: var(--pine-ink); background: linear-gradient(180deg, #f0d3a5, var(--pine)); }
+
+main { padding-block: 12px 60px; display: grid; gap: 10px; }
+main > section { display: grid; gap: 10px; min-width: 0; align-content: start; }
+h2, h3 { font: 700 1rem/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .06em; margin: 0; }
+h2 { font-size: 1.15rem; }
+.sub { color: var(--muted); margin: 0; font-size: .8rem; }
+.row { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
 .spacer { margin-left: auto; }
-input, select, textarea { font: inherit; font-size: .95rem; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r); padding: 7px 9px; width: 100%; min-width: 0; }
+input, select, textarea { font: inherit; font-size: .9rem; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r); padding: 5px 8px; width: 100%; min-width: 0; }
 input[type=number], .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 input[type=checkbox] { width: auto; }
-textarea { min-height: 70px; resize: vertical; }
-input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; font: inherit; font-weight: 600; font-size: .88rem; border-radius: var(--r); padding: 8px 13px; cursor: pointer; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); white-space: nowrap; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.btn.danger { color: var(--bad); }
-.btn.sm { padding: 4px 9px; font-size: .8rem; }
+input[type=date] { width: auto; }
+textarea { min-height: 60px; resize: vertical; }
+input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--g-own); outline-offset: 1px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; text-decoration: none; font: 600 .8rem var(--f-body); border-radius: var(--r); padding: 5px 10px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg); white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--btn); border-color: var(--btn); color: var(--btn-fg); }
 .btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.btn.danger { color: var(--bad); }
+.btn.xs { padding: 2px 7px; font-size: .74rem; }
+.btn.xl { font-family: var(--f-mono); font-size: .72rem; padding: 2px 7px; color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
-.seg button { font: inherit; font-size: .82rem; font-weight: 600; background: var(--surface-2); color: var(--muted); border: 0; padding: 6px 11px; cursor: pointer; }
+.seg button { font: 600 .76rem var(--f-body); background: var(--surface); color: var(--muted); border: 0; padding: 4px 9px; cursor: pointer; }
 .seg button + button { border-left: 1px solid var(--line); }
-.seg button[aria-pressed="true"] { background: var(--head); color: var(--head-fg); }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 12px; min-width: 0; }
-.panel > header { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; }
-.notice { padding: 10px 12px; border-radius: var(--r); font-size: .9rem; }
+.seg button[aria-pressed="true"] { background: var(--btn); color: var(--btn-fg); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 9px 11px; display: grid; gap: 8px; min-width: 0; align-content: start; }
+.panel > header { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.panel > header .sub { font-size: .74rem; }
+.notice { padding: 8px 10px; border-radius: var(--r); font-size: .85rem; }
 .notice.ok { background: var(--ok-bg); color: var(--ok); }
 .notice.err { background: var(--bad-bg); color: var(--bad); }
 .notice.warn { background: var(--warn-bg); color: var(--warn); }
 .notice.info { background: var(--surface-2); color: var(--muted); border: 1px dashed var(--line); }
-.login { max-width: 420px; margin: 30px auto 0; }
-.field { display: grid; gap: 4px; font-size: .8rem; font-weight: 600; color: var(--muted); }
+.notice ul { margin: 4px 0 0; padding-left: 18px; }
+.login { max-width: 380px; margin: 30px auto 0; }
+.field { display: grid; gap: 2px; font-size: .74rem; font-weight: 600; color: var(--muted); }
 .field small { font-weight: 400; }
-.grid2 { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); align-items: start; }
+.cols { display: grid; gap: 10px; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 980px) { .cols { grid-template-columns: 1fr; } }
 
-/* KPI */
-.kpis { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
-.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 2px; }
-.kpi .l { font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-.kpi .v { font: 700 2rem/1.1 var(--f-display); font-variant-numeric: tabular-nums; }
-.kpi .v small { font-size: 1rem; color: var(--muted); font-weight: 600; }
-.kpi .d { font-size: .8rem; color: var(--muted); }
-.kpi.alert { box-shadow: inset 4px 0 0 var(--bad); }
-.kpi.good { box-shadow: inset 4px 0 0 var(--ok); }
+/* KPI jako stemple na deskach */
+.kpis { display: grid; gap: 8px; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: var(--r); padding: 6px 9px 7px; display: grid; gap: 0; min-width: 0; }
+.kpi .l { font: 600 .72rem var(--f-cond); color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+.kpi .v { font: 400 1.6rem/1.15 var(--f-stamp); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kpi .v small { font: 600 .8rem var(--f-cond); color: var(--muted); letter-spacing: .03em; }
+.kpi .d { font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi.alert { border-top-color: var(--bad); } .kpi.alert .v { color: var(--bad); }
+.kpi.good { border-top-color: var(--ok); }
 
-/* tabele */
-.tbl-wrap { overflow-x: auto; margin: 0 -2px; }
-table { border-collapse: collapse; width: 100%; font-size: .88rem; }
-th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
-th { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; white-space: nowrap; background: var(--surface); position: sticky; top: 0; }
-td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* tabele: gęste */
+.tbl-wrap { overflow: auto; }
+.tbl-wrap.h { max-height: 420px; }
+table { border-collapse: collapse; width: 100%; font-size: .82rem; }
+th, td { padding: 3px 6px; border-bottom: 1px solid var(--line-2); text-align: left; vertical-align: middle; }
+th { font: 600 .7rem var(--f-cond); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); white-space: nowrap; background: var(--surface); position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--line); }
+td.n, th.n { text-align: right; font-family: var(--f-mono); font-size: .78rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.nw { white-space: nowrap; }
+td.cut { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 tr.click { cursor: pointer; }
 tr.click:hover td { background: var(--surface-2); }
+tr.grp td { background: var(--gb); color: var(--gc); font: 700 .74rem var(--f-cond); letter-spacing: .08em; text-transform: uppercase; padding-block: 2px; border-bottom: 0; }
+tr.cat td:first-child { border-left: 4px solid var(--gc); }
 .pos { color: var(--bad); } .neg { color: var(--ok); } .mut { color: var(--muted); }
-.tag { display: inline-block; font: 600 .72rem var(--f-mono); padding: 1px 6px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); white-space: nowrap; }
+.tag { display: inline-block; font: 600 .7rem var(--f-mono); padding: 0 5px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--line); white-space: nowrap; line-height: 1.55; }
 .tag.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
 .tag.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
 .tag.ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
-.tag.busy { background: var(--busy-bg); color: var(--busy); border-color: transparent; }
+.tag.info { background: var(--info-bg); color: var(--info); border-color: transparent; }
+.q { display: inline-block; font: 600 .7rem var(--f-mono); padding: 0 5px; border-radius: 3px; background: var(--gb); color: var(--gc); border-left: 3px solid var(--gc); white-space: nowrap; line-height: 1.55; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--gc); margin-right: 5px; vertical-align: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .72rem; color: var(--muted); }
 
-/* lista dnia */
-.daybar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.daybar input[type=date] { width: auto; }
-.daybar .dname { font: 700 1.3rem var(--f-display); text-transform: uppercase; letter-spacing: .03em; }
-.sum { display: flex; flex-wrap: wrap; gap: 6px; }
-.aw-list { display: grid; gap: 6px; }
-.aw { display: grid; grid-template-columns: 54px 108px minmax(160px, 1.4fr) minmax(140px, 1.3fr) 92px auto; gap: 6px 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 10px; box-shadow: inset 4px 0 0 var(--line); }
-.aw.st-arr { box-shadow: inset 4px 0 0 var(--busy); }
-.aw.st-load { box-shadow: inset 4px 0 0 var(--accent); }
-.aw.st-done { box-shadow: inset 4px 0 0 var(--ok); opacity: .82; }
-.aw.st-cancel, .aw.st-noshow { box-shadow: inset 4px 0 0 var(--bad); opacity: .6; }
-.aw .ord { display: flex; align-items: center; gap: 4px; font: 700 1.25rem var(--f-display); }
+/* lista dnia: jeden wiersz na auto */
+.daybar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.daybar .dname { font: 700 1.15rem var(--f-cond); text-transform: uppercase; letter-spacing: .05em; }
+.sum { display: flex; flex-wrap: wrap; gap: 4px; }
+.aw-list { display: grid; gap: 3px; }
+.aw { display: grid; grid-template-columns: 44px 92px minmax(150px, 1.3fr) minmax(130px, 1.4fr) 62px 190px; gap: 4px 10px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-left: 5px solid var(--gc, var(--line)); border-radius: var(--r); padding: 3px 8px; min-height: 36px; }
+.aw.st-done { background: var(--surface-2); } .aw.st-done .firm b { text-decoration: line-through; text-decoration-color: var(--ok); text-decoration-thickness: 2px; }
+.aw.st-cancel, .aw.st-noshow { opacity: .5; }
+.aw.st-arr { box-shadow: inset 0 0 0 1px var(--info); } .aw.st-load { box-shadow: inset 0 0 0 1px var(--warn); }
+.aw .ord { display: flex; align-items: center; gap: 3px; font: 400 1.1rem var(--f-stamp); }
 .aw .ord span { display: grid; }
-.aw .ord button { font-size: .7rem; line-height: 1; padding: 2px 5px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); border-radius: 4px; cursor: pointer; }
-.aw .slot { font: 600 .85rem var(--f-mono); }
-.aw small { display: block; font-family: var(--f-body); font-weight: 400; font-size: .76rem; color: var(--muted); }
-.aw .firm b { font-weight: 600; cursor: pointer; }
-.aw .firm b:hover { text-decoration: underline; }
-.aw .qty { display: flex; flex-wrap: wrap; gap: 4px; }
-.aw .sal { font: 500 .82rem var(--f-mono); text-align: right; }
-.aw .acts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.aw .ord button { font-size: .55rem; line-height: 1; padding: 1px 3px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); border-radius: 2px; cursor: pointer; }
+.aw .slot { font: 600 .76rem var(--f-mono); white-space: nowrap; }
+.aw .slot small, .aw .firm small { display: block; font: 400 .7rem var(--f-body); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw .firm { min-width: 0; }
+.aw .firm b { font-weight: 700; cursor: pointer; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw .qty { display: flex; flex-wrap: wrap; gap: 3px; }
+.aw .sal { font: 600 .74rem var(--f-mono); text-align: right; line-height: 1.1; }
+.aw .sal small { display: block; font: 400 .62rem var(--f-body); color: var(--muted); }
+.aw .acts { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
 @media (max-width: 860px) {
-  .aw { grid-template-columns: 46px 1fr auto; }
+  .aw { grid-template-columns: 38px 1fr auto; }
   .aw .slot { grid-column: 2; } .aw .sal { grid-column: 3; grid-row: 1; }
   .aw .firm, .aw .qty, .aw .acts { grid-column: 1 / -1; }
-  .aw .acts { justify-content: flex-start; }
+  .aw .acts { justify-content: flex-start; flex-wrap: wrap; }
 }
 
 /* harmonogram */
 .harm-wrap { overflow-x: auto; }
-.harm { display: grid; grid-template-columns: 92px repeat(7, minmax(128px, 1fr)); gap: 3px; min-width: 980px; }
-.harm .hd { font: 600 .8rem var(--f-body); padding: 6px; background: var(--head); color: var(--head-fg); border-radius: 4px; display: grid; gap: 2px; cursor: pointer; }
-.harm .hd.today { background: var(--accent); color: var(--accent-ink); }
-.harm .hd small { font: 500 .72rem var(--f-mono); opacity: .85; }
-.harm .sl { font: 600 .78rem var(--f-mono); color: var(--muted); padding: 6px 4px; align-self: center; }
-.harm .cell { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; min-height: 46px; padding: 3px; display: grid; gap: 2px; align-content: start; cursor: copy; }
+.harm { display: grid; grid-template-columns: 74px repeat(7, minmax(118px, 1fr)); gap: 2px; min-width: 900px; }
+.harm .hd { font: 600 .78rem var(--f-cond); letter-spacing: .04em; text-transform: uppercase; padding: 3px 5px; background: var(--wood-1); color: var(--wood-fg); border-radius: 3px; display: grid; cursor: pointer; }
+.harm .hd.today { background: var(--pine); color: var(--pine-ink); }
+.harm .hd small { font: 400 .66rem var(--f-mono); text-transform: none; letter-spacing: 0; opacity: .85; }
+.harm .sl { font: 600 .7rem var(--f-mono); color: var(--muted); padding: 2px; align-self: center; }
+.harm .cell { background: var(--surface); border: 1px solid var(--line-2); border-radius: 3px; min-height: 30px; padding: 2px; display: grid; gap: 2px; align-content: start; cursor: copy; }
 .harm .cell.full { background: var(--surface-2); }
 .harm .cell.over { border-color: var(--bad); }
-.harm .cell.past { opacity: .7; }
-.chip { font-size: .74rem; line-height: 1.25; padding: 2px 5px; border-radius: 3px; background: var(--busy-bg); color: var(--fg); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-left: 3px solid var(--busy); }
-.chip.st-done { border-left-color: var(--ok); background: var(--ok-bg); }
-.chip.st-load { border-left-color: var(--accent); background: var(--warn-bg); }
-.chip.st-cancel, .chip.st-noshow { border-left-color: var(--bad); background: var(--bad-bg); text-decoration: line-through; }
+.harm .cell.past { opacity: .65; }
+.chip { font-size: .7rem; line-height: 1.3; padding: 1px 4px; border-radius: 2px; background: var(--gb, var(--surface-2)); color: var(--fg); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-left: 3px solid var(--gc, var(--muted)); }
+.chip.st-done { opacity: .6; }
+.chip.st-cancel, .chip.st-noshow { text-decoration: line-through; opacity: .45; }
 .chip b { font-family: var(--f-mono); font-weight: 600; }
-.free { font-size: .7rem; color: var(--muted); padding: 0 3px; }
+.free { font-size: .64rem; color: var(--muted); padding: 0 2px; }
 
-/* wykresy słupkowe (CSS) */
-.bars { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(18px, 1fr); gap: 2px; align-items: end; height: 150px; padding-top: 18px; position: relative; border-bottom: 1px solid var(--line); }
-.bars .b { position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; cursor: default; }
-.bars .b i { display: block; width: 100%; max-width: 30px; background: var(--bar); border-radius: 4px 4px 0 0; min-height: 1px; }
-.bars .b.ghost i { background: var(--bar-2); }
+/* stany: grupy kolorów */
+.sgroups { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.sgroup { border: 1px solid var(--line); border-top: 4px solid var(--gc); border-radius: var(--r); background: var(--gb); padding: 6px 8px 8px; display: grid; gap: 5px; align-content: start; }
+.sgroup h3 { color: var(--gc); font-size: .9rem; }
+.sgroup .it { display: grid; grid-template-columns: 1fr 92px; gap: 2px 6px; align-items: center; font-size: .8rem; }
+.sgroup .it label { font-weight: 600; }
+.sgroup .it small { grid-column: 1 / -1; font-size: .68rem; color: var(--muted); margin-top: -3px; }
+.sgroup input { background: var(--surface); padding: 3px 6px; text-align: right; }
+
+/* wykresy (CSS) */
+.bars { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(14px, 1fr); gap: 2px; align-items: end; height: var(--bh, 110px); padding-top: 14px; position: relative; border-bottom: 1px solid var(--line); }
+.bars .b { position: relative; height: 100%; display: flex; flex-direction: column-reverse; align-items: center; cursor: default; }
+.bars .b i { display: block; width: 100%; max-width: 26px; background: var(--gc, var(--g-own)); min-height: 0; }
+.bars .b i + i { margin-bottom: 2px; }
+.bars .b i:last-of-type { border-radius: 3px 3px 0 0; }
 .bars .b.over i { background: var(--bad); }
-.bars .b:hover i { filter: brightness(1.15); }
-.bars .b span { position: absolute; bottom: calc(var(--h) + 2px); font: 500 .66rem var(--f-mono); color: var(--muted); white-space: nowrap; }
+.bars .b.ghost { opacity: .45; }
+.bars .b:hover i { filter: brightness(1.12); }
+.bars .b span { position: absolute; bottom: calc(var(--h) + 2px); font: 500 .6rem var(--f-mono); color: var(--muted); white-space: nowrap; }
 .bars .lim { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--bad); pointer-events: none; }
-.bars .lim em { position: absolute; right: 0; top: -16px; font: 500 .68rem var(--f-mono); color: var(--bad); font-style: normal; }
-.axis { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(18px, 1fr); gap: 2px; font: 500 .66rem var(--f-mono); color: var(--muted); text-align: center; }
-.tip { position: fixed; z-index: 30; pointer-events: none; background: var(--fg); color: var(--bg); font-size: .78rem; padding: 6px 9px; border-radius: 4px; max-width: 260px; }
+.bars .lim em { position: absolute; left: 0; top: -14px; font: 500 .62rem var(--f-mono); color: var(--bad); font-style: normal; background: var(--surface); padding: 0 3px; }
+.axis { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(14px, 1fr); gap: 2px; font: 500 .6rem var(--f-mono); color: var(--muted); text-align: center; line-height: 1.2; }
+.tip { position: fixed; z-index: 30; pointer-events: none; background: var(--fg); color: var(--bg); font-size: .74rem; padding: 5px 8px; border-radius: 3px; max-width: 260px; }
 
 /* dialogi */
-dialog { border: 1px solid var(--line); border-radius: 10px; padding: 0; background: var(--surface); color: var(--fg); width: min(760px, calc(100% - 24px)); max-height: calc(100% - 24px); }
-dialog::backdrop { background: rgba(10, 15, 20, .55); }
-dialog form { display: grid; gap: 12px; padding: 16px; }
+dialog { border: 1px solid var(--line); border-top: 6px solid var(--wood-1); border-radius: 6px; padding: 0; background: var(--surface); color: var(--fg); width: min(720px, calc(100% - 20px)); max-height: calc(100% - 20px); }
+dialog::backdrop { background: rgba(20, 12, 4, .55); }
+dialog form { display: grid; gap: 9px; padding: 12px 14px; }
 dialog .dh { display: flex; align-items: center; gap: 10px; }
 dialog .dh h2 { margin-right: auto; }
-.fgrid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-.qgrid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
-.qgrid .field input { font-size: 1rem; }
+.fgrid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.qgrid { display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+.qgrid .field { border-left: 3px solid var(--gc, var(--line)); padding-left: 6px; }
 .sugg { position: relative; }
-.sugg ul { position: absolute; z-index: 4; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 4px; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: 0 6px 20px rgba(0,0,0,.18); max-height: 280px; overflow: auto; }
-.sugg li { padding: 6px 8px; border-radius: 4px; cursor: pointer; display: flex; gap: 10px; font-size: .88rem; }
+.sugg ul { position: absolute; z-index: 4; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 3px; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: 0 6px 20px rgba(0,0,0,.2); max-height: 260px; overflow: auto; }
+.sugg li { padding: 4px 7px; border-radius: 3px; cursor: pointer; display: flex; gap: 10px; font-size: .84rem; color: var(--fg); font-weight: 500; }
 .sugg li[aria-selected="true"], .sugg li:hover { background: var(--surface-2); }
 .sugg li .num { color: var(--muted); }
 .sugg li .s { margin-left: auto; font-family: var(--f-mono); }
-.salinfo { font-size: .85rem; color: var(--muted); }
-.drop { border: 2px dashed var(--line); border-radius: var(--r); padding: 18px; text-align: center; color: var(--muted); }
-.drop.over { border-color: var(--accent); background: var(--warn-bg); }
-#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: var(--r); font-size: .9rem; z-index: 40; max-width: calc(100% - 32px); }
+.salinfo { font-size: .8rem; color: var(--muted); }
+.drop { display: block; border: 2px dashed var(--line); border-radius: var(--r); padding: 10px; text-align: center; color: var(--muted); cursor: pointer; font-size: .85rem; }
+.drop.over { border-color: var(--g-own); background: var(--g-own-bg); }
+#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: var(--r); font-size: .85rem; z-index: 40; max-width: calc(100% - 32px); }
 #toast.err { background: var(--bad); color: #fff; }
-kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; }
+kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bottom-width: 2px; border-radius: 3px; padding: 0 3px; opacity: .8; }
 
 @media print {
   header.top, .noprint, .acts, .aw .ord span, #toast { display: none !important; }
-  body { background: #fff; color: #000; font-size: 11px; }
-  .aw { break-inside: avoid; box-shadow: none; border: 1px solid #999; opacity: 1 !important; }
+  body { background: #fff; color: #000; font-size: 10px; }
+  .aw { break-inside: avoid; }
   main { padding: 0; }
 }
 </style>
@@ -207,17 +251,17 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
 <header class="top">
   <div class="wrap">
     <div class="brand">
+      <svg viewBox="0 0 34 22" aria-hidden="true"><g fill="#e6c28c"><rect x="0" y="0" width="34" height="4" rx="1"/><rect x="0" y="6" width="34" height="4" rx="1"/><rect x="0" y="16" width="34" height="3" rx="1"/></g><g fill="#a77a45"><rect x="1" y="10" width="6" height="6"/><rect x="14" y="10" width="6" height="6"/><rect x="27" y="10" width="6" height="6"/></g></svg>
       <h1>Awizacja opakowań</h1>
-      <span class="mode" id="modeTag" hidden>TRYB LOKALNY</span>
-      <a href="raport.html" id="navRap">Raport zmiany →</a>
+      <span class="mode" id="modeTag" hidden>LOKALNIE</span>
     </div>
     <div class="who" id="who" hidden><span id="whoEmail"></span><button id="logout" type="button">Wyloguj</button></div>
     <nav class="tabs" id="tabs" role="tablist" hidden>
       <button role="tab" data-tab="pulpit">Pulpit</button>
-      <button role="tab" data-tab="dzien">Dzień · załadunki</button>
+      <button role="tab" data-tab="dzien">Załadunki</button>
       <button role="tab" data-tab="harm">Harmonogram</button>
       <button role="tab" data-tab="salda">Salda</button>
-      <button role="tab" data-tab="stany">Stany</button>
+      <button role="tab" data-tab="stany">Stany placu</button>
       <button role="tab" data-tab="prog">Prognoza</button>
       <button role="tab" data-tab="set" id="tab-set">Ustawienia</button>
     </nav>
@@ -243,39 +287,42 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
   <!-- PULPIT -->
   <section id="p-pulpit" role="tabpanel" hidden>
     <div class="row noprint">
-      <h2>Pulpit</h2><span class="sub" id="pulpitSub"></span>
+      <h2 id="pulpitDay"></h2>
       <span class="spacer"></span>
-      <button class="btn primary" type="button" data-new>+ Nowa awizacja <kbd>N</kbd></button>
+      <button class="btn xl" type="button" data-xls="pulpit">⤓ Excel</button>
+      <button class="btn primary" type="button" data-new>+ Awizacja <kbd>N</kbd></button>
     </div>
     <div class="kpis" id="kpis"></div>
-    <div class="grid2">
+    <div class="cols">
       <div class="panel">
-        <header><h3>Dziś — kolejka załadunku</h3><button class="btn sm spacer" type="button" data-goto="dzien">Otwórz dzień →</button></header>
-        <div id="pToday"></div>
+        <header><h3>Opakowania · 7 dni</h3><span class="sub" id="pCatSub"></span><button class="btn xs spacer" type="button" data-goto="prog">Prognoza →</button></header>
+        <div class="tbl-wrap" id="pCats"></div>
       </div>
-      <div class="panel">
-        <header><h3>Umówione auta — 14 dni</h3><span class="sub">liczba aut w awizacjach (wg przeliczników kategorii)</span></header>
-        <div id="pPlan"></div>
+      <div style="display:grid;gap:10px;align-content:start;min-width:0">
+        <div class="panel">
+          <header><h3>Dziś</h3><span class="sub" id="pTodaySub"></span><button class="btn xs spacer" type="button" data-goto="dzien">Załadunki →</button></header>
+          <div class="tbl-wrap h" id="pToday" style="max-height:300px"></div>
+        </div>
+        <div class="panel">
+          <header><h3>Umówione auta · 14 dni</h3></header>
+          <div id="pPlan"></div>
+        </div>
       </div>
     </div>
     <div class="panel">
-      <header><h3>Opakowania — stan, zjazd i co trzeba zaplanować</h3><span class="sub" id="pCatSub"></span><button class="btn sm spacer" type="button" data-goto="prog">Szczegóły prognozy →</button></header>
-      <div class="tbl-wrap" id="pCats"></div>
-    </div>
-    <div class="panel">
-      <header><h3>Do zaawizowania — saldo EUR bez umówionego odbioru</h3><span class="sub" id="pSalSub"></span><button class="btn sm spacer" type="button" data-goto="salda">Wszystkie salda →</button></header>
+      <header><h3>Do zaawizowania · saldo EUR bez odbioru</h3><span class="sub" id="pSalSub"></span><button class="btn xs spacer" type="button" data-goto="salda">Salda →</button></header>
       <div class="tbl-wrap" id="pSal"></div>
     </div>
   </section>
 
-  <!-- DZIEŃ -->
+  <!-- ZAŁADUNKI (DZIEŃ) -->
   <section id="p-dzien" role="tabpanel" hidden>
     <div class="panel">
       <div class="daybar">
-        <button class="btn sm noprint" type="button" id="dPrev" aria-label="Poprzedni dzień">◀</button>
+        <button class="btn xs noprint" type="button" id="dPrev" aria-label="Poprzedni dzień">◀</button>
         <input type="date" id="dDate" class="noprint">
-        <button class="btn sm noprint" type="button" id="dNext" aria-label="Następny dzień">▶</button>
-        <button class="btn sm noprint" type="button" id="dToday">Dziś</button>
+        <button class="btn xs noprint" type="button" id="dNext" aria-label="Następny dzień">▶</button>
+        <button class="btn xs noprint" type="button" id="dToday">Dziś</button>
         <span class="dname" id="dName"></span>
         <span class="spacer"></span>
         <div class="seg noprint" id="dFilter">
@@ -283,8 +330,9 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
           <button type="button" data-f="open" aria-pressed="false">Do wydania</button>
           <button type="button" data-f="done" aria-pressed="false">Wydane</button>
         </div>
-        <button class="btn sm noprint" type="button" id="dRenum" title="Nadaj numery załadunku wg okien czasowych">Numeruj wg okien</button>
-        <button class="btn sm noprint" type="button" id="dPrint">Drukuj</button>
+        <button class="btn xs noprint" type="button" id="dRenum" title="Nadaj numery załadunku wg okien czasowych">Numeruj wg okien</button>
+        <button class="btn xs noprint" type="button" id="dPrint">Drukuj</button>
+        <button class="btn xl noprint" type="button" data-xls="dzien">⤓ Excel</button>
         <button class="btn primary noprint" type="button" data-new>+ Awizacja <kbd>N</kbd></button>
       </div>
       <div class="sum" id="dSum"></div>
@@ -296,28 +344,29 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
   <section id="p-harm" role="tabpanel" hidden>
     <div class="panel">
       <div class="daybar">
-        <button class="btn sm" type="button" id="hPrev">◀ tydzień</button>
-        <button class="btn sm" type="button" id="hToday">Bieżący</button>
-        <button class="btn sm" type="button" id="hNext">tydzień ▶</button>
+        <button class="btn xs" type="button" id="hPrev">◀</button>
+        <button class="btn xs" type="button" id="hToday">Bieżący</button>
+        <button class="btn xs" type="button" id="hNext">▶</button>
         <span class="dname" id="hName"></span>
         <span class="spacer"></span>
-        <span class="sub">Kliknij puste pole, aby zaawizować w tym oknie · kliknij awizację, aby ją edytować</span>
+        <div class="legend" id="hLeg"></div>
+        <button class="btn xl" type="button" data-xls="harm">⤓ Excel</button>
       </div>
       <div class="harm-wrap"><div class="harm" id="harm"></div></div>
+      <p class="sub">Puste pole = nowa awizacja w tym oknie · klik w awizację = edycja · kolor = główna grupa opakowań</p>
     </div>
   </section>
 
   <!-- SALDA -->
   <section id="p-salda" role="tabpanel" hidden>
     <div class="panel">
-      <header><h3>Wczytaj plik z saldami</h3><span class="sub">Eksport „Stan rozliczeń opakowań” (.xlsx / .xls / .csv) — kolumny Dostawca, Opakowanie, Saldo ogółem, Nazwa dostawcy</span></header>
-      <label class="drop" id="salDrop">Upuść plik tutaj albo <u>wybierz z dysku</u><input type="file" id="salFile" accept=".xlsx,.xls,.xlsm,.csv" hidden></label>
-      <div id="salPrev"></div>
-    </div>
-    <div class="panel">
-      <header><h3>Salda dostawców</h3><span class="sub" id="salSub"></span></header>
       <div class="row">
-        <input class="grow" id="salQ" type="search" placeholder="Szukaj: kod SAP lub nazwa…" style="max-width:360px">
+        <label class="drop grow" id="salDrop" style="flex:1 1 280px">⤒ Plik z saldami („Stan rozliczeń opakowań”, xlsx/xls/csv) — upuść albo <u>wybierz</u><input type="file" id="salFile" accept=".xlsx,.xls,.xlsm,.csv" hidden></label>
+        <span class="sub" id="salSub"></span>
+      </div>
+      <div id="salPrev"></div>
+      <div class="row">
+        <input id="salQ" type="search" placeholder="Szukaj: kod SAP lub nazwa…" style="max-width:300px">
         <select id="salOpak" style="width:auto"></select>
         <div class="seg" id="salF">
           <button type="button" data-f="pos" aria-pressed="true">Saldo &gt; 0</button>
@@ -325,11 +374,13 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
           <button type="button" data-f="neg" aria-pressed="false">Ujemne</button>
           <button type="button" data-f="all" aria-pressed="false">Wszystkie</button>
         </div>
+        <span class="spacer"></span>
+        <button class="btn xl" type="button" data-xls="salda">⤓ Excel</button>
       </div>
-      <div class="tbl-wrap" id="salTbl"></div>
+      <div class="tbl-wrap" id="salTbl" style="max-height:calc(100vh - 260px)"></div>
     </div>
     <div class="panel">
-      <header><h3>Historia wczytanych plików</h3></header>
+      <header><h3>Historia plików</h3></header>
       <div class="tbl-wrap" id="salHist"></div>
     </div>
   </section>
@@ -337,17 +388,19 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
   <!-- STANY -->
   <section id="p-stany" role="tabpanel" hidden>
     <div class="panel">
-      <header><h3>Stan pustych opakowań na placu</h3><span class="sub">liczony rano — z tego aplikacja wylicza zjazd palet ze sklepów i prognozę</span></header>
       <div class="row">
-        <label class="field" style="width:auto">Dzień liczenia <input type="date" id="sDate"></label>
+        <h3>Stan placu</h3>
+        <input type="date" id="sDate">
         <span class="sub" id="sInfo"></span>
+        <span class="spacer"></span>
+        <b id="sTot" class="num"></b>
+        <button class="btn primary" type="button" id="sSave">Zapisz stan</button>
       </div>
-      <form id="sForm" class="qgrid"></form>
-      <div class="row"><button class="btn primary" type="button" id="sSave">Zapisz stan</button><span class="sub" id="sTot"></span></div>
+      <form id="sForm" class="sgroups"></form>
     </div>
     <div class="panel">
-      <header><h3>Historia stanów i zjazdów</h3><span class="sub">zjazd = stan dziś − stan poprzedni + wydane w międzyczasie</span></header>
-      <div class="tbl-wrap" id="sHist"></div>
+      <header><h3>Historia · stan i zjazd</h3><span class="sub">zjazd = stan dziś − stan poprzedni + wydane w międzyczasie</span><button class="btn xl spacer" type="button" data-xls="stany">⤓ Excel</button></header>
+      <div class="tbl-wrap h" id="sHist" style="max-height:480px"></div>
     </div>
   </section>
 
@@ -356,21 +409,21 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
     <div class="panel">
       <div class="row">
         <h3>Prognoza i planowanie</h3>
+        <span class="sub">zjazd: średnia z 28 dni · stan za N dni = stan + zjazd × dni − awizacje</span>
         <span class="spacer"></span>
-        <span class="sub">Horyzont:</span>
         <div class="seg" id="gH">
           <button type="button" data-h="3" aria-pressed="false">3 dni</button>
           <button type="button" data-h="5" aria-pressed="false">5 dni</button>
           <button type="button" data-h="7" aria-pressed="true">7 dni</button>
           <button type="button" data-h="14" aria-pressed="false">14 dni</button>
         </div>
+        <button class="btn xl" type="button" data-xls="prog">⤓ Excel</button>
       </div>
-      <p class="sub">Średni zjazd z ostatnich 28 dni. Prognoza stanu = stan z ostatniego liczenia + zjazd × dni − awizacje w tym czasie. „Do zaplanowania” = ile trzeba jeszcze umówić, żeby nie przekroczyć maksymalnego stanu z ustawień.</p>
       <div class="tbl-wrap" id="gTbl"></div>
     </div>
-    <div class="grid2">
+    <div class="cols">
       <div class="panel">
-        <header><h3>Prognoza stanu dzień po dniu</h3><select id="gCat" style="width:auto" class="spacer"></select></header>
+        <header><h3>Stan dzień po dniu</h3><select id="gCat" style="width:auto" class="spacer"></select></header>
         <div id="gChart"></div>
       </div>
       <div class="panel">
@@ -382,55 +435,65 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
 
   <!-- USTAWIENIA -->
   <section id="p-set" role="tabpanel" hidden>
-    <div class="panel">
-      <header><h3>Import z pliku „OPAKOWANIA AWIZACJE”</h3><span class="sub">jednorazowo — przenosi awizacje i wydania (arkusz WYDANIA), dzienne stany placu, listę DOSTAWCY i SALDA</span></header>
-      <label class="drop" id="impDrop">Upuść plik .xlsx albo <u>wybierz z dysku</u><input type="file" id="impFile" accept=".xlsx,.xlsm,.xls" hidden></label>
-      <div id="impPrev"></div>
-    </div>
-    <div class="panel">
-      <header><h3>Kategorie opakowań</h3><span class="sub">szt. na auto — do przeliczania na auta; stos — gdy stan liczy się w stosach (np. plastik 120 szt.); maks. stan — powyżej tego prognoza każe planować odbiory</span></header>
-      <div class="tbl-wrap" id="cfgCats"></div>
-      <div class="row"><button class="btn sm" type="button" id="cfgAddCat">+ Kategoria</button></div>
-    </div>
-    <div class="grid2">
+    <div class="cols">
       <div class="panel">
-        <header><h3>Okna awizacji</h3><span class="sub">jedno okno w linii: <code>06:00-08:00 | 2</code> (liczba aut w oknie)</span></header>
-        <textarea id="cfgSlots" rows="12" class="num"></textarea>
+        <header><h3>Import pliku „OPAKOWANIA AWIZACJE”</h3><span class="sub">WYDANIA, stany placu, DOSTAWCY, SALDA</span></header>
+        <label class="drop" id="impDrop">⤒ Upuść plik .xlsx albo <u>wybierz z dysku</u><input type="file" id="impFile" accept=".xlsx,.xlsm,.xls" hidden></label>
+        <div id="impPrev"></div>
       </div>
       <div class="panel">
-        <header><h3>Mail z awizacją</h3><span class="sub">pola: {kod} {nazwa} {data} {dzien} {okno} {ilosc} {saldo} {nr}</span></header>
-        <label class="field">Temat <input id="cfgSubj"></label>
-        <label class="field">Treść <textarea id="cfgMail" rows="7"></textarea></label>
-        <div class="fgrid">
-          <label class="field">Kod opakowania EUR w saldach <input id="cfgOpak" class="num"></label>
-          <label class="field">Min. saldo na liście „do zaawizowania” <input id="cfgMin" type="number" min="0"></label>
+        <header><h3>Eksport do Excela</h3><span class="sub">wszystkie awizacje i wydania z okresu</span></header>
+        <div class="row">
+          <label class="field">Od <input type="date" id="exFrom"></label>
+          <label class="field">Do <input type="date" id="exTo"></label>
+          <button class="btn xl" type="button" id="exGo" style="align-self:end">⤓ Excel</button>
         </div>
       </div>
     </div>
-    <div class="row"><button class="btn primary" type="button" id="cfgSave">Zapisz ustawienia</button><button class="btn" type="button" id="cfgReset">Przywróć domyślne kategorie i okna</button></div>
+    <div class="panel">
+      <header><h3>Kategorie opakowań</h3><span class="sub">szt. na auto — przeliczanie na auta · stos — gdy stan liczy się w stosach · maks. stan — powyżej prognoza każe planować</span></header>
+      <div class="tbl-wrap" id="cfgCats"></div>
+      <div class="row"><button class="btn xs" type="button" id="cfgAddCat">+ Kategoria</button></div>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <header><h3>Mail z awizacją</h3><span class="sub">{kod} {nazwa} {data} {dzien} {okno} {ilosc} {saldo} {nr}</span></header>
+        <label class="field">Temat <input id="cfgSubj"></label>
+        <label class="field">Treść <textarea id="cfgMail" rows="6"></textarea></label>
+        <div class="fgrid">
+          <label class="field">Kod opakowania EUR w saldach <input id="cfgOpak" class="num"></label>
+          <label class="field">Min. saldo „do zaawizowania” <input id="cfgMin" type="number" min="0"></label>
+        </div>
+      </div>
+      <div class="panel">
+        <header><h3>Okna awizacji</h3><span class="sub"><code>06:00-08:00 | 2</code> = okno i liczba aut</span></header>
+        <textarea id="cfgSlots" rows="12" class="num"></textarea>
+      </div>
+    </div>
+    <div class="row"><button class="btn primary" type="button" id="cfgSave">Zapisz ustawienia</button><button class="btn" type="button" id="cfgReset">Domyślne kategorie i okna</button></div>
   </section>
 </main>
 
 <!-- Awizacja -->
 <dialog id="dlgAw">
   <form method="dialog" id="awForm" novalidate>
-    <div class="dh"><h2 id="awTitle">Nowa awizacja</h2><button class="btn sm" type="button" data-close>✕</button></div>
+    <div class="dh"><h2 id="awTitle">Nowa awizacja</h2><button class="btn xs" type="button" data-close>✕</button></div>
     <div class="fgrid">
-      <label class="field">Data <input type="date" id="aDate" required></label>
+      <label class="field">Data <input type="date" id="aDate" required style="width:100%"></label>
       <label class="field">Okno <select id="aSlot"></select></label>
       <label class="field">Nr załadunku <input type="number" id="aOrd" min="1"></label>
       <label class="field">Status <select id="aSt"></select></label>
     </div>
-    <div class="fgrid" style="grid-template-columns: minmax(110px, 1fr) 3fr">
+    <div class="fgrid" style="grid-template-columns: minmax(100px, 1fr) 3fr">
       <label class="field sugg">Kod SAP <input id="aCode" inputmode="numeric" autocomplete="off"></label>
-      <label class="field sugg">Firma <input id="aName" autocomplete="off" placeholder="wpisz kod albo min. 2 litery nazwy"><ul id="aSugg" hidden role="listbox"></ul></label>
+      <label class="field sugg">Firma <input id="aName" autocomplete="off" placeholder="kod albo min. 2 litery nazwy"><ul id="aSugg" hidden role="listbox"></ul></label>
     </div>
     <div class="salinfo" id="aSal"></div>
     <div class="qgrid" id="aQty"></div>
-    <details id="aMore"><summary class="sub">Pozostałe kategorie</summary><div class="qgrid" id="aQty2" style="margin-top:8px"></div></details>
+    <details id="aMore"><summary class="sub">Pozostałe kategorie</summary><div class="qgrid" id="aQty2" style="margin-top:6px"></div></details>
     <div class="fgrid">
       <label class="field">Kierowca / nr rej. <input id="aDrv"></label>
-      <label class="field">Osoba do kontaktu (mail / tel.) <input id="aCon"></label>
+      <label class="field">Kontakt (mail / tel.) <input id="aCon"></label>
       <label class="field">Nr dostawy CHEP / LPR <input id="aDost"></label>
       <label class="field">Dok. wydania <input id="aDok"></label>
     </div>
@@ -449,7 +512,7 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
 <!-- Wydanie -->
 <dialog id="dlgIss">
   <form method="dialog" id="issForm" novalidate>
-    <div class="dh"><h2>Wydanie</h2><button class="btn sm" type="button" data-close>✕</button></div>
+    <div class="dh"><h2>Wydanie</h2><button class="btn xs" type="button" data-close>✕</button></div>
     <p class="sub" id="iInfo"></p>
     <div class="qgrid" id="iQty"></div>
     <div class="fgrid">
@@ -471,8 +534,8 @@ kbd { font: 500 .75rem var(--f-mono); border: 1px solid var(--line); border-bott
 <script>
 (() => {
 "use strict";
-const OWNER = "czozen@gmail.com";
 // Strona tylko dla właściciela (to samo w firestore.rules: kolekcje pk_* → isOwner()).
+const OWNER = "czozen@gmail.com";
 
 /* ---------- narzędzia ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -480,6 +543,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = n => (Math.round(+n || 0)).toLocaleString("pl-PL");
 const fmt1 = n => (Math.round((+n || 0) * 10) / 10).toLocaleString("pl-PL");
+const r1 = n => Math.round((+n || 0) * 10) / 10;
 const pad = n => String(n).padStart(2, "0");
 const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 const parseIso = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
@@ -496,13 +560,14 @@ const monday = s => addDays(s, -((dowOf(s) + 6) % 7));
 const norm = s => String(s ?? "").toLowerCase().replace(/ł/g, "l").normalize("NFD").replace(/[̀-ͯ]/g, "");
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const clone = o => JSON.parse(JSON.stringify(o));
+const plural = (n, a, b, c) => n === 1 ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? b : c;
 let toastT;
-function toast(m, err) { const t = $("#toast"); t.textContent = m; t.className = err ? "err" : ""; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, err ? 6000 : 3200); }
+function toast(m, err) { const t = $("#toast"); t.textContent = m; t.className = err ? "err" : ""; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, err ? 6000 : 3000); }
 function dbMsg(e) {
   const c = e && e.code;
   if (c === "permission-denied") return "Baza odrzuciła operację (brak uprawnień). Opublikuj aktualne reguły z pliku firestore.rules w konsoli Firebase.";
   if (c === "unavailable") return "Brak połączenia z bazą. Sprawdź internet.";
-  return (e && e.message && !c ? e.message : "Błąd bazy danych" + (c ? " (" + c + ")" : "")) + "";
+  return e && e.message && !c ? e.message : "Błąd bazy danych" + (c ? " (" + c + ")" : "");
 }
 const fail = e => { console.error(e); toast(dbMsg(e), true); };
 const LS = {
@@ -511,16 +576,19 @@ const LS = {
 };
 
 /* ---------- konfiguracja domyślna (z arkusza WYDANIA / WZÓR) ---------- */
-// k, nazwa, szt. na auto, stos (szt.), maks. stan w autach, pokazywane w formularzu awizacji
+const GROUPS = { own: "EUR własne", chep: "CHEP", lpr: "LPR", ndhp: "NDHP", ipp: "IPP", woz: "Wózki", inne: "Inne" };
+const GORDER = Object.keys(GROUPS);
+// k, nazwa, grupa, szt. na auto, stos (szt.), maks. stan w autach, pokazywane w formularzu awizacji
 const DEF_CATS = [
-  ["EUR", "EUR", 495, 0, 8, 1], ["EUR_REM", "EUR REM", 612, 0, 2, 0],
-  ["CH_E", "EUR CHEP", 495, 0, 3, 1], ["CH_D", "DHP CHEP", 880, 0, 2, 1], ["CH_P", "Plastik CHEP", 2280, 120, 1, 1],
-  ["LPR_E", "EUR LPR", 561, 0, 2, 1], ["LPR_D", "DHP LPR", 880, 0, 2, 1], ["LPR_P", "Plastik LPR", 2240, 140, 1, 1],
-  ["WOZ", "WÓZ", 0, 0, 0, 1], ["POL", "PÓŁ", 0, 0, 0, 1],
-  ["GR_E", "EUR Green", 495, 0, 1, 0], ["GR_D", "DHP Green", 880, 0, 1, 0], ["GR_P", "Plastik Green", 2280, 120, 1, 0],
-  ["IPP_E", "EUR IPP", 495, 0, 1, 0], ["IPP_D", "DHP IPP", 880, 0, 1, 0], ["IPP_P", "DHP IPP plastik", 880, 0, 1, 0],
-  ["BAN", "Banan", 0, 0, 0, 0], ["JED", "Jednorazówka", 0, 0, 0, 0],
-].map(([k, n, t, s, max, aw]) => ({ k, n, t, s, max, aw: !!aw }));
+  ["EUR", "EUR", "own", 495, 0, 8, 1], ["EUR_REM", "EUR REM", "own", 612, 0, 2, 0],
+  ["CH_E", "EUR CHEP", "chep", 495, 0, 3, 1], ["CH_D", "DHP CHEP", "chep", 880, 0, 2, 1], ["CH_P", "Plastik CHEP", "chep", 2280, 120, 1, 1],
+  ["LPR_E", "EUR LPR", "lpr", 561, 0, 2, 1], ["LPR_D", "DHP LPR", "lpr", 880, 0, 2, 1], ["LPR_P", "Plastik LPR", "lpr", 2240, 140, 1, 1],
+  ["GR_E", "EUR NDHP", "ndhp", 495, 0, 1, 0], ["GR_D", "DHP NDHP", "ndhp", 880, 0, 1, 0], ["GR_P", "Plastik NDHP", "ndhp", 2280, 120, 1, 0],
+  ["IPP_E", "EUR IPP", "ipp", 495, 0, 1, 0], ["IPP_D", "DHP IPP", "ipp", 880, 0, 1, 0], ["IPP_P", "DHP IPP plastik", "ipp", 880, 0, 1, 0],
+  ["WOZ", "WÓZ", "woz", 0, 0, 0, 1], ["POL", "PÓŁ", "woz", 0, 0, 0, 1],
+  ["BAN", "Banan", "inne", 0, 0, 0, 0], ["JED", "Jednorazówka", "inne", 0, 0, 0, 0],
+].map(([k, n, g, t, s, max, aw]) => ({ k, n, g, t, s, max, aw: !!aw }));
+const DEF_G = Object.fromEntries(DEF_CATS.map(c => [c.k, c.g]));
 const DEF_SLOTS = Array.from({ length: 12 }, (_, i) => ({ t: pad(i * 2) + ":00-" + pad((i * 2 + 2) % 24) + ":00", cap: 2 }));
 const DEF_CFG = () => ({
   cats: clone(DEF_CATS), slots: clone(DEF_SLOTS), opak: "4997", salMin: 300,
@@ -528,31 +596,35 @@ const DEF_CFG = () => ({
   mailTpl: "Witam,\nDla dostawcy/odbiorcy {kod} {nazwa} zaawizowano odbiór palet w dniu {data} ({dzien}) w godzinach {okno} w ilości {ilosc}.\nW RAZIE PODSTAWIENIA SAMOCHODU W INNYCH GODZINACH ZAŁADUNEK MOŻE SIĘ WYDŁUŻYĆ.\nAktualne saldo wynosi: {saldo} szt. palet EUR.",
 });
 const ST = { plan: "Umówione", arr: "Przyjechał", load: "Załadunek", done: "Wydane", cancel: "Anulowane", noshow: "Nie przyjechał" };
-const ST_TAG = { plan: "", arr: "busy", load: "warn", done: "ok", cancel: "bad", noshow: "bad" };
+const ST_SHORT = { plan: "", arr: "przyj.", load: "zał.", done: "✓", cancel: "✗", noshow: "✗" };
+const ST_TAG = { plan: "", arr: "info", load: "warn", done: "ok", cancel: "bad", noshow: "bad" };
 
 /* ---------- stan aplikacji ---------- */
-let S = null;            // magazyn danych (Firestore albo lokalny)
-let CFG = DEF_CFG();
-let CAT = {};            // k -> kategoria
+let S = null, CFG = DEF_CFG(), CAT = {}, CATS = [];
 let DAYS = {};           // "RRRR-MM-DD" -> { items: {id: awizacja}, stan: {k: szt} }
 let SALMETA = { list: [] };
 let SAL = { date: null, rows: [], eur: new Map(), prev: new Map(), prevDate: null, opakNames: {} };
 let NAMES = new Map();   // kod -> nazwa (DOSTAWCY + salda)
-let email = "", isMod = false, local = false;
+let email = "", local = false;
 let tab = LS.get("pk-tab", "pulpit");
-let dayView = today(), dayFilter = "all", harmWeek = monday(today()), horizon = 7, gCat = "EUR";
-let salFilter = "pos";
-const unsubs = [];
-const monthSubs = new Map();
+let dayView = today(), dayFilter = "all", harmWeek = monday(today()), horizon = 7, gCat = "EUR", salFilter = "pos";
+const unsubs = [], monthSubs = new Map();
 
-const setCats = () => { CAT = Object.fromEntries(CFG.cats.map(c => [c.k, c])); };
+// kategorie posortowane wg grup (kolejność grup stała, w grupie — kolejność z ustawień)
+function setCats() {
+  CFG.cats.forEach(c => { if (!GROUPS[c.g]) c.g = DEF_G[c.k] || "inne"; });
+  CATS = CFG.cats.map((c, i) => [c, i]).sort((a, b) => GORDER.indexOf(a[0].g) - GORDER.indexOf(b[0].g) || a[1] - b[1]).map(x => x[0]);
+  CAT = Object.fromEntries(CATS.map(c => [c.k, c]));
+}
 setCats();
+const gcls = k => "g-" + ((CAT[k] && CAT[k].g) || "inne");
 
 /* ---------- magazyn: Firestore ---------- */
 function fbStore(db) {
   const FP = firebase.firestore.FieldPath, FV = firebase.firestore.FieldValue;
   const dayRef = d => db.collection("pk_dni").doc(d);
-  // update z kropkowaną ścieżką; gdy dokument dnia jeszcze nie istnieje — set z merge
+  const rangeQ = (a, b) => db.collection("pk_dni").where(FP.documentId(), ">=", a).where(FP.documentId(), "<=", b);
+  // update ścieżki w dokumencie dnia; gdy dokumentu jeszcze nie ma — set z merge
   function upd(ref, segs, val, extra) {
     const args = [new FP(...segs), val];
     for (const [k, v] of Object.entries(extra || {})) args.push(k, v);
@@ -563,10 +635,8 @@ function fbStore(db) {
     });
   }
   return {
-    watchMonth(ym, cb) {
-      return db.collection("pk_dni").where(FP.documentId(), ">=", ym + "-01").where(FP.documentId(), "<=", ym + "-31")
-        .onSnapshot(s => { $("#dbErr").hidden = true; cb(Object.fromEntries(s.docs.map(d => [d.id, d.data()]))); }, showDbErr);
-    },
+    watchMonth: (ym, cb) => rangeQ(ym + "-01", ym + "-31").onSnapshot(s => { $("#dbErr").hidden = true; cb(Object.fromEntries(s.docs.map(d => [d.id, d.data()]))); }, showDbErr),
+    getRange: (a, b) => rangeQ(a, b).get().then(s => Object.fromEntries(s.docs.map(d => [d.id, d.data()]))),
     putItem: it => upd(dayRef(it.date), ["items", it.id], it),
     delItem: (d, id) => dayRef(d).update(new FP("items", id), FV.delete()),
     setOrds(d, pairs) { const args = []; pairs.forEach(([id, o]) => args.push(new FP("items", id, "ord"), o)); return args.length ? dayRef(d).update(...args) : Promise.resolve(); },
@@ -586,7 +656,6 @@ function fbStore(db) {
         await b.commit(); prog && prog(Math.min(ent.length, i + 300), ent.length);
       }
     },
-    watchRoles: cb => db.collection("config").doc("roles").onSnapshot(s => cb(((s.exists && s.data().moderators) || []).map(x => String(x).toLowerCase())), () => cb([])),
   };
 }
 
@@ -596,12 +665,13 @@ function localStore() {
   let D = LS.get(KEY, null) || { days: {}, config: null, meta: { list: [] }, salda: {}, dost: "" };
   const L = { month: new Map(), config: new Set(), meta: new Set() };
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(D)); } catch (e) { toast("Pamięć przeglądarki pełna — tryb lokalny nie zapisał zmian.", true); } };
-  const monthData = ym => clone(Object.fromEntries(Object.entries(D.days).filter(([d]) => d.startsWith(ym))));
-  const emit = ym => (L.month.get(ym) || new Set()).forEach(cb => cb(monthData(ym)));
+  const rangeData = (a, b) => clone(Object.fromEntries(Object.entries(D.days).filter(([d]) => d >= a && d <= b)));
+  const emit = ym => (L.month.get(ym) || new Set()).forEach(cb => cb(rangeData(ym + "-01", ym + "-31")));
   const day = d => D.days[d] || (D.days[d] = { items: {} });
   const on = (set, cb, val) => { set.add(cb); setTimeout(() => cb(val())); return () => set.delete(cb); };
   return {
-    watchMonth(ym, cb) { if (!L.month.has(ym)) L.month.set(ym, new Set()); return on(L.month.get(ym), cb, () => monthData(ym)); },
+    watchMonth(ym, cb) { if (!L.month.has(ym)) L.month.set(ym, new Set()); return on(L.month.get(ym), cb, () => rangeData(ym + "-01", ym + "-31")); },
+    async getRange(a, b) { return rangeData(a, b); },
     async putItem(it) { day(it.date).items = day(it.date).items || {}; day(it.date).items[it.id] = clone(it); save(); emit(it.date.slice(0, 7)); },
     async delItem(d, id) { if (D.days[d] && D.days[d].items) delete D.days[d].items[id]; save(); emit(d.slice(0, 7)); },
     async setOrds(d, pairs) { pairs.forEach(([id, o]) => { if (day(d).items[id]) day(d).items[id].ord = o; }); save(); emit(d.slice(0, 7)); },
@@ -621,10 +691,8 @@ function localStore() {
       for (const [d, data] of Object.entries(map)) { const x = day(d); x.items = Object.assign(x.items || {}, clone(data.items || {})); if (data.stan) x.stan = clone(data.stan); }
       save(); new Set(Object.keys(map).map(d => d.slice(0, 7))).forEach(emit); prog && prog(1, 1);
     },
-    watchRoles: cb => { setTimeout(() => cb([email])); return () => {}; },
   };
 }
-
 function showDbErr(e) { console.error(e); const b = $("#dbErr"); b.textContent = dbMsg(e); b.hidden = false; }
 
 /* ---------- subskrypcje miesięcy ---------- */
@@ -644,19 +712,28 @@ function ensureRange(from, to) {
 }
 
 /* ---------- obliczenia ---------- */
-const itemsOf = d => Object.values((DAYS[d] && DAYS[d].items) || {}).sort((a, b) => (a.ord || 999) - (b.ord || 999) || String(a.slot).localeCompare(String(b.slot)) || (a.at || 0) - (b.at || 0));
+const itemsIn = (src, d) => Object.values((src[d] && src[d].items) || {}).sort((a, b) => (a.ord || 999) - (b.ord || 999) || String(a.slot).localeCompare(String(b.slot)) || (a.at || 0) - (b.at || 0));
+const itemsOf = d => itemsIn(DAYS, d);
 const active = it => it.st !== "cancel" && it.st !== "noshow";
 const qOf = it => (it.st === "done" && it.iq) ? it.iq : (it.q || {});
 const qSum = (q, k) => +((q || {})[k]) || 0;
-const trucksQ = q => CFG.cats.reduce((s, c) => s + (c.t > 0 ? qSum(q, c.k) / c.t : 0), 0);
+const trucksQ = q => CATS.reduce((s, c) => s + (c.t > 0 ? qSum(q, c.k) / c.t : 0), 0);
 const issued = (d, k) => itemsOf(d).filter(active).reduce((s, it) => s + qSum(qOf(it), k), 0);
-const qText = q => CFG.cats.filter(c => qSum(q, c.k)).map(c => fmt(q[c.k]) + " szt. " + c.n).join(", ");
-const qChips = q => CFG.cats.filter(c => qSum(q, c.k)).map(c => `<span class="tag">${esc(c.n)} <b>${fmt(q[c.k])}</b></span>`).join("") || '<span class="mut" style="font-size:.8rem">bez ilości</span>';
+const qText = q => CATS.filter(c => qSum(q, c.k)).map(c => fmt(q[c.k]) + " szt. " + c.n).join(", ");
+const qChips = q => CATS.filter(c => qSum(q, c.k)).map(c => `<span class="q ${gcls(c.k)}">${esc(c.n)} ${fmt(q[c.k])}</span>`).join("") || '<span class="mut" style="font-size:.72rem">bez ilości</span>';
+// grupa dominująca w awizacji (wg liczby aut, a gdy brak przelicznika — sztuk); bez ilości — wg nazwy operatora palet
+const NAME_G = [[/chep/i, "chep"], [/lpr|palette rouge/i, "lpr"], [/\bipp\b/i, "ipp"], [/ndhp|green/i, "ndhp"]];
+function mainGroup(q, name) {
+  let best = null, bv = 0;
+  CATS.forEach(c => { const v = qSum(q, c.k); const w = c.t > 0 ? v / c.t : v / 1e4; if (w > bv) { bv = w; best = c.g; } });
+  if (!best && name) { const m = NAME_G.find(([re]) => re.test(name)); if (m) best = m[1]; }
+  return best ? "g-" + best : "";
+}
 const stanDates = () => Object.keys(DAYS).filter(d => DAYS[d].stan && Object.keys(DAYS[d].stan).length).sort();
 const lastStanDate = (upTo = today()) => stanDates().filter(d => d <= upTo).pop() || null;
 const slotStart = s => { const m = /^(\d{1,2}):(\d{2})/.exec(s || ""); return m ? (+m[1]) * 60 + (+m[2]) : -1; };
 
-// zjazd palet ze sklepów (szt./dzień) dla kategorii, z okresów między liczeniami w ostatnich `look` dniach
+// zjazd palet ze sklepów (szt./dzień) z okresów między liczeniami w ostatnich `look` dniach
 function inflow(k, look = 28) {
   const ds = stanDates().filter(d => d <= today()), from = addDays(today(), -look);
   let sum = 0, days = 0; const rows = [], wd = Array.from({ length: 7 }, () => [0, 0]);
@@ -674,17 +751,15 @@ function inflow(k, look = 28) {
 function forecast(k, H) {
   const c = lastStanDate(), cat = CAT[k]; if (!c || !cat) return null;
   const s0 = DAYS[c].stan[k]; if (s0 == null) return null;
-  const inf = inflow(k), T = today(), end = addDays(T, H);
-  const series = []; let iss = 0, stock = s0, d = c, planned = 0, firstOver = null;
-  const lim = cat.max * cat.t;
-  for (; d < end; d = addDays(d, 1)) {
-    if (d >= T) series.push({ d, v: stock });
-    if (d >= T && cat.t > 0 && lim > 0 && stock > lim && !firstOver) firstOver = d;
-    const x = issued(d, k); iss += x; if (d >= T) planned += x;
+  const inf = inflow(k), T = today(), end = addDays(T, H), lim = cat.max * cat.t;
+  const series = []; let stock = s0, planned = 0, firstOver = null;
+  for (let d = c; d < end; d = addDays(d, 1)) {
+    if (d >= T) { series.push({ d, v: stock }); if (lim > 0 && stock > lim && !firstOver) firstOver = d; }
+    const x = issued(d, k); if (d >= T) planned += x;
     stock = stock + inf.rate - x;
   }
   series.push({ d: end, v: stock });
-  if (cat.t > 0 && lim > 0 && stock > lim && !firstOver) firstOver = end;
+  if (lim > 0 && stock > lim && !firstOver) firstOver = end;
   const need = cat.t > 0 && lim > 0 ? Math.max(0, stock - lim) : 0;
   return { c, s0, rate: inf.rate, planned, proj: stock, need, needTrucks: cat.t > 0 ? Math.ceil(need / cat.t) : 0, series, firstOver, lim };
 }
@@ -693,10 +768,7 @@ function slotIdx(slot) {
   // okno spoza listy trafia do slotu, w którym się mieści; dłuższe (np. sobotnie 00:00-13:00) idą do wiersza „inne”
   const span = t => { const [x, y] = String(t).split("-"); const a = slotStart(x), b0 = slotStart(y || ""); return [a, b0 <= a ? 1440 : b0]; };
   const [m, e] = span(slot); if (m < 0) return -1;
-  for (let j = 0; j < CFG.slots.length; j++) {
-    const [a, b] = span(CFG.slots[j].t);
-    if (m >= a && m < b && e <= b) return j;
-  }
+  for (let j = 0; j < CFG.slots.length; j++) { const [a, b] = span(CFG.slots[j].t); if (m >= a && m < b && e <= b) return j; }
   return -1;
 }
 const salOf = code => SAL.eur.get(String(code || "").trim());
@@ -705,8 +777,12 @@ function plannedFor(code, from = today(), to = addDays(today(), 30)) {
   for (let d = from; d <= to; d = addDays(d, 1)) itemsOf(d).forEach(it => { if (String(it.code) === code && active(it) && it.st !== "done") out.push(it); });
   return out;
 }
+function bookedCodes() {
+  const s = new Set(); for (let i = 0; i <= 30; i++) itemsOf(addDays(today(), i)).forEach(it => { if (active(it) && it.st !== "done") s.add(String(it.code)); }); return s;
+}
+const salCandidates = () => { const b = bookedCodes(); return [...SAL.eur.values()].filter(r => r.tot >= CFG.salMin && !b.has(r.code)).sort((a, b2) => b2.tot - a.tot); };
 
-/* ---------- render: harmonogram renderów ---------- */
+/* ---------- render ---------- */
 let rafP = false;
 function schedule() { if (rafP) return; rafP = true; requestAnimationFrame(() => { rafP = false; render(); }); }
 function render() {
@@ -729,61 +805,67 @@ document.addEventListener("click", e => {
 /* ---------- PULPIT ---------- */
 function renderPulpit() {
   const T = today(), TM = addDays(T, 1), sd = lastStanDate();
-  $("#pulpitSub").textContent = DOW[dowOf(T)] + ", " + plDate(T);
+  $("#pulpitDay").textContent = DOW[dowOf(T)] + " · " + plDate(T);
   const tItems = itemsOf(T).filter(active), mItems = itemsOf(TM).filter(active);
   const done = tItems.filter(i => i.st === "done").length;
   let wk = 0, wkN = 0; for (let i = 0; i < 7; i++) itemsOf(addDays(T, i)).filter(active).forEach(it => { wk += trucksQ(it.q); wkN++; });
-  const stanT = sd ? CFG.cats.reduce((s, c) => s + (c.t > 0 ? (+DAYS[sd].stan[c.k] || 0) / c.t : 0), 0) : 0;
-  let needT = 0; CFG.cats.forEach(c => { const f = forecast(c.k, 7); if (f) needT += f.needTrucks; });
+  const stanT = sd ? CATS.reduce((s, c) => s + (c.t > 0 ? (+DAYS[sd].stan[c.k] || 0) / c.t : 0), 0) : 0;
+  let needT = 0; CATS.forEach(c => { const f = forecast(c.k, 7); if (f) needT += f.needTrucks; });
   const freeSal = salCandidates();
   const posSum = [...SAL.eur.values()].reduce((s, r) => s + Math.max(0, r.tot), 0);
-  const k = (l, v, d, cls = "") => `<div class="kpi ${cls}"><span class="l">${l}</span><span class="v">${v}</span><span class="d">${d}</span></div>`;
+  const k = (l, v, d, cls = "") => `<div class="kpi ${cls}"><span class="l">${l}</span><span class="v">${v}</span><span class="d" title="${esc(d.replace(/<[^>]+>/g, ""))}">${d}</span></div>`;
   $("#kpis").innerHTML = [
-    k("Stan placu", sd ? fmt1(stanT) + " <small>aut</small>" : "—", sd ? "liczenie " + plDate(sd) + (sd !== T ? ' · <b class="pos">brak dzisiejszego</b>' : "") : "wpisz stan w zakładce Stany", sd && sd !== T ? "alert" : ""),
-    k("Dziś awizacji", `${tItems.length} <small>· ${fmt1(tItems.reduce((s, i) => s + trucksQ(i.q), 0))} aut</small>`, `wydane ${done} z ${tItems.length}`, tItems.length && done === tItems.length ? "good" : ""),
-    k("Jutro", `${mItems.length} <small>· ${fmt1(mItems.reduce((s, i) => s + trucksQ(i.q), 0))} aut</small>`, DOW[dowOf(TM)]),
-    k("Umówione 7 dni", `${wkN} <small>· ${fmt1(wk)} aut</small>`, "od dziś do " + shortDate(addDays(T, 6))),
-    k("Do zaplanowania", needT ? needT + " <small>aut</small>" : "0", needT ? "w ciągu 7 dni, żeby nie przekroczyć maks. stanu" : "plan pokrywa prognozę zjazdu", needT ? "alert" : "good"),
-    k("Saldo EUR do oddania", SAL.date ? fmt(posSum) : "—", SAL.date ? `${freeSal.length} dostawców ≥ ${fmt(CFG.salMin)} szt. bez awizacji · plik ${plDate(SAL.date)}` : "wczytaj plik w zakładce Salda", SAL.date && SAL.date < addDays(T, -1) ? "alert" : ""),
+    k("Stan placu", sd ? fmt1(stanT) + " <small>aut</small>" : "—", sd ? (sd === T ? "liczenie dziś" : "liczenie " + plDate(sd) + " · brak dzisiejszego") : "wpisz w Stany placu", sd && sd !== T ? "alert" : ""),
+    k("Dziś", `${tItems.length} <small>aut ${fmt1(tItems.reduce((s, i) => s + trucksQ(i.q), 0))}</small>`, `wydane ${done} z ${tItems.length}`, tItems.length && done === tItems.length ? "good" : ""),
+    k("Jutro", `${mItems.length} <small>aut ${fmt1(mItems.reduce((s, i) => s + trucksQ(i.q), 0))}</small>`, DOW[dowOf(TM)]),
+    k("7 dni", `${wkN} <small>aut ${fmt1(wk)}</small>`, "umówione do " + shortDate(addDays(T, 6))),
+    k("Do zaplanowania", needT + " <small>aut</small>", needT ? "w 7 dni, żeby nie przekroczyć maks." : "plan pokrywa zjazd", needT ? "alert" : "good"),
+    k("Saldo EUR", SAL.date ? fmt(posSum) : "—", SAL.date ? `${freeSal.length} bez awizacji · plik ${shortDate(SAL.date)}` : "wczytaj plik w Saldach", SAL.date && SAL.date < addDays(T, -1) ? "alert" : ""),
   ].join("");
 
-  // kolejka dnia
-  const open = itemsOf(T).filter(i => active(i));
-  $("#pToday").innerHTML = open.length ? `<div class="tbl-wrap"><table><thead><tr><th>Nr</th><th>Okno</th><th>Firma</th><th>Ilość</th><th>Status</th></tr></thead><tbody>${
-    open.map(it => `<tr class="click" data-edit="${esc(it.id)}" data-date="${it.date}"><td class="n">${it.ord || ""}</td><td class="num" style="white-space:nowrap">${esc(it.slot)}</td><td>${esc(it.name || it.code)}</td><td>${esc(qText(qOf(it))).replace(/ szt\./g, "") || "—"}</td><td><span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span></td></tr>`).join("")
-  }</tbody></table></div>` : '<p class="sub">Na dziś nic nie jest zaawizowane.</p>';
-
-  // plan 14 dni
-  const pts = []; for (let i = 0; i < 14; i++) { const d = addDays(T, i), its = itemsOf(d).filter(active); pts.push({ d, v: its.reduce((s, it) => s + trucksQ(it.q), 0), n: its.length }); }
-  const cap = CFG.slots.reduce((s, x) => s + (+x.cap || 0), 0);
-  $("#pPlan").innerHTML = barChart(pts.map(p => ({ v: p.v, lab: fmt1(p.v), x: DOW_S[dowOf(p.d)] + "<br>" + shortDate(p.d), tip: `${DOW[dowOf(p.d)]} ${plDate(p.d)}<br>${p.n} awizacji · ${fmt1(p.v)} aut<br>pojemność okien: ${cap}`, cls: dowOf(p.d) === 0 ? "ghost" : "", go: p.d })), null);
-
-  // kategorie
-  $("#pCatSub").textContent = sd ? "stan z " + plDate(sd) + " · zjazd = średnia z 28 dni" : "";
+  $("#pCatSub").textContent = sd ? "stan z " + plDate(sd) : "brak stanu placu";
   $("#pCats").innerHTML = catTable(7, true);
 
-  // do zaawizowania
-  $("#pSalSub").textContent = SAL.date ? "plik z " + plDate(SAL.date) + " · saldo ≥ " + fmt(CFG.salMin) + " szt., brak awizacji na 30 dni" : "";
+  const open = itemsOf(T).filter(active);
+  $("#pTodaySub").textContent = open.length ? `${done}/${open.length} wydane` : "";
+  $("#pToday").innerHTML = open.length ? `<table><thead><tr><th class="n">Nr</th><th>Okno</th><th>Firma</th><th>Ilość</th><th></th></tr></thead><tbody>${
+    open.map(it => `<tr class="click ${mainGroup(it.q, it.name) ? mainGroup(it.q, it.name) + " cat" : ""}" data-edit="${esc(it.id)}" data-date="${it.date}"><td class="n">${it.ord || ""}</td><td class="nw num" style="font-size:.74rem">${esc(it.slot)}</td><td class="cut" style="max-width:150px" title="${esc(it.name)}">${esc(it.name || it.code)}</td><td class="nw">${qChips(qOf(it))}</td><td>${ST_SHORT[it.st] ? `<span class="tag ${ST_TAG[it.st]}" title="${ST[it.st]}">${ST_SHORT[it.st]}</span>` : ""}</td></tr>`).join("")
+  }</tbody></table>` : '<p class="sub">Na dziś nic nie jest zaawizowane.</p>';
+
+  // plan 14 dni — słupki dzielone na grupy
+  const pts = [];
+  for (let i = 0; i < 14; i++) {
+    const d = addDays(T, i), its = itemsOf(d).filter(active), g = {};
+    its.forEach(it => CATS.forEach(c => { if (c.t > 0 && qSum(it.q, c.k)) g[c.g] = (g[c.g] || 0) + qSum(it.q, c.k) / c.t; }));
+    const v = Object.values(g).reduce((a, b) => a + b, 0);
+    pts.push({ v, lab: v ? fmt1(v) : "", x: DOW_S[dowOf(d)] + "<br>" + shortDate(d), go: d, cls: dowOf(d) === 0 ? "ghost" : "",
+      segs: GORDER.filter(x => g[x]).map(x => ({ v: g[x], g: x })),
+      tip: `<b>${DOW[dowOf(d)]} ${plDate(d)}</b><br>${its.length} awizacji · ${fmt1(v)} aut<br>` + GORDER.filter(x => g[x]).map(x => `${GROUPS[x]}: ${fmt1(g[x])}`).join("<br>") });
+  }
+  $("#pPlan").innerHTML = barChart(pts, null, 100) + legend(GORDER.filter(g => pts.some(p => p.segs.some(s => s.g === g))));
+
+  $("#pSalSub").textContent = SAL.date ? `plik ${plDate(SAL.date)} · saldo ≥ ${fmt(CFG.salMin)} szt. · ${freeSal.length} firm` : "";
   $("#pSal").innerHTML = !SAL.date ? '<p class="sub">Wczytaj plik z saldami w zakładce Salda.</p>' :
-    freeSal.length ? `<table><thead><tr><th>Kod</th><th>Dostawca</th><th class="n">Saldo</th><th class="n">Zmiana</th><th class="n">Auta EUR</th><th></th></tr></thead><tbody>${
-      freeSal.slice(0, 12).map(r => salRow(r, true)).join("")}</tbody></table>${freeSal.length > 12 ? `<p class="sub">…i ${freeSal.length - 12} więcej w zakładce Salda.</p>` : ""}` : '<p class="sub">Wszyscy dostawcy z dużym saldem mają umówiony odbiór.</p>';
+    freeSal.length ? `<table><thead><tr><th>Kod</th><th>Dostawca</th><th class="n">Saldo</th><th class="n">Zmiana</th><th class="n">Aut EUR</th><th></th><th>Kod</th><th>Dostawca</th><th class="n">Saldo</th><th class="n">Zmiana</th><th class="n">Aut EUR</th><th></th></tr></thead><tbody>${
+      pairRows(freeSal.slice(0, 16).map(r => salCells(r, true)))}</tbody></table>${freeSal.length > 16 ? `<p class="sub">…i ${freeSal.length - 16} więcej w zakładce Salda (filtr „Bez awizacji”).</p>` : ""}` : '<p class="sub">Wszyscy dostawcy z dużym saldem mają umówiony odbiór.</p>';
 }
-function salCandidates() {
-  const booked = new Set(); for (let i = 0; i <= 30; i++) itemsOf(addDays(today(), i)).forEach(it => { if (active(it) && it.st !== "done") booked.add(String(it.code)); });
-  return [...SAL.eur.values()].filter(r => r.tot >= CFG.salMin && !booked.has(r.code)).sort((a, b) => b.tot - a.tot);
+// dwie kolumny w jednej tabeli (krócej na ekranie)
+function pairRows(cells) {
+  const h = Math.ceil(cells.length / 2); let o = "";
+  for (let i = 0; i < h; i++) o += `<tr>${cells[i]}${cells[i + h] || '<td colspan="6"></td>'}</tr>`;
+  return o;
 }
-function salRow(r, short) {
+function salCells(r, short) {
   const pv = SAL.prev.get(r.code), dlt = pv ? r.tot - pv.tot : null;
-  const pl = plannedFor(r.code), plq = pl.reduce((s, it) => s + qSum(it.q, "EUR"), 0);
   const eurT = (CAT.EUR && CAT.EUR.t) || 495;
-  return `<tr><td class="num">${esc(r.code)}</td><td>${esc(r.name)}</td><td class="n ${r.tot > 0 ? "pos" : r.tot < 0 ? "neg" : ""}">${fmt(r.tot)}</td>
-    <td class="n mut">${dlt == null ? "" : (dlt > 0 ? "+" : "") + fmt(dlt)}</td>
-    ${short ? `<td class="n">${fmt1(r.tot / eurT)}</td>` : `<td class="n">${r.buf ? fmt(r.buf) : ""}</td><td>${pl.length ? pl.map(it => `<span class="tag busy">${shortDate(it.date)} ${esc(it.slot.slice(0, 5))} · ${fmt(qSum(it.q, "EUR"))}</span>`).join(" ") : ""}</td><td class="n">${pl.length ? fmt(r.tot - plq) : ""}</td>`}
-    <td><button class="btn sm" type="button" data-aw="${esc(r.code)}">Awizuj</button></td></tr>`;
+  const base = `<td class="num" style="font-size:.76rem">${esc(r.code)}</td><td class="cut" style="max-width:${short ? 190 : 300}px" title="${esc(r.name)}">${esc(r.name)}</td><td class="n ${r.tot > 0 ? "pos" : r.tot < 0 ? "neg" : ""}">${fmt(r.tot)}</td><td class="n mut">${dlt == null || !dlt ? "" : (dlt > 0 ? "+" : "") + fmt(dlt)}</td>`;
+  if (short) return base + `<td class="n">${fmt1(r.tot / eurT)}</td><td><button class="btn xs" type="button" data-aw="${esc(r.code)}">Awizuj</button></td>`;
+  const pl = plannedFor(r.code), plq = pl.reduce((s, it) => s + qSum(it.q, "EUR"), 0);
+  return base + `<td class="n mut">${r.buf ? fmt(r.buf) : ""}</td><td class="nw">${pl.map(it => `<span class="tag info">${shortDate(it.date)} ${esc(String(it.slot).slice(0, 5))} · ${fmt(qSum(it.q, "EUR"))}</span>`).join(" ")}</td><td class="n">${pl.length ? fmt(r.tot - plq) : ""}</td><td><button class="btn xs" type="button" data-aw="${esc(r.code)}">Awizuj</button></td>`;
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-aw]"); if (!b) return;
-  const r = salOf(b.dataset.aw); const t = (CAT.EUR && CAT.EUR.t) || 495;
+  const r = salOf(b.dataset.aw), t = (CAT.EUR && CAT.EUR.t) || 495;
   openAw(null, { date: firstFreeDate(), code: b.dataset.aw, name: r ? r.name : NAMES.get(b.dataset.aw) || "", q: { EUR: r ? Math.max(0, Math.min(r.tot, t)) : t } });
 });
 document.addEventListener("click", e => {
@@ -798,71 +880,79 @@ function freeSlots(d) {
   const cnt = CFG.slots.map(() => 0); itemsOf(d).filter(active).forEach(it => { const i = slotIdx(it.slot); if (i >= 0) cnt[i]++; });
   return CFG.slots.filter((s, i) => cnt[i] < (+s.cap || 0));
 }
-function catTable(H, compact) {
+// dane tabeli kategorii (wspólne dla ekranu i Excela)
+function catData(H) {
   const sd = lastStanDate();
-  const rows = CFG.cats.map(c => {
-    const f = forecast(c.k, H), st = sd ? DAYS[sd].stan[c.k] : null;
-    if (compact && !st && !(f && f.planned) && !(f && f.rate)) return "";
-    const tr = v => c.t > 0 ? fmt1(v / c.t) : "";
-    const need = f && f.needTrucks ? `<span class="tag bad">${f.needTrucks} ${f.needTrucks === 1 ? "auto" : f.needTrucks < 5 ? "auta" : "aut"}</span>` + (f.firstOver ? ` <span class="mut" style="font-size:.78rem">od ${shortDate(f.firstOver)}</span>` : "") : (c.t > 0 && c.max ? '<span class="tag ok">OK</span>' : "");
-    return `<tr class="click" data-cat="${c.k}"><td><b>${esc(c.n)}</b></td>
-      <td class="n">${st == null ? "—" : fmt(st)}</td><td class="n mut">${st == null ? "" : tr(st)}</td>
-      <td class="n">${f ? fmt(f.rate) : "—"}</td><td class="n mut">${f && c.t ? fmt1(f.rate / c.t) : ""}</td>
-      <td class="n">${f ? fmt(f.planned) : "—"}</td><td class="n mut">${f ? tr(f.planned) : ""}</td>
-      <td class="n ${f && f.need ? "pos" : ""}">${f ? fmt(f.proj) : "—"}</td><td class="n mut">${f ? tr(f.proj) : ""}</td>
-      <td class="n mut">${c.t > 0 && c.max ? fmt1(c.max) : ""}</td><td>${need}</td></tr>`;
-  }).join("");
-  return `<table><thead><tr><th>Kategoria</th><th class="n">Stan szt.</th><th class="n">auta</th><th class="n">Zjazd / dzień</th><th class="n">auta</th><th class="n">Umówione ${H} dni</th><th class="n">auta</th><th class="n">Stan za ${H} dni</th><th class="n">auta</th><th class="n">Maks. aut</th><th>Do zaplanowania</th></tr></thead><tbody>${rows || '<tr><td colspan="11" class="mut">Brak danych — wpisz stan placu albo zaimportuj plik w Ustawieniach.</td></tr>'}</tbody></table>`;
+  return CATS.map(c => { const f = forecast(c.k, H), st = sd ? DAYS[sd].stan[c.k] : null; return { c, f, st }; });
+}
+function catTable(H, compact) {
+  const tr = (c, v) => c.t > 0 ? `<span class="mut"> · ${fmt1(v / c.t)}</span>` : "";
+  let rows = "", lastG = null;
+  catData(H).forEach(({ c, f, st }) => {
+    if (compact && !st && !(f && (f.planned || f.rate))) return;
+    if (c.g !== lastG) { lastG = c.g; rows += `<tr class="grp g-${c.g}"><td colspan="6">${GROUPS[c.g]}</td></tr>`; }
+    const need = f && f.needTrucks ? `<span class="tag bad">+${f.needTrucks} ${plural(f.needTrucks, "auto", "auta", "aut")}</span>${f.firstOver ? ` <span class="mut" style="font-size:.7rem">od ${shortDate(f.firstOver)}</span>` : ""}` : (c.t > 0 && c.max ? '<span class="tag ok">OK</span>' : "");
+    rows += `<tr class="cat click g-${c.g}" data-cat="${c.k}"><td class="nw"><b>${esc(c.n)}</b></td>
+      <td class="n">${st == null ? "—" : fmt(st) + tr(c, st)}</td>
+      <td class="n">${f ? fmt(f.rate) + tr(c, f.rate) : "—"}</td>
+      <td class="n">${f ? fmt(f.planned) + tr(c, f.planned) : "—"}</td>
+      <td class="n ${f && f.need ? "pos" : ""}">${f ? fmt(f.proj) + tr(c, f.proj) : "—"}</td>
+      <td class="nw">${need}</td></tr>`;
+  });
+  return `<table><thead><tr><th>Kategoria</th><th class="n">Stan · aut</th><th class="n">Zjazd/dzień</th><th class="n">Umówione ${H} d</th><th class="n">Za ${H} dni</th><th>Do planu</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="mut">Brak danych — wpisz stan placu albo zaimportuj plik w Ustawieniach.</td></tr>'}</tbody></table>`;
 }
 document.addEventListener("click", e => { const tr = e.target.closest("tr[data-cat]"); if (tr) { gCat = tr.dataset.cat; showTab("prog"); } });
+const legend = gs => `<div class="legend">${gs.map(g => `<span class="g-${g}"><i class="dot"></i>${GROUPS[g]}</span>`).join("")}</div>`;
 
-/* wykres słupkowy CSS z dymkiem */
-function barChart(pts, lim) {
-  const max = Math.max(1, lim || 0, ...pts.map(p => p.v)) * 1.08;
-  const bars = pts.map(p => { const h = Math.max(0, p.v) / max * 100; return `<div class="b ${p.cls || ""}" style="--h:${h}%" data-tip="${esc(p.tip)}" ${p.go ? `data-goday="${p.go}"` : ""}><i style="height:${h}%"></i>${p.lab ? `<span>${esc(p.lab)}</span>` : ""}</div>`; }).join("");
+/* wykres słupkowy CSS (opcjonalnie słupki dzielone na grupy) z dymkiem */
+function barChart(pts, lim, h) {
+  const max = Math.max(1, lim || 0, ...pts.map(p => p.v)) * 1.1;
+  const bars = pts.map(p => {
+    const hh = Math.max(0, p.v) / max * 100;
+    const segs = p.segs ? p.segs.map(s => `<i class="g-${s.g}" style="height:${s.v / max * 100}%"></i>`).join("") : `<i style="height:${hh}%"></i>`;
+    return `<div class="b ${p.cls || ""} ${p.g ? "g-" + p.g : ""}" style="--h:${hh}%" data-tip="${esc(p.tip)}" ${p.go ? `data-goday="${p.go}"` : ""}>${segs}${p.lab ? `<span>${esc(p.lab)}</span>` : ""}</div>`;
+  }).join("");
   const limL = lim ? `<div class="lim" style="bottom:${lim / max * 100}%"><em>maks. ${fmt(lim)}</em></div>` : "";
-  return `<div class="bars">${limL}${bars}</div><div class="axis">${pts.map(p => `<div>${p.x}</div>`).join("")}</div>`;
+  return `<div class="bars" style="--bh:${h || 110}px">${limL}${bars}</div><div class="axis">${pts.map(p => `<div>${p.x}</div>`).join("")}</div>`;
 }
 document.addEventListener("mouseover", e => { const b = e.target.closest("[data-tip]"); const t = $("#tip"); if (!b) { t.hidden = true; return; } t.innerHTML = b.dataset.tip; t.hidden = false; });
-document.addEventListener("mousemove", e => { const t = $("#tip"); if (t.hidden) return; const x = Math.min(e.clientX + 14, innerWidth - t.offsetWidth - 8); t.style.left = x + "px"; t.style.top = (e.clientY + 14) + "px"; });
+document.addEventListener("mousemove", e => { const t = $("#tip"); if (t.hidden) return; t.style.left = Math.min(e.clientX + 14, innerWidth - t.offsetWidth - 8) + "px"; t.style.top = (e.clientY + 14) + "px"; });
 document.addEventListener("click", e => { const b = e.target.closest("[data-goday]"); if (b) { dayView = b.dataset.goday; showTab("dzien"); } });
 
-/* ---------- DZIEŃ ---------- */
+/* ---------- ZAŁADUNKI (DZIEŃ) ---------- */
 function renderDay() {
   ensureRange(dayView, dayView);
   $("#dDate").value = dayView;
   $("#dName").textContent = DOW[dowOf(dayView)] + " " + plDate(dayView) + (dayView === today() ? " · dziś" : "");
   const all = itemsOf(dayView), act = all.filter(active);
   const list = all.filter(it => dayFilter === "all" || (dayFilter === "done" ? it.st === "done" : active(it) && it.st !== "done"));
-  // podsumowanie: plan vs wydane per kategoria
-  const chips = CFG.cats.map(c => {
+  const chips = CATS.map(c => {
     const pl = act.reduce((s, it) => s + qSum(it.q, c.k), 0), wy = act.filter(i => i.st === "done").reduce((s, it) => s + qSum(qOf(it), c.k), 0);
-    return pl || wy ? `<span class="tag" title="wydane / umówione">${esc(c.n)} <b>${fmt(wy)}</b> / ${fmt(pl)}</span>` : "";
+    return pl || wy ? `<span class="q ${gcls(c.k)}" title="wydane / umówione">${esc(c.n)} ${fmt(wy)}/${fmt(pl)}</span>` : "";
   }).join("");
   const done = act.filter(i => i.st === "done").length;
-  $("#dSum").innerHTML = `<span class="tag busy">${act.length} awizacji · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag ok">wydane ${done}</span>${all.length - act.length ? `<span class="tag bad">anul./nie przyj. ${all.length - act.length}</span>` : ""}${chips}`;
-  $("#dList").innerHTML = list.length ? list.map(awRow).join("") : `<div class="panel"><p class="sub">${all.length ? "Brak pozycji w tym filtrze." : "Brak awizacji na ten dzień."} <button class="link btn sm" type="button" data-new>+ Dodaj awizację</button></p></div>`;
+  $("#dSum").innerHTML = `<span class="tag info">${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag ok">wydane ${done}</span>${all.length - act.length ? `<span class="tag bad">anul./nie przyj. ${all.length - act.length}</span>` : ""}${chips}`;
+  $("#dList").innerHTML = list.length ? list.map(awRow).join("") : `<div class="panel"><p class="sub">${all.length ? "Brak pozycji w tym filtrze." : "Brak awizacji na ten dzień."} <button class="btn xs" type="button" data-new>+ Dodaj</button></p></div>`;
 }
 function awRow(it) {
   const s = salOf(it.code), q = qOf(it);
-  const meta = [it.code, it.driver, it.dostChep && "dost. " + it.dostChep, it.dok && "WZ " + it.dok, it.note].filter(Boolean).map(esc).join(" · ");
+  const meta = [it.code, it.driver, it.dostChep && "dost. " + it.dostChep, it.dok && "dok. " + it.dok, it.note].filter(Boolean).join(" · ");
   let acts = "";
-  if (it.st === "plan") acts = `<button class="btn sm" data-act="arr">Przyjechał</button><button class="btn sm ok" data-act="iss">Wydaj</button>`;
-  else if (it.st === "arr") acts = `<button class="btn sm" data-act="load">Załadunek</button><button class="btn sm ok" data-act="iss">Wydaj</button>`;
-  else if (it.st === "load") acts = `<button class="btn sm ok" data-act="iss">Wydaj</button>`;
-  else if (it.st === "done") acts = `<button class="btn sm" data-act="undo">Cofnij</button>`;
-  else acts = `<button class="btn sm" data-act="undo">Przywróć</button>`;
+  if (it.st === "plan") acts = `<button class="btn xs" data-act="arr">Przyjechał</button><button class="btn xs ok" data-act="iss">Wydaj</button>`;
+  else if (it.st === "arr") acts = `<button class="btn xs" data-act="load">Załadunek</button><button class="btn xs ok" data-act="iss">Wydaj</button>`;
+  else if (it.st === "load") acts = `<button class="btn xs ok" data-act="iss">Wydaj</button>`;
+  else acts = `<span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span><button class="btn xs" data-act="undo" title="Cofnij status">↶</button>`;
   const times = [it.tArr && "przyj. " + it.tArr, it.tLoad && "zał. " + it.tLoad, it.tDone && "wyd. " + it.tDone].filter(Boolean).join(" · ");
-  return `<div class="aw st-${it.st}" data-id="${esc(it.id)}">
+  return `<div class="aw st-${it.st} ${mainGroup(q, it.name)}" data-id="${esc(it.id)}">
     <div class="ord">${it.ord || "–"}<span><button type="button" data-act="up" aria-label="Wyżej">▲</button><button type="button" data-act="down" aria-label="Niżej">▼</button></span></div>
-    <div class="slot">${esc(it.slot || "")}<small>${esc(times)}</small></div>
-    <div class="firm"><b data-act="edit">${esc(it.name || "(bez nazwy)")}</b><small>${meta}</small></div>
+    <div class="slot">${esc(it.slot || "")}<small>${esc(times || (it.st === "arr" || it.st === "load" ? ST[it.st] : ""))}</small></div>
+    <div class="firm"><b data-act="edit" title="${esc(it.name)}">${esc(it.name || "(bez nazwy)")}</b><small title="${esc(meta)}">${esc(meta)}</small></div>
     <div class="qty">${qChips(q)}</div>
-    <div class="sal">${s ? `saldo<br><b class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</b>` : ""}</div>
-    <div class="acts"><span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span>${acts}<button class="btn sm" data-act="mail" title="Kopiuj mail z awizacją">✉</button><button class="btn sm" data-act="edit">Edytuj</button></div>
+    <div class="sal">${s ? `<small>saldo</small><span class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</span>` : ""}</div>
+    <div class="acts">${acts}<button class="btn xs" data-act="mail" title="Kopiuj mail z awizacją">✉</button><button class="btn xs" data-act="edit" title="Edytuj">✎</button></div>
   </div>`;
 }
-$("#dList").addEventListener("click", async e => {
+$("#dList").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if (!b) return;
   const id = b.closest("[data-id]").dataset.id, it = DAYS[dayView].items[id]; if (!it) return;
   const a = b.dataset.act;
@@ -876,9 +966,8 @@ $("#dList").addEventListener("click", async e => {
   if (a === "undo") { n.st = it.st === "done" ? (it.tLoad ? "load" : it.tArr ? "arr" : "plan") : "plan"; delete n.tDone; if (it.st === "done") n.iq = null; }
   saveItem(n);
 });
-async function move(it, dir) {
+function move(it, dir) {
   const list = itemsOf(it.date);
-  list.forEach((x, i) => { if (!x.ord) x.ord = i + 1; });
   const i = list.findIndex(x => x.id === it.id), j = i + dir; if (j < 0 || j >= list.length) return;
   [list[i], list[j]] = [list[j], list[i]];
   S.setOrds(it.date, list.map((x, k) => [x.id, k + 1])).catch(fail);
@@ -900,27 +989,28 @@ function renderHarm() {
   const days = Array.from({ length: 7 }, (_, i) => addDays(harmWeek, i));
   ensureRange(days[0], days[6]);
   $("#hName").textContent = "Tydzień " + shortDate(days[0]) + " – " + plDate(days[6]);
+  $("#hLeg").innerHTML = legend(GORDER).replace(/^<div class="legend">|<\/div>$/g, "");
   const T = today();
-  let h = '<div></div>';
   const per = days.map(d => {
     const its = itemsOf(d), rows = CFG.slots.map(() => []), other = [];
     its.forEach(it => { const i = slotIdx(it.slot); (i >= 0 ? rows[i] : other).push(it); });
     return { d, its, rows, other };
   });
+  let h = "<div></div>";
   per.forEach(p => {
     const act = p.its.filter(active);
-    h += `<div class="hd ${p.d === T ? "today" : ""}" data-goday="${p.d}">${DOW[dowOf(p.d)]} ${shortDate(p.d)}<small>${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut · EUR ${fmt(act.reduce((s, i) => s + qSum(i.q, "EUR"), 0))}</small></div>`;
+    h += `<div class="hd ${p.d === T ? "today" : ""}" data-goday="${p.d}">${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}<small>${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</small></div>`;
   });
-  const chip = it => `<div class="chip st-${it.st}" data-hedit="${esc(it.id)}" data-date="${it.date}" title="${esc((it.name || "") + " · " + it.slot + " · " + qText(it.q) + (it.note ? " · " + it.note : ""))}">${it.ord ? `<b>${it.ord}.</b> ` : ""}${esc((it.name || it.code || "").slice(0, 22))} <b>${fmt(CFG.cats.reduce((s, c) => s + qSum(it.q, c.k), 0))}</b></div>`;
+  const chip = it => `<div class="chip st-${it.st} ${mainGroup(it.q, it.name)}" data-hedit="${esc(it.id)}" data-date="${it.date}" title="${esc((it.name || "") + " · " + it.slot + " · " + ST[it.st] + " · " + qText(it.q) + (it.note ? " · " + it.note : ""))}">${it.ord ? `<b>${it.ord}</b> ` : ""}${esc((it.name || it.code || "").slice(0, 20))} <b>${fmt(CATS.reduce((s, c) => s + qSum(it.q, c.k), 0))}</b></div>`;
   CFG.slots.forEach((s, i) => {
     h += `<div class="sl">${esc(s.t)}</div>`;
     per.forEach(p => {
       const its = p.rows[i], n = its.filter(active).length, cap = +s.cap || 0;
-      h += `<div class="cell ${n >= cap ? "full" : ""} ${n > cap ? "over" : ""} ${p.d < T ? "past" : ""}" data-hnew="${p.d}|${esc(s.t)}">${its.map(chip).join("")}${n < cap ? `<span class="free">wolne: ${cap - n}</span>` : ""}</div>`;
+      h += `<div class="cell ${n >= cap ? "full" : ""} ${n > cap ? "over" : ""} ${p.d < T ? "past" : ""}" data-hnew="${p.d}|${esc(s.t)}">${its.map(chip).join("")}${n < cap ? `<span class="free">wolne ${cap - n}</span>` : ""}</div>`;
     });
   });
   if (per.some(p => p.other.length)) {
-    h += `<div class="sl">inne /<br>dłuższe</div>`;
+    h += `<div class="sl">inne</div>`;
     per.forEach(p => { h += `<div class="cell" data-hnew="${p.d}|">${p.other.map(chip).join("")}</div>`; });
   }
   $("#harm").innerHTML = h;
@@ -928,7 +1018,7 @@ function renderHarm() {
 $("#harm").addEventListener("click", e => {
   const c = e.target.closest("[data-hedit]");
   if (c) { const it = DAYS[c.dataset.date].items[c.dataset.hedit]; if (it) openAw(it); return; }
-  const n = e.target.closest("[data-hnew]"); if (n && !e.target.closest("[data-goday]")) { const [d, s] = n.dataset.hnew.split("|"); openAw(null, { date: d, slot: s }); }
+  const n = e.target.closest("[data-hnew]"); if (n) { const [d, s] = n.dataset.hnew.split("|"); openAw(null, { date: d, slot: s }); }
 });
 $("#hPrev").addEventListener("click", () => { harmWeek = addDays(harmWeek, -7); renderHarm(); });
 $("#hNext").addEventListener("click", () => { harmWeek = addDays(harmWeek, 7); renderHarm(); });
@@ -950,10 +1040,10 @@ function slotOptions(d, cur) {
   }
 }
 function qInputs(q) {
-  const inp = c => `<label class="field">${esc(c.n)}${c.t ? ` <small>${fmt(c.t)}/auto</small>` : ""}<input type="number" min="0" data-q="${c.k}" value="${q && q[c.k] ? q[c.k] : ""}"></label>`;
-  $("#aQty").innerHTML = CFG.cats.filter(c => c.aw).map(inp).join("");
-  $("#aQty2").innerHTML = CFG.cats.filter(c => !c.aw).map(inp).join("");
-  $("#aMore").open = CFG.cats.some(c => !c.aw && q && q[c.k]);
+  const inp = c => `<label class="field ${gcls(c.k)}">${esc(c.n)}${c.t ? ` <small>${fmt(c.t)}/auto</small>` : ""}<input type="number" min="0" data-q="${c.k}" value="${q && q[c.k] ? q[c.k] : ""}"></label>`;
+  $("#aQty").innerHTML = CATS.filter(c => c.aw).map(inp).join("");
+  $("#aQty2").innerHTML = CATS.filter(c => !c.aw).map(inp).join("");
+  $("#aMore").open = CATS.some(c => !c.aw && q && q[c.k]);
 }
 function openAw(it, pre = {}) {
   editing = it ? clone(it) : null;
@@ -970,14 +1060,14 @@ function openAw(it, pre = {}) {
   $("#aDel").hidden = !it; $("#aSugg").hidden = true;
   updSal();
   $("#dlgAw").showModal();
-  (it ? $("#aQty input") : (v.code ? $("#aQty input") : $("#aName"))).focus();
+  ((it || v.code) ? $("#aQty input") : $("#aName")).focus();
 }
 function updSal() {
   const code = $("#aCode").value.trim(), s = salOf(code), w = [];
   const pl = plannedFor(code, today(), addDays(today(), 60)).filter(x => !editing || x.id !== editing.id);
-  $("#aSal").innerHTML = code ? (s ? `Saldo EUR: <b class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</b> szt. (plik ${plDate(SAL.date)}) <button class="btn sm" type="button" id="aUseSal">wpisz saldo</button> <button class="btn sm" type="button" id="aUseTruck">1 auto EUR</button>` : "Brak salda EUR dla tego kodu.") + (pl.length ? " · już umówione: " + pl.map(x => `${shortDate(x.date)} ${esc(x.slot)} (${fmt(qSum(x.q, "EUR"))})`).join(", ") : "") : "";
+  $("#aSal").innerHTML = code ? (s ? `Saldo EUR: <b class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</b> szt. (plik ${plDate(SAL.date)}) <button class="btn xs" type="button" id="aUseSal">wpisz saldo</button> <button class="btn xs" type="button" id="aUseTruck">1 auto EUR</button>` : "Brak salda EUR dla tego kodu.") + (pl.length ? " · już umówione: " + pl.map(x => `${shortDate(x.date)} ${esc(x.slot)} (${fmt(qSum(x.q, "EUR"))})`).join(", ") : "") : "";
   const eur = +($("[data-q=EUR]") || {}).value || 0;
-  if (s && eur > Math.max(0, s.tot) + 0.0001 && eur > 0) w.push(`EUR do wydania (${fmt(eur)}) większe niż saldo (${fmt(s.tot)}).`);
+  if (s && eur > 0 && eur > Math.max(0, s.tot)) w.push(`EUR do wydania (${fmt(eur)}) większe niż saldo (${fmt(s.tot)}).`);
   if (pl.length) w.push("Ten dostawca ma już inną otwartą awizację.");
   const d = $("#aDate").value, sl = $("#aSlot").value, i = CFG.slots.findIndex(x => x.t === sl);
   if (i >= 0) { const n = itemsOf(d).filter(x => active(x) && slotIdx(x.slot) === i && (!editing || x.id !== editing.id)).length; if (n >= CFG.slots[i].cap) w.push(`Okno ${sl} jest już pełne (${n}/${CFG.slots[i].cap}).`); }
@@ -996,9 +1086,9 @@ $("#aSal").addEventListener("click", e => {
 // podpowiedzi dostawców (kod albo nazwa)
 function suggest(qs) {
   const q = norm(qs).trim(); if (!q || (!/^\d+$/.test(q) && q.length < 2)) return [];
-  const out = []; const num = /^\d+$/.test(q);
+  const out = [], isNum = /^\d+$/.test(q);
   for (const [code, name] of NAMES) {
-    if (num ? code.startsWith(q) : norm(name).includes(q)) { const s = SAL.eur.get(code); out.push({ code, name, tot: s ? s.tot : null }); }
+    if (isNum ? code.startsWith(q) : norm(name).includes(q)) { const s = SAL.eur.get(code); out.push({ code, name, tot: s ? s.tot : null }); }
     if (out.length > 400) break;
   }
   return out.sort((a, b) => (b.tot ?? -1e9) - (a.tot ?? -1e9)).slice(0, 10);
@@ -1013,7 +1103,7 @@ function pickSugg(i) {
   const r = suggList[i]; if (!r) return;
   $("#aCode").value = r.code; $("#aName").value = r.name; $("#aSugg").hidden = true;
   const eur = $("[data-q=EUR]"); if (eur && !eur.value && r.tot > 0) eur.value = Math.min(r.tot, (CAT.EUR && CAT.EUR.t) || 495);
-  updSal(); eur && eur.focus(); eur && eur.select();
+  updSal(); if (eur) { eur.focus(); eur.select(); }
 }
 ["#aCode", "#aName"].forEach(s => {
   $(s).addEventListener("input", e => {
@@ -1059,15 +1149,15 @@ async function saveItem(it) {
 }
 $("#awForm").addEventListener("submit", async e => {
   e.preventDefault(); const it = readAw(); if (!it) return;
-  if (await saveItem(it)) { $("#dlgAw").close(); toast("Zapisano awizację · " + (it.name || it.code) + " · " + plDate(it.date) + " " + it.slot); editing = null; }
+  if (await saveItem(it)) { $("#dlgAw").close(); toast("Zapisano · " + (it.name || it.code) + " · " + plDate(it.date) + " " + it.slot); }
 });
 $("#aSaveMail").addEventListener("click", async () => {
   const it = readAw(); if (!it) return;
-  if (await saveItem(it)) { $("#dlgAw").close(); editing = null; copyMail(it); }
+  if (await saveItem(it)) { $("#dlgAw").close(); copyMail(it); }
 });
 $("#aDel").addEventListener("click", async () => {
   if (!editing || !confirm("Usunąć awizację " + (editing.name || editing.code) + " z " + plDate(editing.date) + "?\nJeśli firma nie przyjedzie, lepiej ustaw status „Anulowane” — zostanie ślad.")) return;
-  try { await S.delItem(editing.date, editing.id); $("#dlgAw").close(); toast("Usunięto"); editing = null; } catch (e) { fail(e); }
+  try { await S.delItem(editing.date, editing.id); $("#dlgAw").close(); toast("Usunięto"); } catch (e) { fail(e); }
 });
 $$("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
 $("#dlgAw").addEventListener("close", () => { editing = null; $("#aSugg").hidden = true; });
@@ -1092,11 +1182,11 @@ let issuing = null;
 function openIss(it) {
   issuing = clone(it);
   $("#iInfo").textContent = `${it.name || it.code} · ${plDate(it.date)} ${it.slot} · umówione: ${qText(it.q) || "bez ilości"}`;
-  const keys = new Set(CFG.cats.filter(c => c.aw).map(c => c.k)); Object.keys(it.q || {}).forEach(k => keys.add(k));
-  $("#iQty").innerHTML = CFG.cats.filter(c => keys.has(c.k)).map(c => `<label class="field">${esc(c.n)}<input type="number" min="0" data-iq="${c.k}" value="${(it.iq || it.q || {})[c.k] || ""}"></label>`).join("");
+  const keys = new Set(CATS.filter(c => c.aw).map(c => c.k)); Object.keys(it.q || {}).forEach(k => keys.add(k));
+  $("#iQty").innerHTML = CATS.filter(c => keys.has(c.k)).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)}<input type="number" min="0" data-iq="${c.k}" value="${(it.iq || it.q || {})[c.k] || ""}"></label>`).join("");
   $("#iDok").value = it.dok || ""; $("#iDrv").value = it.driver || ""; $("#iDost").value = it.dostChep || "";
   $("#dlgIss").showModal();
-  const f = $("#iQty input[value]:not([value=''])") || $("#iDok"); f.focus(); f.select && f.select();
+  const f = $$("#iQty input").find(i => i.value) || $("#iDok"); f.focus(); f.select && f.select();
 }
 $("#issForm").addEventListener("submit", async e => {
   e.preventDefault(); if (!issuing) return;
@@ -1106,7 +1196,7 @@ $("#issForm").addEventListener("submit", async e => {
   if (await saveItem(n)) { $("#dlgIss").close(); toast("Wydano · " + (n.name || n.code) + " · " + (qText(iq) || "0")); }
 });
 
-/* ---------- SALDA ---------- */
+/* ---------- Excel: wczytywanie i zapis ---------- */
 let xlsxP = null;
 const loadXLSX = () => xlsxP || (xlsxP = new Promise((res, rej) => {
   const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
@@ -1117,6 +1207,85 @@ async function readWorkbook(file) {
   const X = await loadXLSX(); const buf = await file.arrayBuffer();
   return X.read(buf, { type: "array", cellFormula: true, cellDates: false });
 }
+// sheets: [{ name, rows: [[nagłówki], [wartości]...] }]
+async function saveXlsx(fileName, sheets) {
+  try {
+    const X = await loadXLSX(), wb = X.utils.book_new();
+    sheets.forEach(sh => {
+      const ws = X.utils.aoa_to_sheet(sh.rows);
+      ws["!cols"] = (sh.rows[0] || []).map((h, i) => ({ wch: Math.min(48, Math.max(6, ...sh.rows.slice(0, 300).map(r => String(r[i] ?? "").length)) + 1) }));
+      if (sh.rows.length > 1) ws["!autofilter"] = { ref: X.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: sh.rows.length - 1, c: Math.max(0, (sh.rows[0] || []).length - 1) } }) };
+      X.utils.book_append_sheet(wb, ws, sh.name.slice(0, 31));
+    });
+    X.writeFile(wb, fileName);
+  } catch (e) { fail(e); }
+}
+const xDate = s => s ? plDate(s) : "";
+function itemRows(list) {
+  const head = ["Data", "Dzień", "Okno", "Nr załadunku", "Kod", "Firma", "Status",
+    ...CATS.map(c => c.n + " umówione"), ...CATS.map(c => c.n + " wydane"), "Auta",
+    "Kierowca / nr rej.", "Kontakt", "Nr dostawy CHEP/LPR", "Dok. wydania", "Uwagi", "Przyjazd", "Załadunek", "Wydanie", "Saldo EUR"];
+  const rows = list.map(it => {
+    const iq = it.st === "done" ? qOf(it) : {}, s = salOf(it.code);
+    return [xDate(it.date), DOW[dowOf(it.date)], it.slot || "", it.ord || "", it.code || "", it.name || "", ST[it.st] || it.st,
+      ...CATS.map(c => qSum(it.q, c.k) || ""), ...CATS.map(c => qSum(iq, c.k) || ""), r1(trucksQ(it.q)),
+      it.driver || "", it.contact || "", it.dostChep || "", it.dok || "", it.note || "", it.tArr || "", it.tLoad || "", it.tDone || "", s ? s.tot : ""];
+  });
+  // usuń puste kolumny kategorii, żeby arkusz był czytelny
+  const keep = head.map((h, i) => i < 7 || i >= 7 + CATS.length * 2 || rows.some(r => r[i] !== ""));
+  return [head.filter((_, i) => keep[i]), ...rows.map(r => r.filter((_, i) => keep[i]))];
+}
+function catRows(H) {
+  const head = ["Grupa", "Kategoria", "Stan szt.", "Stan aut", "Zjazd szt./dzień", "Zjazd aut/dzień", `Umówione ${H} dni szt.`, `Umówione ${H} dni aut`, `Stan za ${H} dni szt.`, `Stan za ${H} dni aut`, "Maks. aut", "Do zaplanowania aut", "Przekroczenie od"];
+  return [head, ...catData(H).map(({ c, f, st }) => [GROUPS[c.g], c.n, st ?? "", c.t && st != null ? r1(st / c.t) : "",
+    f ? Math.round(f.rate) : "", f && c.t ? r1(f.rate / c.t) : "", f ? f.planned : "", f && c.t ? r1(f.planned / c.t) : "",
+    f ? Math.round(f.proj) : "", f && c.t ? r1(f.proj / c.t) : "", c.t ? c.max : "", f ? f.needTrucks : "", f && f.firstOver ? xDate(f.firstOver) : ""])];
+}
+function salRowsX(rows) {
+  return [["Kod", "Dostawca", "Opakowanie", "Saldo mag.", "Bufor", "Saldo ogółem", "Zmiana vs poprzedni", "Umówione odbiory", "Umówione EUR", "Po odbiorach"],
+    ...rows.map(r => { const pv = SAL.prev.get(r.code), pl = plannedFor(r.code), plq = pl.reduce((s, it) => s + qSum(it.q, "EUR"), 0);
+      return [r.code, r.name, r.opak, r.mag, r.buf, r.tot, pv ? r.tot - pv.tot : "", pl.map(it => `${shortDate(it.date)} ${it.slot}`).join(", "), plq || "", pl.length ? r.tot - plq : ""]; })];
+}
+function stanRowsX() {
+  const ds = stanDates(), cs = CATS;
+  const infl = Object.fromEntries(cs.map(c => [c.k, Object.fromEntries(inflow(c.k, 99999).rows.map(r => [r.b, r.inf]))]));
+  return [
+    { name: "Stany", rows: [["Data", "Dzień", "Auta razem", ...cs.map(c => c.n)], ...ds.map(d => [xDate(d), DOW[dowOf(d)], r1(cs.reduce((s, c) => s + (c.t > 0 ? (+DAYS[d].stan[c.k] || 0) / c.t : 0), 0)), ...cs.map(c => DAYS[d].stan[c.k] ?? "")])] },
+    { name: "Zjazd", rows: [["Data", "Dzień", ...cs.map(c => c.n)], ...ds.map(d => [xDate(d), DOW[dowOf(d)], ...cs.map(c => infl[c.k][d] ?? "")])] },
+  ];
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-xls]"); if (!b) return;
+  const w = b.dataset.xls, T = today();
+  if (w === "pulpit") {
+    const open = itemsOf(T);
+    const plan = [["Data", "Dzień", "Awizacji", "Auta", ...GORDER.map(g => GROUPS[g] + " aut")]];
+    for (let i = 0; i < 14; i++) { const d = addDays(T, i), its = itemsOf(d).filter(active); plan.push([xDate(d), DOW[dowOf(d)], its.length, r1(its.reduce((s, it) => s + trucksQ(it.q), 0)), ...GORDER.map(g => r1(its.reduce((s, it) => s + CATS.filter(c => c.g === g && c.t > 0).reduce((a, c) => a + qSum(it.q, c.k) / c.t, 0), 0)) || "")]); }
+    saveXlsx(`pulpit_${T}.xlsx`, [{ name: "Opakowania 7 dni", rows: catRows(7) }, { name: "Dziś", rows: itemRows(open) }, { name: "Plan 14 dni", rows: plan }, { name: "Do zaawizowania", rows: salRowsX(salCandidates()) }]);
+  }
+  if (w === "dzien") saveXlsx(`zaladunki_${dayView}.xlsx`, [{ name: "Załadunki " + shortDate(dayView), rows: itemRows(itemsOf(dayView)) }]);
+  if (w === "harm") { const days = Array.from({ length: 7 }, (_, i) => addDays(harmWeek, i)); saveXlsx(`harmonogram_${harmWeek}.xlsx`, [{ name: "Tydzień", rows: itemRows(days.flatMap(itemsOf)) }]); }
+  if (w === "salda") saveXlsx(`salda_${SAL.date || T}.xlsx`, [{ name: "Salda", rows: salRowsX(salFiltered()) }]);
+  if (w === "stany") saveXlsx(`stany_placu_${T}.xlsx`, stanRowsX());
+  if (w === "prog") {
+    const ser = [["Data", "Dzień", ...CATS.map(c => c.n + " szt."), ...CATS.filter(c => c.t).map(c => c.n + " aut")]];
+    const fs = CATS.map(c => forecast(c.k, horizon));
+    for (let i = 0; i <= horizon; i++) { const d = addDays(T, i); ser.push([xDate(d), DOW[dowOf(d)], ...fs.map(f => f && f.series[i] ? Math.round(f.series[i].v) : ""), ...CATS.map((c, j) => [c, fs[j]]).filter(([c]) => c.t).map(([c, f]) => f && f.series[i] ? r1(f.series[i].v / c.t) : "")]); }
+    saveXlsx(`prognoza_${horizon}dni_${T}.xlsx`, [{ name: `Prognoza ${horizon} dni`, rows: catRows(horizon) }, { name: "Dzień po dniu", rows: ser }]);
+  }
+});
+$("#exGo").addEventListener("click", async () => {
+  const a = $("#exFrom").value, b = $("#exTo").value;
+  if (!a || !b || a > b) return toast("Wybierz poprawny zakres dat.", true);
+  try {
+    const data = await S.getRange(a, b), days = Object.keys(data).sort();
+    const list = days.flatMap(d => itemsIn(data, d));
+    const st = days.filter(d => data[d].stan).map(d => [xDate(d), DOW[dowOf(d)], ...CATS.map(c => data[d].stan[c.k] ?? "")]);
+    saveXlsx(`awizacje_${a}_${b}.xlsx`, [{ name: "Awizacje i wydania", rows: itemRows(list) }, { name: "Stany placu", rows: [["Data", "Dzień", ...CATS.map(c => c.n)], ...st] }]);
+  } catch (e) { fail(e); }
+});
+
+/* ---------- SALDA ---------- */
 function cellDate(c) {
   if (!c) return null;
   if (c.t === "n" && c.v > 30000 && c.v < 80000 && (!c.w || /[./-]/.test(c.w))) { const p = XLSX.SSF.parse_date_code(c.v); return p ? p.y + "-" + pad(p.m) + "-" + pad(p.d) : null; }
@@ -1166,13 +1335,11 @@ function parseSaldaSheet(ws, fileName) {
 }
 const packSalda = (p, file) => ({ date: p.date, n: p.rows.length, file: file || "", by: email, at: Date.now(), opak: p.opakNames,
   rows: p.rows.map(r => [r.code, r.opak, r.mag, r.buf, r.tot, r.name.replace(/[;\n]/g, " ")].join(";")).join("\n") });
-function unpackSalda(doc) {
-  return (doc && doc.rows ? doc.rows.split("\n") : []).map(l => { const [code, opak, mag, buf, tot, name] = l.split(";"); return { code, opak, mag: +mag, buf: +buf, tot: +tot, name }; });
-}
+const unpackSalda = doc => (doc && doc.rows ? doc.rows.split("\n") : []).map(l => { const [code, opak, mag, buf, tot, name] = l.split(";"); return { code, opak, mag: +mag, buf: +buf, tot: +tot, name }; });
 async function storeSalda(p, file) {
   const doc = packSalda(p, file);
   if (doc.rows.length > 900000) throw new Error("Plik z saldami jest za duży do zapisania (ponad 900 KB).");
-  const opk = CFG.opak, eurRows = p.rows.filter(r => r.opak === opk || !r.opak);
+  const eurRows = p.rows.filter(r => r.opak === CFG.opak || !r.opak);
   const entry = { date: p.date, n: p.rows.length, pos: eurRows.reduce((s, r) => s + Math.max(0, r.tot), 0), neg: eurRows.reduce((s, r) => s + Math.min(0, r.tot), 0), cnt: eurRows.filter(r => r.tot > 0).length, by: email, at: Date.now() };
   const list = (SALMETA.list || []).filter(x => x.date !== p.date).concat(entry).sort((a, b) => a.date.localeCompare(b.date)).slice(-400);
   await S.saveSalda(doc, { list, latest: list[list.length - 1].date });
@@ -1185,10 +1352,9 @@ async function handleSalFile(file) {
     let p = null; for (const n of wb.SheetNames) { p = parseSaldaSheet(wb.Sheets[n], file.name); if (p) break; }
     if (!p) { box.innerHTML = '<div class="notice err">Nie znalazłem tabeli z kolumnami „Dostawca” i „Saldo ogółem”.</div>'; return; }
     salPending = { p, file: file.name };
-    const opk = CFG.opak, eur = p.rows.filter(r => r.opak === opk || !r.opak);
-    const exists = (SALMETA.list || []).some(x => x.date === p.date);
-    box.innerHTML = `<div class="notice ${exists ? "warn" : "info"}">Plik <b>${esc(file.name)}</b>: ${fmt(p.rows.length)} wierszy, stan na <b>${p.date ? plDate(p.date) : "?"}</b>. EUR: ${fmt(eur.filter(r => r.tot > 0).length)} dostawców z dodatnim saldem, razem ${fmt(eur.reduce((s, r) => s + Math.max(0, r.tot), 0))} szt.${exists ? "<br>Salda z tego dnia już są — zapis je zastąpi." : ""}</div>
-      <div class="row"><label class="field" style="width:auto">Stan na dzień <input type="date" id="salDate" value="${p.date || today()}"></label><button class="btn primary" type="button" id="salSave">Zapisz salda</button><button class="btn" type="button" id="salCancel">Anuluj</button></div>`;
+    const eur = p.rows.filter(r => r.opak === CFG.opak || !r.opak), exists = (SALMETA.list || []).some(x => x.date === p.date);
+    box.innerHTML = `<div class="notice ${exists ? "warn" : "info"}"><b>${esc(file.name)}</b>: ${fmt(p.rows.length)} wierszy, stan na <b>${p.date ? plDate(p.date) : "?"}</b> · EUR: ${fmt(eur.filter(r => r.tot > 0).length)} dostawców z dodatnim saldem, razem ${fmt(eur.reduce((s, r) => s + Math.max(0, r.tot), 0))} szt.${exists ? " · salda z tego dnia już są — zapis je zastąpi" : ""}</div>
+      <div class="row"><label class="field">Stan na dzień <input type="date" id="salDate" value="${p.date || today()}"></label><button class="btn primary" type="button" id="salSave" style="align-self:end">Zapisz salda</button><button class="btn" type="button" id="salCancel" style="align-self:end">Anuluj</button></div>`;
   } catch (e) { console.error(e); box.innerHTML = `<div class="notice err">${esc(e.message || e)}</div>`; }
 }
 $("#salPrev").addEventListener("click", async e => {
@@ -1211,8 +1377,8 @@ let salLoadedFor = null;
 async function loadSalda(meta) {
   SALMETA = meta || { list: [] };
   const list = (SALMETA.list || []).map(x => x.date).sort(), last = list[list.length - 1], prev = list[list.length - 2];
-  const key = last + "|" + prev + "|" + (SALMETA.list || []).map(x => x.at).join(",");
   if (!last) { SAL = { date: null, rows: [], eur: new Map(), prev: new Map(), opakNames: {} }; schedule(); return; }
+  const key = last + "|" + prev + "|" + CFG.opak + "|" + (SALMETA.list || []).map(x => x.at).join(",");
   if (salLoadedFor === key) return; salLoadedFor = key;
   try {
     const [a, b] = await Promise.all([S.getSalda(last), prev ? S.getSalda(prev) : null]);
@@ -1223,25 +1389,26 @@ async function loadSalda(meta) {
     schedule();
   } catch (e) { showDbErr(e); }
 }
+function salFiltered() {
+  const opaks = [...new Set(SAL.rows.map(r => r.opak))].filter(Boolean), op = $("#salOpak").value || CFG.opak;
+  const q = norm($("#salQ").value).trim(), booked = bookedCodes();
+  let rows = SAL.rows.filter(r => r.opak === op || !r.opak || !opaks.length);
+  if (q) rows = rows.filter(r => r.code.startsWith(q) || norm(r.name).includes(q));
+  if (salFilter === "pos") rows = rows.filter(r => r.tot > 0);
+  if (salFilter === "neg") rows = rows.filter(r => r.tot < 0);
+  if (salFilter === "free") rows = rows.filter(r => r.tot > 0 && !booked.has(r.code));
+  return rows.sort((a, b) => salFilter === "neg" ? a.tot - b.tot : b.tot - a.tot);
+}
 function renderSalda() {
   const opaks = [...new Set(SAL.rows.map(r => r.opak))].filter(Boolean);
   const sel = $("#salOpak"), cur = sel.value || CFG.opak;
   sel.innerHTML = opaks.map(o => `<option value="${esc(o)}">${esc(o)} ${esc(SAL.opakNames[o] || "")}</option>`).join("");
   sel.hidden = opaks.length < 2; if (opaks.includes(cur)) sel.value = cur;
-  const op = sel.value || CFG.opak;
-  $("#salSub").textContent = SAL.date ? `stan na ${plDate(SAL.date)}${SAL.prevDate ? " · zmiana względem " + plDate(SAL.prevDate) : ""}` : "brak wczytanych sald";
-  const q = norm($("#salQ").value).trim();
-  const booked = new Set(); for (let i = 0; i <= 30; i++) itemsOf(addDays(today(), i)).forEach(it => { if (active(it) && it.st !== "done") booked.add(String(it.code)); });
-  let rows = SAL.rows.filter(r => (r.opak === op || !r.opak || !opaks.length));
-  if (q) rows = rows.filter(r => r.code.startsWith(q) || norm(r.name).includes(q));
-  if (salFilter === "pos") rows = rows.filter(r => r.tot > 0);
-  if (salFilter === "neg") rows = rows.filter(r => r.tot < 0);
-  if (salFilter === "free") rows = rows.filter(r => r.tot > 0 && !booked.has(r.code));
-  rows.sort((a, b) => salFilter === "neg" ? a.tot - b.tot : b.tot - a.tot);
-  const sum = rows.reduce((s, r) => s + r.tot, 0);
-  $("#salTbl").innerHTML = !SAL.date ? '<p class="sub">Wczytaj pierwszy plik z saldami powyżej.</p>' :
-    `<p class="sub">${fmt(rows.length)} pozycji · suma ${fmt(sum)} szt.${rows.length > 300 ? " · pokazano 300 największych — zawęź wyszukiwaniem" : ""}</p>
-    <table><thead><tr><th>Kod</th><th>Dostawca</th><th class="n">Saldo ogółem</th><th class="n">Zmiana</th><th class="n">Bufor</th><th>Umówione odbiory</th><th class="n">Po odbiorach</th><th></th></tr></thead><tbody>${rows.slice(0, 300).map(r => salRow(r, false)).join("")}</tbody></table>`;
+  $("#salSub").textContent = SAL.date ? `stan na ${plDate(SAL.date)}${SAL.prevDate ? " · zmiana vs " + plDate(SAL.prevDate) : ""}` : "brak wczytanych sald";
+  const rows = salFiltered(), sum = rows.reduce((s, r) => s + r.tot, 0);
+  $("#salTbl").innerHTML = !SAL.date ? '<p class="sub">Wczytaj pierwszy plik z saldami.</p>' :
+    `<table><thead><tr><th>Kod</th><th>Dostawca</th><th class="n">Saldo</th><th class="n">Zmiana</th><th class="n">Bufor</th><th>Umówione odbiory</th><th class="n">Po odbiorach</th><th></th></tr></thead><tbody>${rows.slice(0, 400).map(r => `<tr>${salCells(r, false)}</tr>`).join("")}</tbody></table>
+    <p class="sub">${fmt(rows.length)} pozycji · suma ${fmt(sum)} szt.${rows.length > 400 ? " · na ekranie 400 największych, w Excelu wszystkie" : ""}</p>`;
   const hist = (SALMETA.list || []).slice(-15).reverse();
   $("#salHist").innerHTML = hist.length ? `<table><thead><tr><th>Stan na</th><th class="n">Wierszy</th><th class="n">Saldo dodatnie EUR</th><th class="n">Ujemne</th><th class="n">Dostawców &gt; 0</th><th>Wczytał</th></tr></thead><tbody>${hist.map(h => `<tr><td>${plDate(h.date)}</td><td class="n">${fmt(h.n)}</td><td class="n">${fmt(h.pos)}</td><td class="n">${fmt(h.neg)}</td><td class="n">${fmt(h.cnt)}</td><td class="mut">${esc(h.by || "")}</td></tr>`).join("")}</tbody></table>` : '<p class="sub">Brak.</p>';
 }
@@ -1255,26 +1422,28 @@ function renderStany() {
   ensureRange(addDays(sDate, -7), sDate);
   $("#sDate").value = sDate;
   const cur = (DAYS[sDate] && DAYS[sDate].stan) || null, prevD = stanDates().filter(d => d < sDate).pop(), prev = prevD ? DAYS[prevD].stan : {};
-  $("#sInfo").innerHTML = (cur ? `zapisany ${DAYS[sDate].stanBy ? "przez " + esc(DAYS[sDate].stanBy) : ""}` : "jeszcze nie wpisany") + (prevD ? ` · poprzedni: ${plDate(prevD)}` : "");
+  $("#sInfo").innerHTML = (cur ? "zapisany" + (DAYS[sDate].stanBy ? " · " + esc(DAYS[sDate].stanBy) : "") : "jeszcze nie wpisany") + (prevD ? ` · poprzedni ${plDate(prevD)}` : "");
   if (!sDirty) {
-    $("#sForm").innerHTML = CFG.cats.map(c => {
+    $("#sForm").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<div class="sgroup g-${g}"><h3>${GROUPS[g]}</h3>${CATS.filter(c => c.g === g).map(c => {
       const v = cur && cur[c.k] != null ? (c.s ? cur[c.k] / c.s : cur[c.k]) : "";
       const p = prev && prev[c.k] != null ? (c.s ? fmt1(prev[c.k] / c.s) + " st." : fmt(prev[c.k])) : "—";
-      return `<label class="field">${esc(c.n)}${c.s ? ` <small>w stosach × ${c.s}</small>` : ""}<input type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz.: ${p}</small></label>`;
-    }).join("");
+      return `<div class="it"><label for="s_${c.k}">${esc(c.n)}${c.s ? ` <small class="mut">stosy×${c.s}</small>` : ""}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p}</small></div>`;
+    }).join("")}</div>`).join("");
   }
   sTotal();
-  // historia z zjazdami
-  const ds = stanDates().slice(-21).reverse(), main = CFG.cats.filter(c => c.t > 0).slice(0, 8);
-  const infl = Object.fromEntries(main.map(c => [c.k, Object.fromEntries(inflow(c.k, 9999).rows.map(r => [r.b, r]))]));
-  $("#sHist").innerHTML = ds.length ? `<table><thead><tr><th>Dzień</th><th class="n">Auta</th>${main.map(c => `<th class="n">${esc(c.n)}<br><span class="mut">stan / zjazd</span></th>`).join("")}</tr></thead><tbody>${ds.map(d => {
-    const st = DAYS[d].stan, tt = CFG.cats.reduce((s, c) => s + (c.t > 0 ? (+st[c.k] || 0) / c.t : 0), 0);
-    return `<tr class="click" data-sday="${d}"><td>${DOW_S[dowOf(d)]} ${plDate(d)}</td><td class="n">${fmt1(tt)}</td>${main.map(c => { const r = infl[c.k][d]; return `<td class="n">${st[c.k] == null ? "—" : fmt(st[c.k])}<br><span class="mut">${r ? (r.inf >= 0 ? "+" : "") + fmt(r.inf) : ""}</span></td>`; }).join("")}</tr>`;
+  // historia: kolorowe kolumny grup
+  const ds = stanDates().filter(d => d <= today()).slice(-30).reverse(), cs = CATS.filter(c => c.t > 0 || ds.some(d => DAYS[d].stan[c.k]));
+  const infl = Object.fromEntries(cs.map(c => [c.k, Object.fromEntries(inflow(c.k, 99999).rows.map(r => [r.b, r]))]));
+  const groupsUsed = GORDER.filter(g => cs.some(c => c.g === g));
+  $("#sHist").innerHTML = ds.length ? `<table><thead><tr><th rowspan="2">Dzień</th><th class="n" rowspan="2">Aut</th>${groupsUsed.map(g => `<th colspan="${cs.filter(c => c.g === g).length}" class="g-${g}" style="color:var(--gc);background:var(--gb);text-align:center">${GROUPS[g]}</th>`).join("")}</tr>
+    <tr>${cs.map(c => `<th class="n g-${c.g}" style="top:20px;border-top:3px solid var(--gc)">${esc(c.n)}</th>`).join("")}</tr></thead><tbody>${ds.map(d => {
+    const st = DAYS[d].stan, tt = CATS.reduce((s, c) => s + (c.t > 0 ? (+st[c.k] || 0) / c.t : 0), 0);
+    return `<tr class="click" data-sday="${d}"><td class="nw">${DOW_S[dowOf(d)]} ${shortDate(d)}</td><td class="n"><b>${fmt1(tt)}</b></td>${cs.map(c => { const r = infl[c.k][d]; return `<td class="n">${st[c.k] == null ? "—" : fmt(st[c.k])}${r ? `<br><span class="mut" style="font-size:.68rem">${r.inf >= 0 ? "+" : ""}${fmt(r.inf)}</span>` : ""}</td>`; }).join("")}</tr>`;
   }).join("")}</tbody></table>` : '<p class="sub">Brak zapisanych stanów.</p>';
 }
 function sTotal() {
   let t = 0; $$("#sForm [data-s]").forEach(i => { const c = CAT[i.dataset.s]; if (c && c.t > 0 && i.value !== "") t += (+i.value * (c.s || 1)) / c.t; });
-  $("#sTot").textContent = "Razem ok. " + fmt1(t) + " aut";
+  $("#sTot").textContent = "razem " + fmt1(t) + " aut";
 }
 $("#sForm").addEventListener("input", () => { sDirty = true; sTotal(); });
 $("#sDate").addEventListener("change", e => { if (e.target.value) { sDate = e.target.value; sDirty = false; renderStany(); } });
@@ -1289,16 +1458,16 @@ $("#sSave").addEventListener("click", async () => {
 function renderProg() {
   $$("#gH button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.h === horizon)));
   $("#gTbl").innerHTML = catTable(horizon, false);
-  const sel = $("#gCat"); sel.innerHTML = CFG.cats.map(c => `<option value="${c.k}">${esc(c.n)}</option>`).join(""); sel.value = CAT[gCat] ? gCat : "EUR";
+  const sel = $("#gCat"); sel.innerHTML = CATS.map(c => `<option value="${c.k}">${esc(GROUPS[c.g])} · ${esc(c.n)}</option>`).join(""); sel.value = CAT[gCat] ? gCat : "EUR";
   const c = CAT[sel.value], f = forecast(c.k, Math.max(horizon, 7));
   $("#gChart").innerHTML = !f ? '<p class="sub">Brak stanu placu dla tej kategorii.</p>' :
-    barChart(f.series.map(p => ({ v: p.v, lab: c.t ? fmt1(p.v / c.t) : fmt(p.v), x: DOW_S[dowOf(p.d)] + "<br>" + shortDate(p.d), cls: f.lim && p.v > f.lim ? "over" : "", go: p.d,
-      tip: `${DOW[dowOf(p.d)]} ${plDate(p.d)} rano<br>prognoza: ${fmt(p.v)} szt.${c.t ? " (" + fmt1(p.v / c.t) + " aut)" : ""}<br>wydania tego dnia: ${fmt(issued(p.d, c.k))} szt.` })), f.lim || null)
-    + `<p class="sub">Stan ${fmt(f.s0)} szt. z ${plDate(f.c)}, zjazd ${fmt(f.rate)} szt./dzień${c.t ? " (" + fmt1(f.rate / c.t) + " auta)" : ""}. Etykiety w ${c.t ? "autach" : "sztukach"}. ${f.needTrucks ? `<b class="pos">Trzeba umówić jeszcze ${f.needTrucks} aut(a) ${c.n}${f.firstOver ? " — limit przekroczony od " + plDate(f.firstOver) : ""}.</b>` : ""}</p>`;
+    barChart(f.series.map(p => ({ v: p.v, g: c.g, lab: c.t ? fmt1(p.v / c.t) : fmt(p.v), x: DOW_S[dowOf(p.d)] + "<br>" + shortDate(p.d), cls: f.lim && p.v > f.lim ? "over" : "", go: p.d,
+      tip: `<b>${DOW[dowOf(p.d)]} ${plDate(p.d)}</b> rano<br>prognoza: ${fmt(p.v)} szt.${c.t ? " (" + fmt1(p.v / c.t) + " aut)" : ""}<br>wydania tego dnia: ${fmt(issued(p.d, c.k))} szt.` })), f.lim || null, 130)
+    + `<p class="sub">Stan ${fmt(f.s0)} szt. z ${plDate(f.c)} · zjazd ${fmt(f.rate)} szt./dzień${c.t ? " (" + fmt1(f.rate / c.t) + " aut)" : ""} · etykiety w ${c.t ? "autach" : "sztukach"}.${f.needTrucks ? ` <b class="pos">Umów jeszcze ${f.needTrucks} ${plural(f.needTrucks, "auto", "auta", "aut")}${f.firstOver ? " — limit przekroczony od " + plDate(f.firstOver) : ""}.</b>` : ""}</p>`;
   const inf = inflow(c.k), wd = [1, 2, 3, 4, 5, 6, 0];
-  $("#gWdSub").textContent = c.n + " · średni zjazd między liczeniami (pon. obejmuje weekend)";
-  $("#gWd").innerHTML = inf.rows.length ? barChart(wd.map(d => { const [s, n] = inf.wd[d]; const v = n ? s / n : 0; return { v, lab: n ? fmt(v) : "", x: DOW_S[d], tip: `${DOW[d]}: śr. ${fmt(v)} szt. (${n} pomiarów)` }; }), null)
-    + `<div class="tbl-wrap" style="max-height:260px"><table><thead><tr><th>Okres</th><th class="n">Dni</th><th class="n">Wydane</th><th class="n">Zjazd</th></tr></thead><tbody>${inf.rows.slice(-14).reverse().map(r => `<tr><td>${shortDate(r.a)} → ${shortDate(r.b)}</td><td class="n">${r.n}</td><td class="n">${fmt(r.iss)}</td><td class="n">${fmt(r.inf)}</td></tr>`).join("")}</tbody></table></div>`
+  $("#gWdSub").textContent = c.n + " · pon. obejmuje weekend";
+  $("#gWd").innerHTML = inf.rows.length ? barChart(wd.map(d => { const [s, n] = inf.wd[d]; const v = n ? s / n : 0; return { v, g: c.g, lab: n ? fmt(v) : "", x: DOW_S[d], tip: `${DOW[d]}: śr. ${fmt(v)} szt. (${n} pomiarów)` }; }), null, 90)
+    + `<div class="tbl-wrap" style="max-height:200px"><table><thead><tr><th>Okres</th><th class="n">Dni</th><th class="n">Wydane</th><th class="n">Zjazd</th></tr></thead><tbody>${inf.rows.slice(-14).reverse().map(r => `<tr><td>${shortDate(r.a)} → ${shortDate(r.b)}</td><td class="n">${r.n}</td><td class="n">${fmt(r.iss)}</td><td class="n">${fmt(r.inf)}</td></tr>`).join("")}</tbody></table></div>`
     : '<p class="sub">Za mało liczeń stanu (potrzeba co najmniej dwóch w odstępie do 4 dni).</p>';
 }
 $("#gH").addEventListener("click", e => { const b = e.target.closest("[data-h]"); if (b) { horizon = +b.dataset.h; renderProg(); } });
@@ -1308,23 +1477,26 @@ $("#gCat").addEventListener("change", e => { gCat = e.target.value; renderProg()
 let cfgDraft = null;
 function renderSet() {
   if (!cfgDraft) cfgDraft = clone(CFG);
-  $("#cfgCats").innerHTML = `<table><thead><tr><th>Klucz</th><th>Nazwa</th><th class="n">Szt. na auto</th><th class="n">Stos (szt.)</th><th class="n">Maks. stan (auta)</th><th>W formularzu</th><th></th></tr></thead><tbody>${cfgDraft.cats.map((c, i) => `<tr data-ci="${i}">
+  if (!$("#exFrom").value) { $("#exFrom").value = addDays(today(), -30); $("#exTo").value = addDays(today(), 14); }
+  $("#cfgCats").innerHTML = `<table><thead><tr><th>Klucz</th><th>Nazwa</th><th>Grupa</th><th class="n">Szt. na auto</th><th class="n">Stos</th><th class="n">Maks. aut</th><th>W formularzu</th><th></th></tr></thead><tbody>${cfgDraft.cats.map((c, i) => `<tr data-ci="${i}" class="cat g-${c.g || DEF_G[c.k] || "inne"}">
     <td class="num mut">${esc(c.k)}</td><td><input data-cf="n" value="${esc(c.n)}"></td>
-    <td><input type="number" min="0" data-cf="t" value="${c.t}" style="width:90px"></td><td><input type="number" min="0" data-cf="s" value="${c.s || 0}" style="width:80px"></td>
-    <td><input type="number" min="0" step="0.5" data-cf="max" value="${c.max}" style="width:80px"></td><td><input type="checkbox" data-cf="aw" ${c.aw ? "checked" : ""}></td>
-    <td><button class="btn sm" type="button" data-cmove="-1">▲</button> <button class="btn sm" type="button" data-cmove="1">▼</button></td></tr>`).join("")}</tbody></table>`;
+    <td><select data-cf="g">${GORDER.map(g => `<option value="${g}" ${g === (c.g || DEF_G[c.k]) ? "selected" : ""}>${GROUPS[g]}</option>`).join("")}</select></td>
+    <td><input type="number" min="0" data-cf="t" value="${c.t}" style="width:80px"></td><td><input type="number" min="0" data-cf="s" value="${c.s || 0}" style="width:70px"></td>
+    <td><input type="number" min="0" step="0.5" data-cf="max" value="${c.max}" style="width:70px"></td><td><input type="checkbox" data-cf="aw" ${c.aw ? "checked" : ""}></td>
+    <td class="nw"><button class="btn xs" type="button" data-cmove="-1">▲</button> <button class="btn xs" type="button" data-cmove="1">▼</button></td></tr>`).join("")}</tbody></table>`;
   $("#cfgSlots").value = cfgDraft.slots.map(s => s.t + " | " + s.cap).join("\n");
   $("#cfgSubj").value = cfgDraft.mailSubj; $("#cfgMail").value = cfgDraft.mailTpl; $("#cfgOpak").value = cfgDraft.opak; $("#cfgMin").value = cfgDraft.salMin;
 }
 $("#cfgCats").addEventListener("input", e => {
   const tr = e.target.closest("[data-ci]"), f = e.target.dataset.cf; if (!tr || !f) return;
-  const c = cfgDraft.cats[+tr.dataset.ci]; c[f] = f === "aw" ? e.target.checked : f === "n" ? e.target.value : +e.target.value || 0;
+  const c = cfgDraft.cats[+tr.dataset.ci]; c[f] = f === "aw" ? e.target.checked : (f === "n" || f === "g") ? e.target.value : +e.target.value || 0;
+  if (f === "g") tr.className = "cat g-" + c.g;
 });
 $("#cfgCats").addEventListener("click", e => {
   const b = e.target.closest("[data-cmove]"); if (!b) return; const i = +b.closest("[data-ci]").dataset.ci, j = i + +b.dataset.cmove;
   if (j < 0 || j >= cfgDraft.cats.length) return; [cfgDraft.cats[i], cfgDraft.cats[j]] = [cfgDraft.cats[j], cfgDraft.cats[i]]; renderSet();
 });
-$("#cfgAddCat").addEventListener("click", () => { const n = prompt("Nazwa nowej kategorii:"); if (!n) return; cfgDraft.cats.push({ k: "K" + uid().slice(-5).toUpperCase(), n: n.trim(), t: 0, s: 0, max: 0, aw: true }); renderSet(); });
+$("#cfgAddCat").addEventListener("click", () => { const n = prompt("Nazwa nowej kategorii:"); if (!n) return; cfgDraft.cats.push({ k: "K" + uid().slice(-5).toUpperCase(), n: n.trim(), g: "inne", t: 0, s: 0, max: 0, aw: true }); renderSet(); });
 $("#cfgReset").addEventListener("click", () => { if (!confirm("Przywrócić domyślne kategorie i okna (bez zapisu — potem kliknij Zapisz)?")) return; const d = DEF_CFG(); cfgDraft.cats = d.cats; cfgDraft.slots = d.slots; renderSet(); });
 $("#cfgSave").addEventListener("click", async () => {
   const slots = $("#cfgSlots").value.split("\n").map(l => l.trim()).filter(Boolean).map(l => { const [t, cap] = l.split("|").map(x => x.trim()); return { t: t.replace(/\s/g, ""), cap: Math.max(0, parseInt(cap, 10) || 1) }; });
@@ -1363,8 +1535,7 @@ function parseWydania(ws) {
       const cell = g(r, +c); if (!cell || cell.v == null || String(cell.v).trim() === "") continue;
       const v = num(cell.v); if (v != null && v > 0) q[k] = v; else if (v == null) extra.push(String(cell.v).trim());
     }
-    let note = [sv(r, "note"), ...extra].filter(Boolean).join(" · ");
-    const flag = norm(note);
+    const note = [sv(r, "note"), ...extra].filter(Boolean).join(" · "), flag = norm(note);
     const st = /anul/.test(flag) ? "cancel" : /nie (przyj|dojech|podjech|przyb)/.test(flag) ? "noshow" : date < T ? "done" : "plan";
     let ord = num((g(r, col.m.ord) || {}).v); ordCnt[date] = (ordCnt[date] || 0) + 1;
     if (!(ord > 0 && ord < 100)) ord = null;
@@ -1402,12 +1573,12 @@ async function handleImpFile(file) {
     if (!dost && !wyd && !sal) { box.innerHTML = '<div class="notice err">Nie rozpoznałem arkuszy WYDANIA / DOSTAWCY / SALDA.</div>'; return; }
     impPending = { dost, wyd, sal, file: file.name };
     box.innerHTML = `<div class="notice info"><b>${esc(file.name)}</b><ul>
-      ${wyd ? `<li>WYDANIA: ${fmt(wyd.items)} awizacji od ${plDate(wyd.minD)} do ${plDate(wyd.maxD)} (przeszłe jako wydane), ${fmt(wyd.stans)} dni ze stanem placu</li>` : "<li>brak arkusza WYDANIA</li>"}
+      ${wyd ? `<li>WYDANIA: ${fmt(wyd.items)} awizacji ${plDate(wyd.minD)} – ${plDate(wyd.maxD)} (przeszłe jako wydane), ${fmt(wyd.stans)} dni ze stanem placu</li>` : "<li>brak arkusza WYDANIA</li>"}
       ${dost ? `<li>DOSTAWCY: ${fmt(dost.size)} firm</li>` : ""}
       ${sal ? `<li>SALDA: ${fmt(sal.rows.length)} wierszy, stan na ${sal.date ? plDate(sal.date) : "?"}</li>` : ""}
-      </ul>Arkusze z loginami i hasłami nie są importowane. Ponowny import tego samego pliku nadpisuje te same pozycje (nie dubluje).</div>
-      <div class="row">${wyd ? `<label class="field" style="width:auto">Awizacje od dnia <input type="date" id="impFrom" value="${wyd.minD}"></label>` : ""}
-      <button class="btn primary" type="button" id="impGo">Importuj</button><button class="btn" type="button" id="impCancel">Anuluj</button><span class="sub" id="impProg"></span></div>`;
+      </ul>Arkusze z loginami i hasłami nie są importowane. Ponowny import nadpisuje te same pozycje.</div>
+      <div class="row">${wyd ? `<label class="field">Awizacje od dnia <input type="date" id="impFrom" value="${wyd.minD}"></label>` : ""}
+      <button class="btn primary" type="button" id="impGo" style="align-self:end">Importuj</button><button class="btn" type="button" id="impCancel" style="align-self:end">Anuluj</button><span class="sub" id="impProg"></span></div>`;
   } catch (e) { console.error(e); box.innerHTML = `<div class="notice err">${esc(e.message || e)}</div>`; }
 }
 dropZone($("#impDrop"), $("#impFile"), handleImpFile);
@@ -1450,9 +1621,7 @@ function enter(store) {
   ensureRange(addDays(today(), -49), addDays(today(), 42));
   unsubs.push(S.watchConfig(applyConfig));
   unsubs.push(S.watchSalMeta(loadSalda));
-  unsubs.push(S.watchRoles(mods => { isMod = local || email.toLowerCase() === OWNER || mods.includes(email.toLowerCase()); $("#tab-set").hidden = !isMod; if (!isMod && tab === "set") showTab("pulpit"); }));
-  S.getDost().then(txt => { txt.split("\n").forEach(l => { const i = l.indexOf(";"); if (i > 0) NAMES.set(l.slice(0, i), l.slice(i + 1)); }); SAL.rows.forEach(r => { if (r.name && !NAMES.has(r.code)) NAMES.set(r.code, r.name); }); }).catch(e => console.error(e));
-  $("#tab-set").hidden = !local && email.toLowerCase() !== OWNER;
+  S.getDost().then(txt => { txt.split("\n").forEach(l => { const i = l.indexOf(";"); if (i > 0) NAMES.set(l.slice(0, i), l.slice(i + 1)); }); }).catch(e => console.error(e));
   showTab(tab);
 }
 function leave() {
@@ -1463,7 +1632,7 @@ function leave() {
 (function start() {
   const c = window.FIREBASE_CONFIG;
   if (location.hash === "#lokalnie" || !window.firebase || !c || !c.apiKey) {
-    local = true; email = "lokalnie"; $("#modeTag").hidden = false; $("#navRap").hidden = true;
+    local = true; email = "lokalnie"; $("#modeTag").hidden = false;
     if (location.hash !== "#lokalnie") $("#noConfig").hidden = false;
     enter(localStore()); return;
   }
@@ -1477,10 +1646,11 @@ function leave() {
   $("#logout").addEventListener("click", () => auth.signOut());
   auth.onAuthStateChanged(u => {
     leave();
-    $("#login").hidden = !!u; $("#who").hidden = !u; $("#noAccess").hidden = true;
+    $("#login").hidden = !!u; $("#who").hidden = !u;
     if (!u) return;
     email = u.email || ""; $("#whoEmail").textContent = email;
     if (email.toLowerCase() !== OWNER) { const n = $("#noAccess"); n.textContent = "To konto nie ma dostępu do awizacji opakowań."; n.hidden = false; auth.signOut(); return; }
+    $("#noAccess").hidden = true;
     enter(fbStore(db));
   });
 })();
