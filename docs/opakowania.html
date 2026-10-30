@@ -127,10 +127,21 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .act.data { --gc: var(--warn); background: var(--warn-bg); }
 .okline { font-size: .76rem; color: var(--muted); margin: 0; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .up { color: var(--bad); } .down { color: var(--ok); }
+/* załadunki: lista + panel boczny */
+.dgrid { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 10px; align-items: start; }
+.side { position: sticky; top: 72px; gap: 6px; }
+.side .sg { display: grid; gap: 2px; padding: 5px 7px; border-left: 4px solid var(--gc); background: var(--gb); border-radius: 3px; cursor: pointer; }
+.side .sg b { font: 700 .8rem var(--f-cond); text-transform: uppercase; letter-spacing: .06em; color: var(--gc); }
+.side .sg span { font-size: .74rem; color: var(--muted); }
+.side .sg .q { background: var(--surface); }
+.side .tot { font: 400 1.4rem var(--f-stamp); }
+.pbar2 { height: 8px; background: var(--line-2); border-radius: 4px; overflow: hidden; }
+.pbar2 i { display: block; height: 100%; background: var(--ok); }
+@media (max-width: 1050px) { .dgrid { grid-template-columns: 1fr; } .side { position: static; order: -1; } }
 /* sekcje załadunków */
 .sec { display: grid; gap: 3px; }
 .sec + .sec { margin-top: 8px; }
-.sec-h { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; padding: 5px 9px; border-radius: var(--r); background: var(--wood-1); color: var(--wood-fg); }
+.sec-h { border-left: 6px solid var(--gc, var(--pine)); display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; padding: 5px 9px; border-radius: var(--r); background: var(--wood-1); color: var(--wood-fg); }
 .sec-h h3 { color: var(--pine); font-size: 1.05rem; }
 .sec-h .sub { color: var(--wood-mut); }
 .sec-h .tag { background: rgba(255,255,255,.1); border-color: transparent; color: var(--wood-fg); }
@@ -191,7 +202,11 @@ tr.cat td:first-child { border-left: 4px solid var(--gc); }
 .harm { display: grid; grid-template-columns: 74px repeat(7, minmax(118px, 1fr)); gap: 2px; min-width: 900px; }
 .harm .hd { font: 600 .78rem var(--f-cond); letter-spacing: .04em; text-transform: uppercase; padding: 3px 5px; background: var(--wood-1); color: var(--wood-fg); border-radius: 3px; display: grid; cursor: pointer; }
 .harm .hd.today { background: var(--pine); color: var(--pine-ink); }
-.harm .hd small { font: 400 .66rem var(--f-mono); text-transform: none; letter-spacing: 0; opacity: .85; }
+.harm .hd small { font: 400 .66rem var(--f-mono); text-transform: none; letter-spacing: 0; opacity: .9; }
+.harm .hd .ov { background: var(--bad); color: #fff; border-radius: 2px; padding: 0 3px; opacity: 1; }
+.harm .hd .okk { color: #9be29f; opacity: 1; } .harm .hd.today .okk { color: var(--ok); }
+.harm .cell.hide { opacity: .25; }
+th.sort { cursor: pointer; } th.sort:hover { color: var(--fg); } th.sort.on::after { content: " ▾"; } th.sort.on.asc::after { content: " ▴"; }
 .harm .sl { font: 600 .7rem var(--f-mono); color: var(--muted); padding: 2px; align-self: center; }
 .harm .cell { background: var(--surface); border: 1px solid var(--line-2); border-radius: 3px; min-height: 30px; padding: 2px; display: grid; gap: 2px; align-content: start; cursor: copy; }
 .harm .cell.full { background: var(--surface-2); }
@@ -323,7 +338,10 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       </div>
       <div class="sum" id="dSum"></div>
     </div>
-    <div class="aw-list" id="dList"></div>
+    <div class="dgrid">
+      <div class="aw-list" id="dList"></div>
+      <aside class="panel side noprint" id="dSide"></aside>
+    </div>
   </section>
 
   <!-- HARMONOGRAM -->
@@ -335,11 +353,35 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
         <button class="btn xs" type="button" id="hNext">▶</button>
         <span class="dname" id="hName"></span>
         <span class="spacer"></span>
-        <div class="legend" id="hLeg"></div>
+        <div class="seg" id="hSec">
+          <button type="button" data-s="all" aria-pressed="true">Wszystko</button>
+          <button type="button" data-s="eur" aria-pressed="false">EUR + reszta</button>
+          <button type="button" data-s="pul" aria-pressed="false">PUL</button>
+        </div>
+        <div class="seg" id="hView">
+          <button type="button" data-v="grid" aria-pressed="true">Siatka</button>
+          <button type="button" data-v="list" aria-pressed="false">Lista</button>
+        </div>
         <button class="btn xl" type="button" data-xls="harm">⤓ Excel</button>
       </div>
+    </div>
+    <div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)">
+      <div class="panel" style="border-top:4px solid var(--g-own)">
+        <header><h3>EUR · limit i co zrobić</h3><span class="sub" id="hSugSub"></span></header>
+        <div id="hSug"></div>
+      </div>
+      <div class="panel">
+        <header><h3>Tydzień w liczbach</h3></header>
+        <div class="tbl-wrap" id="hWeek"></div>
+      </div>
+    </div>
+    <div class="panel" id="hGridP">
       <div class="harm-wrap"><div class="harm" id="harm"></div></div>
-      <p class="sub">Puste pole = nowa awizacja w tym oknie · klik w awizację = edycja · kolor = główna grupa opakowań</p>
+      <div class="row"><div class="legend" id="hLeg"></div><span class="sub spacer">puste pole = nowa awizacja w tym oknie · klik w awizację = edycja · nagłówek dnia = Załadunki</span></div>
+    </div>
+    <div class="panel" id="hListP" hidden>
+      <div class="row"><input id="hQ" type="search" placeholder="Szukaj firmy lub kodu…" style="max-width:300px"><span class="sub" id="hListSub"></span></div>
+      <div class="tbl-wrap" id="hList" style="max-height:calc(100vh - 220px)"></div>
     </div>
   </section>
 
@@ -478,7 +520,8 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       <label class="field sugg">Firma <input id="aName" autocomplete="off" placeholder="kod albo min. 2 litery nazwy"><ul id="aSugg" hidden role="listbox"></ul></label>
     </div>
     <div class="salinfo" id="aSal"></div>
-    <div class="row"><span class="field" style="display:block">Opakowania</span><div class="seg" id="aGrp"></div></div>
+    <div class="row"><span class="field" style="display:block">Opakowania</span><div class="seg" id="aGrp"></div>
+      <label class="field" id="aKindF" style="flex-direction:row;display:flex;align-items:center;gap:6px">Rodzaj <select id="aKind" style="width:auto"><option value="wyd">Wydanie</option><option value="napr">Naprawa</option><option value="sprz">Sprzedaż</option></select></label></div>
     <div class="qgrid" id="aQty"></div>
     <div class="fgrid">
       <label class="field">Kierowca / nr rej. <input id="aDrv"></label>
@@ -722,8 +765,24 @@ function mainGroup(q, name) {
 }
 // sekcja w załadunkach: PUL (palety poolingowe CHEP, LPR, IPP, NDHP) albo EUR + pozostałe (wózki, transportery, naprawa, sprzedaż)
 const PUL_G = new Set(["g-chep", "g-lpr", "g-ipp", "g-ndhp"]);
-const secOf = it => PUL_G.has(mainGroup(it.q, it.name)) ? "pul" : "eur";
-const SECS = { eur: ["Wydania EUR + pozostałe", "wózki · transportery · naprawa · sprzedaż"], pul: ["Wydania PUL", "CHEP · LPR · IPP · NDHP"] };
+// odbiorcy z arkusza „Sprzedaż dane” (kupują palety / banany / narożniki)
+const SALE_CODES = new Set(["657504", "215269", "215300", "636199", "644842", "656814", "633436", "642153", "615826", "657560", "655181", "615803"]);
+function kindOf(it) {
+  if (it.kind) return it.kind;
+  const n = norm(it.note); if (/napraw/.test(n)) return "napr";
+  if (/sprzeda/.test(n) || SALE_CODES.has(String(it.code))) return "sprz";
+  return "wyd";
+}
+// sekcja w załadunkach: palety EUR, palety PUL, naprawa, sprzedaż, transportery, wózki, inne
+function secOf(it) {
+  const g = mainGroup(it.q, it.name) || "g-own";
+  if (PUL_G.has(g)) return "pul";
+  if (g === "g-tr") return "tr"; if (g === "g-woz") return "woz"; if (g === "g-inne") return "inne";
+  const k = kindOf(it); return k === "napr" ? "napr" : k === "sprz" ? "sprz" : "eur";
+}
+const SEC_ORDER = ["eur", "pul", "napr", "sprz", "tr", "woz", "inne"];
+const SECS = { eur: ["Palety EUR", "wydania do dostawców", "own"], pul: ["Palety PUL", "CHEP · LPR · IPP · NDHP", "chep"], napr: ["Naprawa", "palety do naprawy", "ipp"],
+  sprz: ["Sprzedaż", "sprzedaż palet", "inne"], tr: ["Transportery", "Carlsberg · Kompania Piwowarska · Grupa Żywiec", "tr"], woz: ["Wózki", "WÓZ · PÓŁ", "woz"], inne: ["Inne", "", "inne"] };
 const stanDates = () => Object.keys(DAYS).filter(d => DAYS[d].stan && Object.keys(DAYS[d].stan).length).sort();
 const lastStanDate = (upTo = today()) => stanDates().filter(d => d <= upTo).pop() || null;
 const slotStart = s => { const m = /^(\d{1,2}):(\d{2})/.exec(s || ""); return m ? (+m[1]) * 60 + (+m[2]) : -1; };
@@ -900,18 +959,27 @@ function renderDay() {
   const list = all.filter(it => dayFilter === "all" || (dayFilter === "done" ? it.st === "done" : active(it) && it.st !== "done"));
   const done = act.filter(i => i.st === "done").length;
   $("#dSum").innerHTML = `<span class="tag info">${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag ok">wydane ${done} z ${act.length}</span>${all.length - act.length ? `<span class="tag bad">anul./nie przyj. ${all.length - act.length}</span>` : ""}`;
-  if (!all.length) { $("#dList").innerHTML = '<div class="panel"><p class="sub">Brak awizacji na ten dzień. <button class="btn xs" type="button" data-new>+ Dodaj</button></p></div>'; return; }
-  $("#dList").innerHTML = ["eur", "pul"].map(k => {
+  if (!all.length) { $("#dList").innerHTML = '<div class="panel"><p class="sub">Brak awizacji na ten dzień. <button class="btn xs" type="button" data-new>+ Dodaj</button></p></div>'; $("#dSide").innerHTML = '<h3>Podsumowanie dnia</h3><p class="sub">Brak awizacji.</p>'; return; }
+  const secs = SEC_ORDER.filter(k => k === "eur" || k === "pul" || all.some(it => secOf(it) === k));
+  $("#dList").innerHTML = secs.map(k => {
     const sAll = all.filter(it => secOf(it) === k), sAct = sAll.filter(active), sList = list.filter(it => secOf(it) === k);
     const sDone = sAct.filter(i => i.st === "done").length;
-    const chips = CATS.map(c => {
-      const pl = sAct.reduce((s, it) => s + qSum(it.q, c.k), 0), wy = sAct.filter(i => i.st === "done").reduce((s, it) => s + qSum(qOf(it), c.k), 0);
-      return pl || wy ? `<span class="q ${gcls(c.k)}" title="wydane / umówione">${esc(c.n)} ${fmt(wy)}/${fmt(pl)}</span>` : "";
-    }).join("");
-    return `<div class="sec"><div class="sec-h"><h3>${SECS[k][0]}</h3><span class="sub">${SECS[k][1]}</span><span class="spacer"></span><span class="tag">${sAct.length} aw. · ${fmt1(sAct.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag">wydane ${sDone}/${sAct.length}</span>${chips}</div>
+    return `<div class="sec" id="sec-${k}"><div class="sec-h g-${SECS[k][2]}"><h3>${SECS[k][0]}</h3><span class="sub">${SECS[k][1]}</span><span class="spacer"></span><span class="tag">${sAct.length} aw. · ${fmt1(sAct.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag">wydane ${sDone}/${sAct.length}</span></div>
       ${sList.length ? sList.map(awRow).join("") : `<p class="sub" style="padding:4px 8px">${sAll.length ? "Brak pozycji w tym filtrze." : "Brak awizacji."}</p>`}</div>`;
   }).join("");
+  // panel boczny: podsumowanie dnia wg sekcji
+  const tr = act.reduce((s, i) => s + trucksQ(i.q), 0);
+  $("#dSide").innerHTML = `<h3>Podsumowanie dnia</h3>
+    <div class="row"><span class="tot">${done}/${act.length}</span><span class="sub">wydanych · ${fmt1(tr)} aut</span></div>
+    <div class="pbar2"><i style="width:${act.length ? done / act.length * 100 : 0}%"></i></div>
+    ${SEC_ORDER.filter(k => act.some(it => secOf(it) === k)).map(k => {
+      const its = act.filter(it => secOf(it) === k), d = its.filter(i => i.st === "done");
+      const cats = CATS.map(c => { const pl = its.reduce((s, it) => s + qSum(it.q, c.k), 0), wy = d.reduce((s, it) => s + qSum(qOf(it), c.k), 0); return pl || wy ? `<span class="q ${gcls(c.k)}" title="wydane / umówione">${esc(c.n)} ${fmt(wy)}/${fmt(pl)}</span>` : ""; }).join(" ");
+      return `<div class="sg g-${SECS[k][2]}" data-jump="${k}"><b>${SECS[k][0]}</b><span>${its.length} aw. · wydane ${d.length}/${its.length} · ${fmt1(its.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><div style="display:flex;flex-wrap:wrap;gap:3px">${cats || '<span>bez ilości</span>'}</div></div>`;
+    }).join("")}
+    ${all.length - act.length ? `<span class="tag bad">anulowane / nie przyjechał: ${all.length - act.length}</span>` : ""}`;
 }
+$("#dSide").addEventListener("click", e => { const g = e.target.closest("[data-jump]"); if (g) { const el = $("#sec-" + g.dataset.jump); if (el) scrollTo({ top: el.getBoundingClientRect().top + scrollY - 80, behavior: "smooth" }); } });
 function awRow(it) {
   const s = salOf(it.code), q = qOf(it);
   const meta = [it.code, it.driver, it.dostChep && "dost. " + it.dostChep, it.dok && "dok. " + it.dok, it.note].filter(Boolean).join(" · ");
@@ -963,12 +1031,80 @@ $("#dPrint").addEventListener("click", () => print());
 $("#dFilter").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (!b) return; dayFilter = b.dataset.f; $$("#dFilter button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); renderDay(); });
 
 /* ---------- HARMONOGRAM ---------- */
+let hSec = "all", hView = "grid", hSort = { k: "date", dir: 1 };
+const weekDays = () => Array.from({ length: 7 }, (_, i) => addDays(harmWeek, i));
+const inHSec = it => hSec === "all" || (hSec === "pul" ? secOf(it) === "pul" : secOf(it) !== "pul");
+// prognoza stanu EUR rano w dniach tygodnia i ile aut EUR brakuje, żeby nie przekroczyć limitu
+function eurPlan(days) {
+  const c = CAT.EUR; if (!c || !c.t || !c.max) return null;
+  const T = today(), last = days[days.length - 1], v = {};
+  days.forEach(d => { const st = DAYS[d] && DAYS[d].stan; if (d <= T && st && st.EUR != null) v[d] = st.EUR; });
+  if (last < T) return { past: true, v, lim: c.max * c.t, t: c.t, max: c.max, need: 0 };
+  const f = forecast("EUR", diffDays(T, last) + 1); if (!f) return null;
+  f.series.forEach(p => { if (p.d >= T) v[p.d] = p.v; });
+  const fut = days.filter(d => d >= T), end = addDays(last, 1);
+  const peakD = [...fut, end].reduce((a, d) => (v[d] ?? -1e9) > (v[a] ?? -1e9) ? d : a, fut[0]);
+  const lim = f.lim, need = Math.max(0, Math.ceil((v[peakD] - lim) / c.t));
+  const firstOver = [...fut, end].find(d => v[d] > lim) || null;
+  return { v, lim, t: c.t, max: c.max, need, firstOver, peakD, peak: v[peakD], rate: f.rate };
+}
+// wolne okna (06:00–22:00, bez niedziel) od dziś, najwcześniejsze pierwsze
+function freeSlotList(n, from, to) {
+  const out = [], now = new Date().getHours() * 60;
+  for (let d = from; d <= to && out.length < n; d = addDays(d, 1)) {
+    if (dowOf(d) === 0) continue;
+    const cnt = CFG.slots.map(() => 0); itemsOf(d).filter(active).forEach(it => { const i = slotIdx(it.slot); if (i >= 0) cnt[i]++; });
+    CFG.slots.forEach((s, i) => { const st = slotStart(s.t); if (st < 360 || st >= 1320 || (d === today() && st < now)) return; for (let k = cnt[i]; k < (+s.cap || 0) && out.length < n; k++) out.push({ d, slot: s.t }); });
+  }
+  return out;
+}
 function renderHarm() {
-  const days = Array.from({ length: 7 }, (_, i) => addDays(harmWeek, i));
-  ensureRange(days[0], days[6]);
+  const days = weekDays(), T = today();
+  ensureRange(days[0], addDays(days[6], 1));
   $("#hName").textContent = "Tydzień " + shortDate(days[0]) + " – " + plDate(days[6]);
+  $$("#hSec button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === hSec)));
+  $$("#hView button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === hView)));
+  $("#hGridP").hidden = hView !== "grid"; $("#hListP").hidden = hView !== "list";
+  const ep = eurPlan(days), capDay = CFG.slots.reduce((s, x) => s + (+x.cap || 0), 0);
+  const pulSzt = q => CATS.filter(c => PUL_G.has("g-" + c.g)).reduce((s, c) => s + qSum(q, c.k), 0);
+
+  // EUR: limit, brakujące auta i propozycja terminów z dostawcami z saldem
+  let sug = "";
+  if (!ep) sug = '<p class="sub">Brak stanu placu albo limitu dla EUR — wpisz stan w zakładce Stany placu.</p>';
+  else if (ep.past) sug = '<p class="sub">Tydzień miniony — prognoza dotyczy bieżących i przyszłych dni.</p>';
+  else {
+    const peakTxt = `stan EUR dojdzie do <b>${fmt1(ep.peak / ep.t)} aut</b> (${DOW[dowOf(ep.peakD)]} ${shortDate(ep.peakD)} rano) przy limicie <b>${fmt1(ep.max)}</b> · zjeżdża ok. ${fmt1(ep.rate / ep.t)} auta dziennie`;
+    if (!ep.need) sug = `<div class="notice ok">EUR w normie — ${peakTxt}.</div>`;
+    else {
+      const slots = freeSlotList(ep.need, T < days[0] ? days[0] : T, addDays(days[6], 7)), cands = salCandidates();
+      sug = `<div class="act g-own" style="margin-bottom:6px"><span class="t">Brakuje</span><span class="big">${ep.need} <small>${plural(ep.need, "auta", "aut", "aut")} EUR do umówienia</small></span>
+        <span class="s">${peakTxt}${ep.firstOver ? ` · limit przekroczony od <b>${ep.firstOver <= T ? "dziś" : DOW[dowOf(ep.firstOver)] + " " + shortDate(ep.firstOver)}</b>` : ""}</span></div>
+        <table><thead><tr><th>Termin</th><th>Okno</th><th>Proponowany dostawca</th><th class="n">Saldo</th><th></th></tr></thead><tbody>${slots.map((sl, i) => { const r = cands[i];
+          const late = ep.firstOver && ep.firstOver > T && sl.d > ep.firstOver;
+          return `<tr><td class="nw ${late ? "pos" : ""}">${DOW_S[dowOf(sl.d)]} ${shortDate(sl.d)}${late ? " ⚠" : ""}</td><td class="num nw" style="font-size:.74rem">${esc(sl.slot)}</td><td class="cut" style="max-width:220px">${r ? esc(r.name) : '<span class="mut">brak dostawcy z saldem — sprzedaż / naprawa</span>'}</td><td class="n">${r ? fmt(r.tot) : ""}</td>
+          <td><button class="btn xs primary" type="button" data-sugaw="${sl.d}|${esc(sl.slot)}|${r ? esc(r.code) : ""}">Awizuj</button></td></tr>`; }).join("")}</tbody></table>
+        ${slots.length < ep.need ? `<p class="sub pos">Za mało wolnych okien — brakuje ${ep.need - slots.length}. Zwiększ liczbę aut w oknach (Ustawienia).</p>` : ""}
+        <p class="sub">Dostawcy: saldo EUR ≥ ${fmt(CFG.salMin)} szt. bez awizacji, od największego. ⚠ = termin po przekroczeniu limitu.</p>`;
+    }
+  }
+  $("#hSugSub").textContent = ep && !ep.past ? `limit ${fmt1(ep.max)} aut EUR na placu` : "";
+  $("#hSug").innerHTML = sug;
+
+  // tydzień w liczbach: sekcje (palety EUR, PUL, naprawa…) × dni
+  const wk = days.flatMap(itemsOf).filter(active);
+  const row = (lab, cls, its) => { const d = its.filter(i => i.st === "done").length; return `<tr class="cat ${cls}"><td class="nw"><b>${lab}</b></td>${days.map(day => { const x = its.filter(i => i.date === day); return `<td class="n">${x.length ? x.length : ""}</td>`; }).join("")}<td class="n"><b>${its.length}</b></td><td class="n">${fmt1(its.reduce((s, i) => s + trucksQ(i.q), 0))}</td><td class="n mut">${d}/${its.length}</td></tr>`; };
+  const usedSlots = d => itemsOf(d).filter(i => active(i) && slotIdx(i.slot) >= 0).length;
+  $("#hWeek").innerHTML = `<table><thead><tr><th>Awizacje</th>${days.map(d => `<th class="n">${DOW_S[dowOf(d)]}</th>`).join("")}<th class="n">Razem</th><th class="n">Aut</th><th class="n">Wyd.</th></tr></thead><tbody>
+    ${SEC_ORDER.filter(k => wk.some(i => secOf(i) === k)).map(k => row(SECS[k][0], "g-" + SECS[k][2], wk.filter(i => secOf(i) === k))).join("")}
+    <tr><td><b>Razem</b></td>${days.map(d => `<td class="n"><b>${wk.filter(i => i.date === d).length || ""}</b></td>`).join("")}<td class="n"><b>${wk.length}</b></td><td class="n"><b>${fmt1(wk.reduce((s, i) => s + trucksQ(i.q), 0))}</b></td><td class="n mut">${wk.filter(i => i.st === "done").length}/${wk.length}</td></tr>
+    <tr><td class="mut nw">EUR szt.</td>${days.map(d => `<td class="n">${fmt(wk.filter(i => i.date === d).reduce((s, i) => s + qSum(i.q, "EUR"), 0)) || ""}</td>`).join("")}<td class="n"><b>${fmt(wk.reduce((s, i) => s + qSum(i.q, "EUR"), 0))}</b></td><td colspan="2"></td></tr>
+    <tr><td class="mut nw">PUL szt.</td>${days.map(d => `<td class="n">${fmt(wk.filter(i => i.date === d).reduce((s, i) => s + pulSzt(i.q), 0)) || ""}</td>`).join("")}<td class="n"><b>${fmt(wk.reduce((s, i) => s + pulSzt(i.q), 0))}</b></td><td colspan="2"></td></tr>
+    <tr><td class="mut nw">Wolne okna</td>${days.map(d => `<td class="n mut">${dowOf(d) ? Math.max(0, capDay - usedSlots(d)) : ""}</td>`).join("")}<td colspan="3"></td></tr>
+    ${ep && !ep.past ? `<tr><td class="mut nw">Stan EUR (aut)</td>${days.map(d => ep.v[d] == null ? "<td></td>" : `<td class="n ${ep.v[d] > ep.lim ? "pos" : "neg"}">${fmt1(ep.v[d] / ep.t)}</td>`).join("")}<td colspan="3" class="mut">limit ${fmt1(ep.max)}</td></tr>` : ""}
+  </tbody></table>`;
+
+  if (hView === "list") return renderHList(days);
   $("#hLeg").innerHTML = legend(GORDER).replace(/^<div class="legend">|<\/div>$/g, "");
-  const T = today();
   const per = days.map(d => {
     const its = itemsOf(d), rows = CFG.slots.map(() => []), other = [];
     its.forEach(it => { const i = slotIdx(it.slot); (i >= 0 ? rows[i] : other).push(it); });
@@ -976,23 +1112,57 @@ function renderHarm() {
   });
   let h = "<div></div>";
   per.forEach(p => {
-    const act = p.its.filter(active);
-    h += `<div class="hd ${p.d === T ? "today" : ""}" data-goday="${p.d}">${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}<small>${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</small></div>`;
+    const act = p.its.filter(active), ev = ep && ep.v[p.d];
+    h += `<div class="hd ${p.d === T ? "today" : ""}" data-goday="${p.d}" title="kliknij — Załadunki tego dnia">${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}
+      <small>${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</small>
+      <small>EUR ${fmt(act.reduce((s, i) => s + qSum(i.q, "EUR"), 0))} · PUL ${fmt(act.reduce((s, i) => s + pulSzt(i.q), 0))}</small>
+      ${ev != null ? `<small class="${ev > ep.lim ? "ov" : "okk"}">stan EUR ${fmt1(ev / ep.t)}/${fmt1(ep.max)} aut</small>` : "<small>&nbsp;</small>"}</div>`;
   });
   const chip = it => `<div class="chip st-${it.st} ${mainGroup(it.q, it.name)}" data-hedit="${esc(it.id)}" data-date="${it.date}" title="${esc((it.name || "") + " · " + it.slot + " · " + ST[it.st] + " · " + qText(it.q) + (it.note ? " · " + it.note : ""))}">${it.ord ? `<b>${it.ord}</b> ` : ""}${esc((it.name || it.code || "").slice(0, 20))} <b>${fmt(CATS.reduce((s, c) => s + qSum(it.q, c.k), 0))}</b></div>`;
   CFG.slots.forEach((s, i) => {
     h += `<div class="sl">${esc(s.t)}</div>`;
     per.forEach(p => {
-      const its = p.rows[i], n = its.filter(active).length, cap = +s.cap || 0;
-      h += `<div class="cell ${n >= cap ? "full" : ""} ${n > cap ? "over" : ""} ${p.d < T ? "past" : ""}" data-hnew="${p.d}|${esc(s.t)}">${its.map(chip).join("")}${n < cap ? `<span class="free">wolne ${cap - n}</span>` : ""}</div>`;
+      const its = p.rows[i], n = its.filter(active).length, cap = +s.cap || 0, vis = its.filter(inHSec);
+      h += `<div class="cell ${n >= cap ? "full" : ""} ${n > cap ? "over" : ""} ${p.d < T ? "past" : ""}" data-hnew="${p.d}|${esc(s.t)}">${vis.map(chip).join("")}${n < cap ? `<span class="free">wolne ${cap - n}</span>` : ""}</div>`;
     });
   });
   if (per.some(p => p.other.length)) {
     h += `<div class="sl">inne</div>`;
-    per.forEach(p => { h += `<div class="cell" data-hnew="${p.d}|">${p.other.map(chip).join("")}</div>`; });
+    per.forEach(p => { h += `<div class="cell" data-hnew="${p.d}|">${p.other.filter(inHSec).map(chip).join("")}</div>`; });
   }
   $("#harm").innerHTML = h;
 }
+// lista tygodnia z sortowaniem po kliknięciu w nagłówek
+const H_COLS = [
+  ["date", "Data", it => it.date + " " + pad(slotStart(it.slot)), it => `${DOW_S[dowOf(it.date)]} ${shortDate(it.date)}`],
+  ["slot", "Okno", it => slotStart(it.slot), it => `<span class="num" style="font-size:.74rem">${esc(it.slot)}</span>`],
+  ["name", "Firma", it => norm(it.name || it.code), it => `<b>${esc(it.name || it.code)}</b> <span class="mut">${esc(it.code || "")}</span>`],
+  ["sec", "Rodzaj", it => SEC_ORDER.indexOf(secOf(it)), it => `<span class="q g-${SECS[secOf(it)][2]}">${SECS[secOf(it)][0]}</span>`],
+  ["eur", "EUR", it => qSum(it.q, "EUR"), it => qSum(it.q, "EUR") ? fmt(qSum(it.q, "EUR")) : "", "n"],
+  ["qty", "Ilości", it => CATS.reduce((s, c) => s + qSum(it.q, c.k), 0), it => qChips(it.q)],
+  ["tr", "Aut", it => trucksQ(it.q), it => fmt1(trucksQ(it.q)), "n"],
+  ["sal", "Saldo", it => (salOf(it.code) || { tot: -1e9 }).tot, it => { const s = salOf(it.code); return s ? fmt(s.tot) : ""; }, "n"],
+  ["st", "Status", it => it.st, it => `<span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span>`],
+];
+function renderHList(days) {
+  const q = norm($("#hQ").value).trim();
+  let its = days.flatMap(itemsOf).filter(inHSec);
+  if (q) its = its.filter(it => norm(it.name).includes(q) || String(it.code).startsWith(q));
+  const col = H_COLS.find(c => c[0] === hSort.k) || H_COLS[0];
+  its.sort((a, b) => { const x = col[2](a), y = col[2](b); return (x < y ? -1 : x > y ? 1 : 0) * hSort.dir || a.date.localeCompare(b.date) || slotStart(a.slot) - slotStart(b.slot); });
+  $("#hListSub").textContent = `${its.length} awizacji · ${fmt1(its.filter(active).reduce((s, i) => s + trucksQ(i.q), 0))} aut · EUR ${fmt(its.filter(active).reduce((s, i) => s + qSum(i.q, "EUR"), 0))} szt.`;
+  $("#hList").innerHTML = `<table><thead><tr>${H_COLS.map(c => `<th class="sort ${c[4] || ""} ${c[0] === hSort.k ? "on" + (hSort.dir > 0 ? " asc" : "") : ""}" data-hsort="${c[0]}">${c[1]}</th>`).join("")}</tr></thead><tbody>${
+    its.map(it => `<tr class="click ${mainGroup(it.q, it.name) ? mainGroup(it.q, it.name) + " cat" : ""}" data-edit="${esc(it.id)}" data-date="${it.date}" style="${active(it) ? "" : "opacity:.5"}">${H_COLS.map(c => `<td class="${c[4] || ""} ${c[0] === "qty" || c[0] === "date" ? "nw" : ""}">${c[3](it)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+$("#hList").addEventListener("click", e => { const th = e.target.closest("[data-hsort]"); if (!th) return; const k = th.dataset.hsort; hSort = { k, dir: hSort.k === k ? -hSort.dir : 1 }; renderHList(weekDays()); });
+$("#hQ").addEventListener("input", () => renderHList(weekDays()));
+$("#hSec").addEventListener("click", e => { const b = e.target.closest("[data-s]"); if (b) { hSec = b.dataset.s; renderHarm(); } });
+$("#hView").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b) { hView = b.dataset.v; renderHarm(); } });
+$("#hSug").addEventListener("click", e => {
+  const b = e.target.closest("[data-sugaw]"); if (!b) return;
+  const [d, slot, code] = b.dataset.sugaw.split("|"), r = code ? salOf(code) : null, t = (CAT.EUR && CAT.EUR.t) || 495;
+  openAw(null, { date: d, slot, code, name: r ? r.name : "", q: { EUR: r ? Math.min(r.tot, t) : t } });
+});
 $("#harm").addEventListener("click", e => {
   const c = e.target.closest("[data-hedit]");
   if (c) { const it = DAYS[c.dataset.date].items[c.dataset.hedit]; if (it) openAw(it); return; }
@@ -1028,6 +1198,7 @@ function qInputs(q) {
   const keep = {}; $$("#aQty [data-q]").forEach(i => { if (i.value) keep[i.dataset.q] = i.value; });
   q = q || keep;
   $("#aGrp").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<button type="button" class="g-${g} ${g === aGrp ? "g-on" : ""}" data-grp="${g}" aria-pressed="${g === aGrp}">${GROUPS[g]}</button>`).join("");
+  $("#aKindF").hidden = aGrp !== "own";
   $("#aQty").innerHTML = CATS.filter(c => c.g === aGrp).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)}${c.t ? ` <small>${fmt(c.t)}/auto</small>` : ""}<input type="number" min="0" data-q="${c.k}" value="${q && q[c.k] ? q[c.k] : ""}"></label>`).join("");
 }
 $("#aGrp").addEventListener("click", e => { const b = e.target.closest("[data-grp]"); if (!b || b.dataset.grp === aGrp) return; aGrp = b.dataset.grp; aGrpManual = true; qInputs({}); updSal(); const f = $("#aQty input"); if (f) f.focus(); });
@@ -1045,6 +1216,7 @@ function openAw(it, pre = {}) {
   $("#aDrv").value = v.driver || ""; $("#aCon").value = v.contact || ""; $("#aDost").value = v.dostChep || ""; $("#aDok").value = v.dok || ""; $("#aNote").value = v.note || "";
   aGrpManual = !!(it || (v.q && Object.keys(v.q).length));
   const g0 = mainGroup(v.q); aGrp = g0 ? g0.slice(2) : supGroup(v.code, v.name);
+  $("#aKind").value = kindOf(v);
   qInputs(v.q || {});
   $("#aDel").hidden = !it; $("#aSugg").hidden = true;
   updSal();
@@ -1120,7 +1292,7 @@ function readAw() {
   const base = editing || { id: uid(), createdBy: email, createdAt: Date.now() };
   const it = Object.assign(clone(base), {
     date, slot: $("#aSlot").value, code, name: name || NAMES.get(code) || "", q,
-    st: $("#aSt").value, driver: $("#aDrv").value.trim(), contact: $("#aCon").value.trim(),
+    kind: aGrp === "own" ? $("#aKind").value : "wyd", st: $("#aSt").value, driver: $("#aDrv").value.trim(), contact: $("#aCon").value.trim(),
     dostChep: $("#aDost").value.trim(), dok: $("#aDok").value.trim(), note: $("#aNote").value.trim(),
     by: email, at: Date.now(),
   });
@@ -1214,17 +1386,17 @@ async function saveXlsx(fileName, sheets) {
 }
 const xDate = s => s ? plDate(s) : "";
 function itemRows(list) {
-  const head = ["Data", "Dzień", "Okno", "Nr załadunku", "Kod", "Firma", "Status",
+  const head = ["Data", "Dzień", "Okno", "Nr załadunku", "Kod", "Firma", "Status", "Rodzaj",
     ...CATS.map(c => c.n + " umówione"), ...CATS.map(c => c.n + " wydane"), "Auta",
     "Kierowca / nr rej.", "Kontakt", "Nr dostawy CHEP/LPR", "Dok. wydania", "Uwagi", "Przyjazd", "Załadunek", "Wydanie", "Saldo EUR"];
   const rows = list.map(it => {
     const iq = it.st === "done" ? qOf(it) : {}, s = salOf(it.code);
-    return [xDate(it.date), DOW[dowOf(it.date)], it.slot || "", it.ord || "", it.code || "", it.name || "", ST[it.st] || it.st,
+    return [xDate(it.date), DOW[dowOf(it.date)], it.slot || "", it.ord || "", it.code || "", it.name || "", ST[it.st] || it.st, SECS[secOf(it)][0],
       ...CATS.map(c => qSum(it.q, c.k) || ""), ...CATS.map(c => qSum(iq, c.k) || ""), r1(trucksQ(it.q)),
       it.driver || "", it.contact || "", it.dostChep || "", it.dok || "", it.note || "", it.tArr || "", it.tLoad || "", it.tDone || "", s ? s.tot : ""];
   });
   // usuń puste kolumny kategorii, żeby arkusz był czytelny
-  const keep = head.map((h, i) => i < 7 || i >= 7 + CATS.length * 2 || rows.some(r => r[i] !== ""));
+  const keep = head.map((h, i) => i < 8 || i >= 8 + CATS.length * 2 || rows.some(r => r[i] !== ""));
   return [head.filter((_, i) => keep[i]), ...rows.map(r => r.filter((_, i) => keep[i]))];
 }
 function catRows(H) {
@@ -1250,7 +1422,13 @@ document.addEventListener("click", async e => {
   const b = e.target.closest("[data-xls]"); if (!b) return;
   const w = b.dataset.xls, T = today();
   if (w === "dzien") saveXlsx(`zaladunki_${dayView}.xlsx`, [{ name: "Załadunki " + shortDate(dayView), rows: itemRows(itemsOf(dayView)) }]);
-  if (w === "harm") { const days = Array.from({ length: 7 }, (_, i) => addDays(harmWeek, i)); saveXlsx(`harmonogram_${harmWeek}.xlsx`, [{ name: "Tydzień", rows: itemRows(days.flatMap(itemsOf)) }]); }
+  if (w === "harm") {
+    const days = weekDays(), ep = eurPlan(days);
+    const sum = [["Data", "Dzień", "Awizacji", "Auta", "EUR szt.", ...SEC_ORDER.map(k => SECS[k][0] + " (aw.)"), "Wydane", "Stan EUR rano (aut)", "Limit EUR (aut)"],
+      ...days.map(d => { const its = itemsOf(d).filter(active); return [xDate(d), DOW[dowOf(d)], its.length, r1(its.reduce((s, i) => s + trucksQ(i.q), 0)), its.reduce((s, i) => s + qSum(i.q, "EUR"), 0),
+        ...SEC_ORDER.map(k => its.filter(i => secOf(i) === k).length || ""), its.filter(i => i.st === "done").length, ep && ep.v[d] != null ? r1(ep.v[d] / ep.t) : "", ep ? ep.max : ""]; })];
+    saveXlsx(`harmonogram_${harmWeek}.xlsx`, [{ name: "Podsumowanie dni", rows: sum }, { name: "Awizacje", rows: itemRows(days.flatMap(itemsOf)) }]);
+  }
   if (w === "salda") saveXlsx(`salda_${SAL.date || T}.xlsx`, [{ name: "Salda", rows: salRowsX(salFiltered()) }]);
   if (w === "stany") saveXlsx(`stany_placu_${T}.xlsx`, stanRowsX());
   if (w === "prog") {
