@@ -23,6 +23,7 @@
   --g-ndhp: #2e7d32; --g-ndhp-bg: #e3f1e1;
   --g-ipp: #6d4223; --g-ipp-bg: #efe2d6;
   --g-woz: #6b7280; --g-woz-bg: #ebecee;
+  --g-tr: #0f766e; --g-tr-bg: #dcf1ee;
   --g-inne: #7b5fb0; --g-inne-bg: #ece6f6;
   --f-stamp: "Saira Stencil One", "Saira Condensed", Impact, sans-serif;
   --f-cond: "Saira Condensed", "Arial Narrow", sans-serif;
@@ -36,7 +37,7 @@
   --pine: #d9b27a; --btn: #e6c28c; --btn-fg: #20160c;
   --ok: #6cc070; --ok-bg: #1b2e1b; --warn: #f0a63a; --warn-bg: #3a2a10; --bad: #f07067; --bad-bg: #3e1a18; --info: #6ea6f0; --info-bg: #172a44;
   --g-own: #e0a95a; --g-own-bg: #3a2a14; --g-chep: #6ea6f0; --g-chep-bg: #172a44; --g-lpr: #f07067; --g-lpr-bg: #3e1a18;
-  --g-ndhp: #6cc070; --g-ndhp-bg: #1b2e1b; --g-ipp: #c8946a; --g-ipp-bg: #33241a; --g-woz: #a3a9b4; --g-woz-bg: #2a2c30; --g-inne: #b49ae6; --g-inne-bg: #2c2440;
+  --g-ndhp: #6cc070; --g-ndhp-bg: #1b2e1b; --g-ipp: #c8946a; --g-ipp-bg: #33241a; --g-woz: #a3a9b4; --g-woz-bg: #2a2c30; --g-inne: #b49ae6; --g-inne-bg: #2c2440; --g-tr: #4fd1c5; --g-tr-bg: #12302d;
   color-scheme: dark;
 } }
 :root[data-theme="dark"] {
@@ -45,13 +46,13 @@
   --pine: #d9b27a; --btn: #e6c28c; --btn-fg: #20160c;
   --ok: #6cc070; --ok-bg: #1b2e1b; --warn: #f0a63a; --warn-bg: #3a2a10; --bad: #f07067; --bad-bg: #3e1a18; --info: #6ea6f0; --info-bg: #172a44;
   --g-own: #e0a95a; --g-own-bg: #3a2a14; --g-chep: #6ea6f0; --g-chep-bg: #172a44; --g-lpr: #f07067; --g-lpr-bg: #3e1a18;
-  --g-ndhp: #6cc070; --g-ndhp-bg: #1b2e1b; --g-ipp: #c8946a; --g-ipp-bg: #33241a; --g-woz: #a3a9b4; --g-woz-bg: #2a2c30; --g-inne: #b49ae6; --g-inne-bg: #2c2440;
+  --g-ndhp: #6cc070; --g-ndhp-bg: #1b2e1b; --g-ipp: #c8946a; --g-ipp-bg: #33241a; --g-woz: #a3a9b4; --g-woz-bg: #2a2c30; --g-inne: #b49ae6; --g-inne-bg: #2c2440; --g-tr: #4fd1c5; --g-tr-bg: #12302d;
   color-scheme: dark;
 }
 .g-own { --gc: var(--g-own); --gb: var(--g-own-bg); } .g-chep { --gc: var(--g-chep); --gb: var(--g-chep-bg); }
 .g-lpr { --gc: var(--g-lpr); --gb: var(--g-lpr-bg); } .g-ndhp { --gc: var(--g-ndhp); --gb: var(--g-ndhp-bg); }
 .g-ipp { --gc: var(--g-ipp); --gb: var(--g-ipp-bg); } .g-woz { --gc: var(--g-woz); --gb: var(--g-woz-bg); }
-.g-inne { --gc: var(--g-inne); --gb: var(--g-inne-bg); }
+.g-inne { --gc: var(--g-inne); --gb: var(--g-inne-bg); } .g-tr { --gc: var(--g-tr); --gb: var(--g-tr-bg); }
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -126,6 +127,10 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .kpi.alert { border-top-color: var(--bad); } .kpi.alert .v { color: var(--bad); }
 .kpi.good { border-top-color: var(--ok); }
 
+details.panel > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+details.panel > summary::-webkit-details-marker { display: none; }
+details.panel > summary h3::before { content: "▸ "; color: var(--muted); }
+details.panel[open] > summary h3::before { content: "▾ "; }
 /* „co trzeba zrobić”: karty działań */
 .acts-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
 .act { border: 1px solid var(--line); border-left: 6px solid var(--gc, var(--warn)); background: var(--surface); border-radius: var(--r); padding: 7px 10px 8px; display: grid; gap: 1px; align-content: start; }
@@ -293,7 +298,6 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
     </div>
     <div class="who" id="who" hidden><span id="whoEmail"></span><button id="logout" type="button">Wyloguj</button></div>
     <nav class="tabs" id="tabs" role="tablist" hidden>
-      <button role="tab" data-tab="pulpit">Pulpit</button>
       <button role="tab" data-tab="dzien">Załadunki</button>
       <button role="tab" data-tab="harm">Harmonogram</button>
       <button role="tab" data-tab="salda">Salda</button>
@@ -320,34 +324,13 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
     </form>
   </section>
 
-  <!-- PULPIT -->
-  <section id="p-pulpit" role="tabpanel" hidden>
-    <div class="row noprint">
-      <h2 id="pulpitDay"></h2>
-      <span class="spacer"></span>
-      <button class="btn xl" type="button" data-xls="pulpit">⤓ Excel</button>
-      <button class="btn primary" type="button" data-new>+ Awizacja <kbd>N</kbd></button>
-    </div>
-    <div class="kpis" id="kpis"></div>
-    <div class="panel">
-      <header><h3>Co trzeba zrobić</h3><span class="sub">na najbliższe 7 dni</span><button class="btn xs spacer" type="button" data-goto="prog">Prognoza →</button></header>
-      <div id="pAct"></div>
-    </div>
-    <div class="gcards" id="pGroups"></div>
-    <div class="cols">
-      <div class="panel">
-        <header><h3>Dziś</h3><span class="sub" id="pTodaySub"></span><button class="btn xs spacer" type="button" data-goto="dzien">Załadunki →</button></header>
-        <div id="pToday"></div>
-      </div>
-      <div class="panel">
-        <header><h3>Umówione auta · 14 dni</h3></header>
-        <div id="pPlan"></div>
-      </div>
-    </div>
-  </section>
-
   <!-- ZAŁADUNKI (DZIEŃ) -->
   <section id="p-dzien" role="tabpanel" hidden>
+    <div class="kpis noprint" id="kpis"></div>
+    <details class="panel noprint" id="actBox">
+      <summary><h3>Co trzeba zrobić</h3><span class="sub" id="actSum"></span><button class="btn xs spacer" type="button" data-goto="prog">Prognoza →</button></summary>
+      <div id="pAct"></div>
+    </details>
     <div class="panel">
       <div class="daybar">
         <button class="btn xs noprint" type="button" id="dPrev" aria-label="Poprzedni dzień">◀</button>
@@ -611,7 +594,7 @@ const LS = {
 };
 
 /* ---------- konfiguracja domyślna (z arkusza WYDANIA / WZÓR) ---------- */
-const GROUPS = { own: "EUR własne", chep: "CHEP", lpr: "LPR", ndhp: "NDHP", ipp: "IPP", woz: "Wózki", inne: "Inne" };
+const GROUPS = { own: "EUR własne", chep: "CHEP", lpr: "LPR", ndhp: "NDHP", ipp: "IPP", tr: "Transportery", woz: "Wózki", inne: "Inne" };
 const GORDER = Object.keys(GROUPS);
 // k, nazwa, grupa, szt. na auto, stos (szt.), maks. stan w autach, pokazywane w formularzu awizacji
 const DEF_CATS = [
@@ -620,6 +603,8 @@ const DEF_CATS = [
   ["LPR_E", "EUR LPR", "lpr", 561, 0, 2, 1], ["LPR_D", "DHP LPR", "lpr", 880, 0, 2, 1], ["LPR_P", "Plastik LPR", "lpr", 2240, 140, 1, 1],
   ["GR_E", "EUR NDHP", "ndhp", 495, 0, 1, 0], ["GR_D", "DHP NDHP", "ndhp", 880, 0, 1, 0], ["GR_P", "Plastik NDHP", "ndhp", 2280, 120, 1, 0],
   ["IPP_E", "EUR IPP", "ipp", 495, 0, 1, 0], ["IPP_D", "DHP IPP", "ipp", 880, 0, 1, 0], ["IPP_P", "DHP IPP plastik", "ipp", 880, 0, 1, 0],
+  // palety z transporterami (butelki/skrzynki) wracające do browarów
+  ["TR_CARL", "Carlsberg", "tr", 33, 0, 1, 1], ["TR_KP", "Kompania Piwowarska", "tr", 33, 0, 1, 1], ["TR_ZYW", "Grupa Żywiec", "tr", 33, 0, 1, 1],
   ["WOZ", "WÓZ", "woz", 0, 0, 0, 1], ["POL", "PÓŁ", "woz", 0, 0, 0, 1],
   ["BAN", "Banan", "inne", 0, 0, 0, 0], ["JED", "Jednorazówka", "inne", 0, 0, 0, 0],
 ].map(([k, n, g, t, s, max, aw]) => ({ k, n, g, t, s, max, aw: !!aw }));
@@ -641,7 +626,7 @@ let SALMETA = { list: [] };
 let SAL = { date: null, rows: [], eur: new Map(), prev: new Map(), prevDate: null, opakNames: {} };
 let NAMES = new Map();   // kod -> nazwa (DOSTAWCY + salda)
 let email = "", local = false;
-let tab = LS.get("pk-tab", "pulpit");
+let tab = LS.get("pk-tab", "dzien"); if (tab === "pulpit") tab = "dzien";
 let dayView = today(), dayFilter = "all", harmWeek = monday(today()), horizon = 7, gCat = "EUR", salFilter = "pos";
 const unsubs = [], monthSubs = new Map();
 
@@ -757,7 +742,7 @@ const issued = (d, k) => itemsOf(d).filter(active).reduce((s, it) => s + qSum(qO
 const qText = q => CATS.filter(c => qSum(q, c.k)).map(c => fmt(q[c.k]) + " szt. " + c.n).join(", ");
 const qChips = q => CATS.filter(c => qSum(q, c.k)).map(c => `<span class="q ${gcls(c.k)}">${esc(c.n)} ${fmt(q[c.k])}</span>`).join("") || '<span class="mut" style="font-size:.72rem">bez ilości</span>';
 // grupa dominująca w awizacji (wg liczby aut, a gdy brak przelicznika — sztuk); bez ilości — wg nazwy operatora palet
-const NAME_G = [[/chep/i, "chep"], [/lpr|palette rouge/i, "lpr"], [/\bipp\b/i, "ipp"], [/ndhp|green/i, "ndhp"]];
+const NAME_G = [[/chep/i, "chep"], [/lpr|palette rouge/i, "lpr"], [/\bipp\b/i, "ipp"], [/ndhp|green/i, "ndhp"], [/carlsberg|kompania piwowarska|[zż]ywiec/i, "tr"]];
 function mainGroup(q, name) {
   let best = null, bv = 0;
   CATS.forEach(c => { const v = qSum(q, c.k); const w = c.t > 0 ? v / c.t : v / 1e4; if (w > bv) { bv = w; best = c.g; } });
@@ -826,10 +811,10 @@ let rafP = false;
 function schedule() { if (rafP) return; rafP = true; requestAnimationFrame(() => { rafP = false; render(); }); }
 function render() {
   if (!S || $("#tabs").hidden) return;
-  ({ pulpit: renderPulpit, dzien: renderDay, harm: renderHarm, salda: renderSalda, stany: renderStany, prog: renderProg, set: renderSet })[tab]();
+  ({ dzien: renderDay, harm: renderHarm, salda: renderSalda, stany: renderStany, prog: renderProg, set: renderSet })[tab]();
 }
 function showTab(t) {
-  if (t === "set" && $("#tab-set").hidden) t = "pulpit";
+  if (t === "pulpit" || (t === "set" && $("#tab-set").hidden)) t = "dzien";
   tab = t; LS.set("pk-tab", t);
   $$("#tabs [data-tab]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
   $$("main > section[role=tabpanel]").forEach(p => p.hidden = p.id !== "p-" + t);
@@ -841,44 +826,24 @@ document.addEventListener("click", e => {
   const n = e.target.closest("[data-new]"); if (n) openAw(null, { date: tab === "dzien" ? dayView : today() });
 });
 
-/* ---------- PULPIT ---------- */
-function renderPulpit() {
-  const T = today(), sd = lastStanDate();
-  $("#pulpitDay").textContent = DOW[dowOf(T)] + " · " + plDate(T);
-  const tItems = itemsOf(T).filter(active), done = tItems.filter(i => i.st === "done").length;
+/* ---------- GÓRA ZAŁADUNKÓW: kafelki i „co trzeba zrobić” ---------- */
+function renderTop() {
+  const T = today(), sd = lastStanDate(), D = dayView;
+  const dItems = itemsOf(D).filter(active), done = dItems.filter(i => i.st === "done").length;
   let wk = 0, wkN = 0; for (let i = 0; i < 7; i++) itemsOf(addDays(T, i)).filter(active).forEach(it => { wk += trucksQ(it.q); wkN++; });
   const stanT = sd ? CATS.reduce((s, c) => s + (c.t > 0 ? (+DAYS[sd].stan[c.k] || 0) / c.t : 0), 0) : 0;
   const posSum = [...SAL.eur.values()].reduce((s, r) => s + Math.max(0, r.tot), 0);
-  const k = (l, v, d, cls = "") => `<div class="kpi ${cls}"><span class="l">${l}</span><span class="v">${v}</span><span class="d" title="${esc(d.replace(/<[^>]+>/g, ""))}">${d}</span></div>`;
+  const k = (l, v, d, cls = "", go = "") => `<div class="kpi ${cls}" ${go ? `data-goto="${go}" style="cursor:pointer"` : ""}><span class="l">${l}</span><span class="v">${v}</span><span class="d" title="${esc(d.replace(/<[^>]+>/g, ""))}">${d}</span></div>`;
   $("#kpis").innerHTML = [
-    k("Stan placu", sd ? fmt1(stanT) + " <small>aut</small>" : "—", sd ? (sd === T ? "liczenie dziś" : "liczenie " + plDate(sd)) : "brak liczenia", sd && sd !== T ? "alert" : ""),
-    k("Wydane dziś", `${done} <small>z ${tItems.length}</small>`, `${fmt1(tItems.reduce((s, i) => s + trucksQ(i.q), 0))} aut umówionych na dziś`, tItems.length && done === tItems.length ? "good" : ""),
-    k("Umówione 7 dni", `${fmt1(wk)} <small>aut</small>`, `${wkN} awizacji do ${shortDate(addDays(T, 6))}`),
-    k("Saldo EUR do oddania", SAL.date ? fmt(posSum) : "—", SAL.date ? "plik z " + plDate(SAL.date) : "brak pliku sald", SAL.date && SAL.date < addDays(T, -1) ? "alert" : ""),
+    k("Stan placu", sd ? fmt1(stanT) + " <small>aut</small>" : "—", sd ? (sd === T ? "liczenie dziś" : "liczenie " + plDate(sd) + " — wpisz dzisiejsze") : "brak liczenia", sd && sd !== T ? "alert" : "", "stany"),
+    k("Wydane " + (D === T ? "dziś" : shortDate(D)), `${done} <small>z ${dItems.length}</small>`, `EUR ${dItems.filter(i => secOf(i) === "eur" && i.st === "done").length}/${dItems.filter(i => secOf(i) === "eur").length} · PUL ${dItems.filter(i => secOf(i) === "pul" && i.st === "done").length}/${dItems.filter(i => secOf(i) === "pul").length}`, dItems.length && done === dItems.length ? "good" : ""),
+    k("Umówione 7 dni", `${fmt1(wk)} <small>aut</small>`, `${wkN} awizacji do ${shortDate(addDays(T, 6))}`, "", "harm"),
+    k("Saldo EUR do oddania", SAL.date ? fmt(posSum) : "—", SAL.date ? "plik z " + plDate(SAL.date) : "brak pliku sald", SAL.date && SAL.date < addDays(T, -1) ? "alert" : "", "salda"),
   ].join("");
-  $("#pAct").innerHTML = actionsHtml(7, true);
-  $("#pGroups").innerHTML = groupCards(7);
-
-  // dziś: postęp wydań EUR / PUL i najbliższe auta
-  const bar = (lab, its) => { const n = its.length, d = its.filter(i => i.st === "done").length; return `<div class="pbar"><span>${lab}</span><span class="tr"><i style="width:${n ? d / n * 100 : 0}%"></i></span><b>${d}/${n}</b></div>`; };
-  const next = tItems.filter(i => i.st !== "done").slice(0, 7);
-  $("#pTodaySub").textContent = tItems.length ? `${done} z ${tItems.length} wydane` : "";
-  $("#pToday").innerHTML = !tItems.length ? '<p class="sub">Na dziś nic nie jest zaawizowane.</p>' :
-    bar("EUR + pozostałe", tItems.filter(i => secOf(i) === "eur")) + bar("PUL · CHEP, LPR, IPP, NDHP", tItems.filter(i => secOf(i) === "pul")) +
-    (next.length ? `<div class="tbl-wrap"><table><thead><tr><th class="n">Nr</th><th>Okno</th><th>Firma</th><th>Ilość</th><th></th></tr></thead><tbody>${next.map(it => { const g = mainGroup(it.q, it.name);
-      return `<tr class="click ${g ? g + " cat" : ""}" data-edit="${esc(it.id)}" data-date="${it.date}"><td class="n">${it.ord || ""}</td><td class="nw num" style="font-size:.74rem">${esc(it.slot)}</td><td class="cut" style="max-width:170px" title="${esc(it.name)}">${esc(it.name || it.code)}</td><td class="nw">${qChips(it.q)}</td><td>${ST_SHORT[it.st] ? `<span class="tag ${ST_TAG[it.st]}">${ST_SHORT[it.st]}</span>` : ""}</td></tr>`; }).join("")}</tbody></table></div>${tItems.length - done > next.length ? `<p class="sub">…i ${tItems.length - done - next.length} kolejnych w Załadunkach.</p>` : ""}` : '<p class="sub">Wszystko na dziś wydane.</p>');
-
-  // plan 14 dni — słupki dzielone na grupy
-  const pts = [];
-  for (let i = 0; i < 14; i++) {
-    const d = addDays(T, i), its = itemsOf(d).filter(active), g = {};
-    its.forEach(it => CATS.forEach(c => { if (c.t > 0 && qSum(it.q, c.k)) g[c.g] = (g[c.g] || 0) + qSum(it.q, c.k) / c.t; }));
-    const v = Object.values(g).reduce((a, b) => a + b, 0);
-    pts.push({ v, lab: v ? fmt1(v) : "", x: DOW_S[dowOf(d)] + "<br>" + shortDate(d), go: d, cls: dowOf(d) === 0 ? "ghost" : "",
-      segs: GORDER.filter(x => g[x]).map(x => ({ v: g[x], g: x })),
-      tip: `<b>${DOW[dowOf(d)]} ${plDate(d)}</b><br>${its.length} awizacji · ${fmt1(v)} aut<br>` + GORDER.filter(x => g[x]).map(x => `${GROUPS[x]}: ${fmt1(g[x])}`).join("<br>") });
-  }
-  $("#pPlan").innerHTML = barChart(pts, null, 120) + legend(GORDER.filter(g => pts.some(p => p.segs.some(s => s.g === g))));
+  const need = catData(7).filter(x => x.f && x.f.needTrucks > 0);
+  $("#actSum").textContent = need.length ? `${need.length} ${plural(need.length, "kategoria", "kategorie", "kategorii")} do umówienia · razem ${need.reduce((s, x) => s + x.f.needTrucks, 0)} aut w 7 dni` : "opakowania w normie na 7 dni";
+  const box = $("#actBox"); if (!box.dataset.init) { box.dataset.init = 1; box.open = LS.get("pk-act-open", true); box.addEventListener("toggle", () => LS.set("pk-act-open", box.open)); }
+  if (box.open) $("#pAct").innerHTML = actionsHtml(7, true);
 }
 // karty działań: braki danych + kategorie, w których trzeba umówić auta (najpilniejsze pierwsze)
 const POOL = { chep: "616973", lpr: "637962" };
@@ -901,22 +866,6 @@ function actionsHtml(H, withData) {
   return (out.length ? `<div class="acts-grid">${out.join("")}</div>` : "") +
     (!need ? `<div class="notice ok">Opakowania w normie — w ciągu ${H} dni nic nie przekroczy maksymalnego stanu.</div>` : "") +
     (ok.length ? `<p class="okline">W normie: ${ok.map(c => `<span class="q g-${c.g}">${esc(c.n)}</span>`).join("")}</p>` : "");
-}
-// karty grup: stan teraz i za H dni (w autach; wózki w sztukach)
-function groupCards(H) {
-  const data = catData(H);
-  return GORDER.map(g => {
-    const cats = data.filter(x => x.c.g === g); if (!cats.length) return "";
-    const useT = cats.some(x => x.c.t > 0), unit = useT ? "aut" : "szt.", F = useT ? fmt1 : fmt;
-    let st = 0, pr = 0, pl = 0, need = 0, has = false;
-    cats.forEach(({ c, f, st: s }) => { const div = useT ? c.t : 1; if (!div) return; if (s != null) { st += s / div; has = true; } if (f) { pr += f.proj / div; pl += f.planned / div; need += f.needTrucks; } });
-    if (!has) return "";
-    const d = pr - st, cls = d > 0.05 ? "up" : d < -0.05 ? "down" : "";
-    return `<div class="gcard g-${g}" data-gocat="${cats[0].c.k}" title="kliknij — prognoza"><span class="t">${GROUPS[g]}</span><span class="v">${F(st)} <small>${unit} na placu</small></span>
-      <span class="s">za ${H} dni <b class="${cls}">${F(pr)} ${cls === "up" ? "▲" : cls === "down" ? "▼" : ""}</b></span>
-      <span class="s">umówione ${F(pl)} ${unit}</span>
-      ${need ? `<span class="tag bad">umów ${need} ${plural(need, "auto", "auta", "aut")}</span>` : useT ? '<span class="tag ok">OK</span>' : ""}</div>`;
-  }).join("");
 }
 document.addEventListener("click", e => {
   const g = e.target.closest("[data-gocat]"); if (g) { gCat = g.dataset.gocat; showTab("prog"); return; }
@@ -993,6 +942,7 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-goda
 /* ---------- ZAŁADUNKI (DZIEŃ) ---------- */
 function renderDay() {
   ensureRange(dayView, dayView);
+  renderTop();
   $("#dDate").value = dayView;
   $("#dName").textContent = DOW[dowOf(dayView)] + " " + plDate(dayView) + (dayView === today() ? " · dziś" : "");
   const all = itemsOf(dayView), act = all.filter(active);
@@ -1336,13 +1286,7 @@ function stanRowsX() {
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-xls]"); if (!b) return;
   const w = b.dataset.xls, T = today();
-  if (w === "pulpit") {
-    const open = itemsOf(T);
-    const plan = [["Data", "Dzień", "Awizacji", "Auta", ...GORDER.map(g => GROUPS[g] + " aut")]];
-    for (let i = 0; i < 14; i++) { const d = addDays(T, i), its = itemsOf(d).filter(active); plan.push([xDate(d), DOW[dowOf(d)], its.length, r1(its.reduce((s, it) => s + trucksQ(it.q), 0)), ...GORDER.map(g => r1(its.reduce((s, it) => s + CATS.filter(c => c.g === g && c.t > 0).reduce((a, c) => a + qSum(it.q, c.k) / c.t, 0), 0)) || "")]); }
-    saveXlsx(`pulpit_${T}.xlsx`, [{ name: "Opakowania 7 dni", rows: catRows(7) }, { name: "Dziś", rows: itemRows(open) }, { name: "Plan 14 dni", rows: plan }, { name: "Do zaawizowania", rows: salRowsX(salCandidates()) }]);
-  }
-  if (w === "dzien") saveXlsx(`zaladunki_${dayView}.xlsx`, [{ name: "Załadunki " + shortDate(dayView), rows: itemRows(itemsOf(dayView)) }]);
+  if (w === "dzien") saveXlsx(`zaladunki_${dayView}.xlsx`, [{ name: "Załadunki " + shortDate(dayView), rows: itemRows(itemsOf(dayView)) }, { name: "Opakowania 7 dni", rows: catRows(7) }, { name: "Do zaawizowania", rows: salRowsX(salCandidates()) }]);
   if (w === "harm") { const days = Array.from({ length: 7 }, (_, i) => addDays(harmWeek, i)); saveXlsx(`harmonogram_${harmWeek}.xlsx`, [{ name: "Tydzień", rows: itemRows(days.flatMap(itemsOf)) }]); }
   if (w === "salda") saveXlsx(`salda_${SAL.date || T}.xlsx`, [{ name: "Salda", rows: salRowsX(salFiltered()) }]);
   if (w === "stany") saveXlsx(`stany_placu_${T}.xlsx`, stanRowsX());
@@ -1503,7 +1447,7 @@ function renderStany() {
   const cur = (DAYS[sDate] && DAYS[sDate].stan) || null, prevD = stanDates().filter(d => d < sDate).pop(), prev = prevD ? DAYS[prevD].stan : {};
   $("#sInfo").innerHTML = (cur ? "zapisany" + (DAYS[sDate].stanBy ? " · " + esc(DAYS[sDate].stanBy) : "") : "jeszcze nie wpisany") + (prevD ? ` · poprzedni ${plDate(prevD)}` : "");
   if (!sDirty) {
-    $("#sForm").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<div class="sgroup g-${g}"><h3>${GROUPS[g]}</h3>${CATS.filter(c => c.g === g).map(c => {
+    $("#sForm").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<div class="sgroup g-${g}"><h3>${GROUPS[g]}${g === "tr" ? ' <small class="mut" style="text-transform:none;letter-spacing:0;font-weight:500">palety z transporterami</small>' : ""}</h3>${CATS.filter(c => c.g === g).map(c => {
       const v = cur && cur[c.k] != null ? (c.s ? cur[c.k] / c.s : cur[c.k]) : "";
       const p = prev && prev[c.k] != null ? (c.s ? fmt1(prev[c.k] / c.s) + " st." : fmt(prev[c.k])) : "—";
       return `<div class="it"><label for="s_${c.k}">${esc(c.n)}${c.s ? ` <small class="mut">stosy×${c.s}</small>` : ""}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p} <span data-d="${c.k}"></span></small></div>`;
@@ -1702,6 +1646,7 @@ function applyConfig(c) {
   const d = DEF_CFG();
   CFG = Object.assign(d, c || {});
   if (!Array.isArray(CFG.cats) || !CFG.cats.length) CFG.cats = d.cats;
+  else { const have = new Set(CFG.cats.map(x => x.k)); d.cats.forEach(x => { if (!have.has(x.k)) CFG.cats.push(x); }); }
   if (!Array.isArray(CFG.slots) || !CFG.slots.length) CFG.slots = d.slots;
   setCats(); salLoadedFor = null; loadSalda(SALMETA); schedule();
 }
