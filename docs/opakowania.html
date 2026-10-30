@@ -115,22 +115,6 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .cols { display: grid; gap: 10px; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); align-items: start; }
 @media (max-width: 980px) { .cols { grid-template-columns: 1fr; } }
 
-/* KPI jako stemple na deskach */
-.kpis { display: grid; gap: 8px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-@media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.kpi { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: var(--r); padding: 6px 9px 7px; display: grid; gap: 0; min-width: 0; }
-.kpi .l { font: 600 .72rem var(--f-cond); color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
-.kpi .v { font: 400 1.6rem/1.15 var(--f-stamp); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.kpi .v small { font: 600 .8rem var(--f-cond); color: var(--muted); letter-spacing: .03em; }
-.kpi .d { font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.kpi.alert { border-top-color: var(--bad); } .kpi.alert .v { color: var(--bad); }
-.kpi.good { border-top-color: var(--ok); }
-
-details.panel > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
-details.panel > summary::-webkit-details-marker { display: none; }
-details.panel > summary h3::before { content: "▸ "; color: var(--muted); }
-details.panel[open] > summary h3::before { content: "▾ "; }
 /* „co trzeba zrobić”: karty działań */
 .acts-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
 .act { border: 1px solid var(--line); border-left: 6px solid var(--gc, var(--warn)); background: var(--surface); border-radius: var(--r); padding: 7px 10px 8px; display: grid; gap: 1px; align-content: start; }
@@ -143,21 +127,6 @@ details.panel[open] > summary h3::before { content: "▾ "; }
 .act.data { --gc: var(--warn); background: var(--warn-bg); }
 .okline { font-size: .76rem; color: var(--muted); margin: 0; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .up { color: var(--bad); } .down { color: var(--ok); }
-/* karty grup (pulpit) */
-.gcards { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
-.gcard { border: 1px solid var(--line); border-top: 5px solid var(--gc); background: var(--surface); border-radius: var(--r); padding: 6px 10px 8px; display: grid; gap: 1px; cursor: pointer; align-content: start; }
-.gcard:hover { background: var(--gb); }
-.gcard .t { font: 700 .82rem var(--f-cond); text-transform: uppercase; letter-spacing: .07em; color: var(--gc); }
-.gcard .v { font: 400 1.5rem/1.15 var(--f-stamp); }
-.gcard .v small { font: 600 .8rem var(--f-cond); color: var(--muted); }
-.gcard .s { font-size: .76rem; color: var(--muted); }
-.gcard .s b { font-family: var(--f-mono); }
-.gcard .tag { justify-self: start; margin-top: 3px; }
-/* postęp wydań */
-.pbar { display: grid; grid-template-columns: minmax(120px, 210px) 1fr 52px; gap: 8px; align-items: center; font-size: .8rem; }
-.pbar .tr { height: 10px; background: var(--line-2); border-radius: 5px; overflow: hidden; }
-.pbar .tr i { display: block; height: 100%; background: var(--ok); border-radius: 5px; }
-.pbar b { font-family: var(--f-mono); font-weight: 600; text-align: right; }
 /* sekcje załadunków */
 .sec { display: grid; gap: 3px; }
 .sec + .sec { margin-top: 8px; }
@@ -326,11 +295,6 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
 
   <!-- ZAŁADUNKI (DZIEŃ) -->
   <section id="p-dzien" role="tabpanel" hidden>
-    <div class="kpis noprint" id="kpis"></div>
-    <details class="panel noprint" id="actBox">
-      <summary><h3>Co trzeba zrobić</h3><span class="sub" id="actSum"></span><button class="btn xs spacer" type="button" data-goto="prog">Prognoza →</button></summary>
-      <div id="pAct"></div>
-    </details>
     <div class="panel">
       <div class="daybar">
         <button class="btn xs noprint" type="button" id="dPrev" aria-label="Poprzedni dzień">◀</button>
@@ -826,25 +790,6 @@ document.addEventListener("click", e => {
   const n = e.target.closest("[data-new]"); if (n) openAw(null, { date: tab === "dzien" ? dayView : today() });
 });
 
-/* ---------- GÓRA ZAŁADUNKÓW: kafelki i „co trzeba zrobić” ---------- */
-function renderTop() {
-  const T = today(), sd = lastStanDate(), D = dayView;
-  const dItems = itemsOf(D).filter(active), done = dItems.filter(i => i.st === "done").length;
-  let wk = 0, wkN = 0; for (let i = 0; i < 7; i++) itemsOf(addDays(T, i)).filter(active).forEach(it => { wk += trucksQ(it.q); wkN++; });
-  const stanT = sd ? CATS.reduce((s, c) => s + (c.t > 0 ? (+DAYS[sd].stan[c.k] || 0) / c.t : 0), 0) : 0;
-  const posSum = [...SAL.eur.values()].reduce((s, r) => s + Math.max(0, r.tot), 0);
-  const k = (l, v, d, cls = "", go = "") => `<div class="kpi ${cls}" ${go ? `data-goto="${go}" style="cursor:pointer"` : ""}><span class="l">${l}</span><span class="v">${v}</span><span class="d" title="${esc(d.replace(/<[^>]+>/g, ""))}">${d}</span></div>`;
-  $("#kpis").innerHTML = [
-    k("Stan placu", sd ? fmt1(stanT) + " <small>aut</small>" : "—", sd ? (sd === T ? "liczenie dziś" : "liczenie " + plDate(sd) + " — wpisz dzisiejsze") : "brak liczenia", sd && sd !== T ? "alert" : "", "stany"),
-    k("Wydane " + (D === T ? "dziś" : shortDate(D)), `${done} <small>z ${dItems.length}</small>`, `EUR ${dItems.filter(i => secOf(i) === "eur" && i.st === "done").length}/${dItems.filter(i => secOf(i) === "eur").length} · PUL ${dItems.filter(i => secOf(i) === "pul" && i.st === "done").length}/${dItems.filter(i => secOf(i) === "pul").length}`, dItems.length && done === dItems.length ? "good" : ""),
-    k("Umówione 7 dni", `${fmt1(wk)} <small>aut</small>`, `${wkN} awizacji do ${shortDate(addDays(T, 6))}`, "", "harm"),
-    k("Saldo EUR do oddania", SAL.date ? fmt(posSum) : "—", SAL.date ? "plik z " + plDate(SAL.date) : "brak pliku sald", SAL.date && SAL.date < addDays(T, -1) ? "alert" : "", "salda"),
-  ].join("");
-  const need = catData(7).filter(x => x.f && x.f.needTrucks > 0);
-  $("#actSum").textContent = need.length ? `${need.length} ${plural(need.length, "kategoria", "kategorie", "kategorii")} do umówienia · razem ${need.reduce((s, x) => s + x.f.needTrucks, 0)} aut w 7 dni` : "opakowania w normie na 7 dni";
-  const box = $("#actBox"); if (!box.dataset.init) { box.dataset.init = 1; box.open = LS.get("pk-act-open", true); box.addEventListener("toggle", () => LS.set("pk-act-open", box.open)); }
-  if (box.open) $("#pAct").innerHTML = actionsHtml(7, true);
-}
 // karty działań: braki danych + kategorie, w których trzeba umówić auta (najpilniejsze pierwsze)
 const POOL = { chep: "616973", lpr: "637962" };
 function actionsHtml(H, withData) {
@@ -942,7 +887,6 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-goda
 /* ---------- ZAŁADUNKI (DZIEŃ) ---------- */
 function renderDay() {
   ensureRange(dayView, dayView);
-  renderTop();
   $("#dDate").value = dayView;
   $("#dName").textContent = DOW[dowOf(dayView)] + " " + plDate(dayView) + (dayView === today() ? " · dziś" : "");
   const all = itemsOf(dayView), act = all.filter(active);
@@ -1286,7 +1230,7 @@ function stanRowsX() {
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-xls]"); if (!b) return;
   const w = b.dataset.xls, T = today();
-  if (w === "dzien") saveXlsx(`zaladunki_${dayView}.xlsx`, [{ name: "Załadunki " + shortDate(dayView), rows: itemRows(itemsOf(dayView)) }, { name: "Opakowania 7 dni", rows: catRows(7) }, { name: "Do zaawizowania", rows: salRowsX(salCandidates()) }]);
+  if (w === "dzien") saveXlsx(`zaladunki_${dayView}.xlsx`, [{ name: "Załadunki " + shortDate(dayView), rows: itemRows(itemsOf(dayView)) }]);
   if (w === "harm") { const days = Array.from({ length: 7 }, (_, i) => addDays(harmWeek, i)); saveXlsx(`harmonogram_${harmWeek}.xlsx`, [{ name: "Tydzień", rows: itemRows(days.flatMap(itemsOf)) }]); }
   if (w === "salda") saveXlsx(`salda_${SAL.date || T}.xlsx`, [{ name: "Salda", rows: salRowsX(salFiltered()) }]);
   if (w === "stany") saveXlsx(`stany_placu_${T}.xlsx`, stanRowsX());
