@@ -159,7 +159,7 @@ table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 <body>
 <header class="top">
   <div class="wrap">
-    <div class="brand"><h1>Raport zmiany</h1><a href="./" id="navReg" hidden>← Rejestr wózków</a></div>
+    <div class="brand"><h1>Raport zmiany</h1><a href="./" id="navReg" hidden>← Rejestr wózków</a><a href="opakowania.html" id="navPk" hidden>Awizacja opakowań →</a></div>
     <span class="who" id="who" hidden><span id="whoEmail"></span><button type="button" id="logout">Wyloguj</button></span>
     <nav class="tabs" role="tablist" aria-label="Sekcje" id="tabs" hidden>
       <button role="tab" id="tab-form" aria-controls="p-form" aria-selected="true">Nowy raport</button>
@@ -852,12 +852,12 @@ function subscribe() {
   auth.onAuthStateChanged(u => {
     unsubs.forEach(x => x()); unsubs = []; if (rlUnsub) { rlUnsub(); rlUnsub = null; }
     user = u; const inside = !!u;
-    $("#login").hidden = inside; $("#tabs").hidden = !inside; $("#who").hidden = !inside;
+    $("#login").hidden = inside; $("#tabs").hidden = !inside; $("#who").hidden = !inside; $("#navPk").hidden = !inside;
     if (!inside) { TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = true; return; }
     email = u.email || ""; $("#whoEmail").textContent = email;
     $("#navReg").hidden = email.toLowerCase() !== OWNER;
     if (BUDGET_ONLY.includes(email.toLowerCase())) {
-      $("#tabs").hidden = true; TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#navReg").hidden = true;
+      $("#tabs").hidden = true; TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#navReg").hidden = true; $("#navPk").hidden = true;
       const n = $("#noAccess"); n.innerHTML = 'To konto ma dostęp tylko do <a href="budzet.html">budżetu</a>.'; n.hidden = false; return;
     }
     $("#noAccess").hidden = true;
