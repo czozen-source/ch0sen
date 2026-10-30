@@ -143,6 +143,71 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .side .sg .q { background: var(--surface); }
 .side .sg a { color: inherit; font-weight: 600; }
 .side .tot { font: 400 1.4rem var(--f-stamp); }
+/* podsumowanie dnia */
+.side { padding: 0; overflow: hidden; gap: 0; }
+.sp-head { padding: 9px 12px 7px; color: var(--wood-fg); background: repeating-linear-gradient(180deg, var(--wood-1) 0 13px, var(--wood-2) 13px 24px, var(--wood-gap) 24px 26px); display: flex; align-items: baseline; gap: 8px; }
+.sp-head h3 { color: var(--pine); }
+.sp-head span { font: 500 .74rem var(--f-mono); color: var(--wood-mut); margin-left: auto; }
+.sp-body { padding: 10px 12px 12px; display: grid; gap: 9px; }
+.ringbox { display: grid; grid-template-columns: 112px 1fr; gap: 12px; align-items: center; }
+.ringwrap { position: relative; width: 112px; height: 112px; }
+.ring { width: 112px; height: 112px; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 11; }
+.ring .bg { stroke: var(--line-2); }
+.ring .fg { stroke: var(--ok); stroke-linecap: round; transition: stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1); }
+.ringtxt { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1; }
+.ringtxt b { font: 400 1.9rem var(--f-stamp); }
+.ringtxt span { font: 600 .74rem var(--f-cond); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-top: 3px; }
+.rstats { display: grid; gap: 4px; }
+.rstats div { display: flex; align-items: baseline; gap: 6px; font-size: .78rem; color: var(--muted); }
+.rstats b { font: 600 1rem var(--f-mono); color: var(--fg); min-width: 52px; text-align: right; }
+.rstats .w b { color: var(--warn); }
+.sp-sec { display: grid; gap: 3px; padding: 6px 8px; border-radius: 5px; background: var(--gb); cursor: pointer; border: 1px solid transparent; }
+.sp-sec:hover { border-color: var(--gc); }
+.sp-top { display: flex; align-items: center; gap: 6px; }
+.sp-top b { font: 700 .82rem var(--f-cond); text-transform: uppercase; letter-spacing: .06em; color: var(--gc); }
+.sp-top .num { margin-left: auto; font: 600 .82rem var(--f-mono); color: var(--fg); letter-spacing: 0; }
+.sp-bar { height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--gc) 18%, transparent); overflow: hidden; }
+.sp-bar i { display: block; height: 100%; border-radius: 3px; background: var(--gc); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.sp-cats { display: flex; flex-wrap: wrap; gap: 3px; }
+.sp-cats .q { background: var(--surface); }
+.sp-doc { border-top: 1px dashed var(--line); padding-top: 8px; display: grid; gap: 5px; font-size: .78rem; }
+.sp-doc .h { font: 700 .8rem var(--f-cond); text-transform: uppercase; letter-spacing: .06em; display: flex; gap: 6px; align-items: center; }
+.sp-doc .pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.sp-doc .pills a { font: 600 .7rem var(--f-mono); padding: 1px 7px; border-radius: 10px; background: var(--bad-bg); color: var(--bad); text-decoration: none; }
+.sp-doc .pills a:hover { background: var(--bad); color: #fff; }
+.sp-doc .okline2 { color: var(--ok); font-weight: 600; }
+
+/* ruch: wejście zakładek, kaskada elementów, okna, wiersze, wykresy (wyłączone przy „ogranicz ruch”) */
+@media (prefers-reduced-motion: no-preference) {
+  main > section.enter { animation: secIn .34s cubic-bezier(.2,.8,.2,1) both; }
+  .enter .stag { animation: rise .45s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 24ms); }
+  @keyframes secIn { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px) scale(.985); } }
+  dialog[open] { animation: dlgIn .24s cubic-bezier(.2,.8,.2,1); }
+  dialog[open]::backdrop { animation: fadeIn .24s ease; }
+  @keyframes dlgIn { from { opacity: 0; transform: translateY(16px) scale(.97); } }
+  @keyframes fadeIn { from { opacity: 0; } }
+  #toast:not([hidden]) { animation: toastIn .32s cubic-bezier(.2,.8,.2,1); }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 18px); } }
+  .aw, .chip, .sp-sec, .gcard, .act, .sgroup, .kpi, tr.click td { transition: transform .16s ease, box-shadow .16s ease, background-color .35s ease, border-color .25s ease; }
+  .aw:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(45, 28, 10, .12); }
+  .act:hover, .sgroup:focus-within { box-shadow: 0 4px 14px rgba(45, 28, 10, .12); }
+  .chip:hover { transform: translateX(2px); }
+  .btn { transition: transform .1s ease, background-color .2s, border-color .2s, box-shadow .2s; }
+  .btn:hover { box-shadow: 0 2px 6px rgba(45, 28, 10, .12); }
+  .btn:active { transform: scale(.95); }
+  .aw.flash { animation: flash 1.4s ease; }
+  @keyframes flash { 0% { background: #a6dc98; box-shadow: 0 0 0 3px #a6dc98; } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .bars .b i { animation: grow .7s cubic-bezier(.2,.8,.2,1) both; transform-origin: bottom; }
+  @keyframes grow { from { transform: scaleY(0); } }
+  nav.tabs button { transition: color .2s, background-color .25s; }
+  nav.tabs button[aria-selected="true"] { animation: tabIn .3s cubic-bezier(.2,.8,.2,1); }
+  @keyframes tabIn { from { transform: translateY(5px); opacity: .6; } }
+  .brand svg.lift { animation: lift .55s cubic-bezier(.3,.7,.3,1); }
+  @keyframes lift { 40% { transform: translateY(-4px) rotate(-2deg); } }
+  .sp-sec:hover { transform: translateX(2px); }
+}
 .pbar2 { height: 8px; background: var(--line-2); border-radius: 4px; overflow: hidden; }
 .pbar2 i { display: block; height: 100%; background: var(--ok); }
 @media (max-width: 1050px) { .dgrid { grid-template-columns: 1fr; } .side { position: static; order: -1; } }
@@ -347,7 +412,6 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
           <button type="button" data-f="open" aria-pressed="false">Do wydania</button>
           <button type="button" data-f="done" aria-pressed="false">Wydane</button>
         </div>
-        <button class="btn xs noprint" type="button" id="dRenum" title="Nadaj numery załadunku wg okien czasowych">Numeruj wg okien</button>
         <button class="btn xs noprint" type="button" id="dPrint">Drukuj</button>
         <button class="btn xl noprint" type="button" data-xls="dzien">⤓ Excel</button>
         <button class="btn primary noprint" type="button" data-new>+ Awizacja <kbd>N</kbd></button>
@@ -494,6 +558,24 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
           <label class="field">Od <input type="date" id="exFrom"></label>
           <label class="field">Do <input type="date" id="exTo"></label>
           <button class="btn xl" type="button" id="exGo" style="align-self:end">⤓ Excel</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <header><h3>Baza maili dostawców</h3><span class="sub" id="mlSub"></span></header>
+      <div class="cols">
+        <div style="display:grid;gap:8px;align-content:start">
+          <p class="sub"><b>1. Kontakty z Outlooka:</b> Plik → Otwórz i eksportuj → Importuj/eksportuj → Eksportuj do pliku → Wartości oddzielone przecinkami → folder Kontakty → zapisz plik i wgraj go tutaj. Dopasowanie po kodzie SAP albo po nazwie firmy.</p>
+          <p class="sub"><b>2. Z wysłanych maili:</b> otwórz maila do dostawcy, skopiuj adresata i temat (albo całą stopkę) i wklej poniżej — może być wiele naraz, jeden mail w wierszu. Kod SAP w temacie (nowe prośby go mają) albo nazwa firmy wystarczy do dopasowania.</p>
+          <label class="drop" id="mlDrop">⤒ Plik z kontaktami (.csv / .xlsx) — upuść albo <u>wybierz</u><input type="file" id="mlFile" accept=".csv,.xlsx,.xls" hidden></label>
+          <textarea id="mlPaste" rows="4" placeholder="np. 601299 S.M.MLEKOVITA  jan.kowalski@mlekovita.com.pl"></textarea>
+          <div class="row"><button class="btn primary" type="button" id="mlParse">Dopasuj wklejone</button><span class="sub">adresy @jeronimo-martins są pomijane</span></div>
+          <div id="mlPrev"></div>
+        </div>
+        <div style="display:grid;gap:8px;align-content:start">
+          <div class="row"><input id="mlQ" type="search" placeholder="Szukaj dostawcy lub maila…" style="max-width:260px"><span class="spacer"></span><button class="btn xl" type="button" id="mlXls">⤓ Excel</button></div>
+          <div class="row"><input id="mlNewCode" placeholder="kod SAP" style="width:110px"><input id="mlNewMail" placeholder="adres e-mail (kilka po przecinku)" style="flex:1"><button class="btn xs" type="button" id="mlAdd">Dodaj</button></div>
+          <div class="tbl-wrap" id="mlTbl" style="max-height:340px"></div>
         </div>
       </div>
     </div>
@@ -652,9 +734,12 @@ const DEF_CATS = [
   ["IPP_E", "EUR IPP", "ipp", 495, 0, 1, 0], ["IPP_D", "DHP IPP", "ipp", 880, 0, 1, 0], ["IPP_P", "DHP IPP plastik", "ipp", 880, 0, 1, 0],
   // palety z transporterami (butelki/skrzynki) wracające do browarów
   ["TR_CARL", "Carlsberg", "tr", 33, 0, 1, 1], ["TR_KP", "Kompania Piwowarska", "tr", 33, 0, 1, 1], ["TR_ZYW", "Grupa Żywiec", "tr", 33, 0, 1, 1],
-  ["WOZ", "WÓZ", "woz", 0, 0, 0, 1], ["POL", "PÓŁ", "woz", 0, 0, 0, 1],
+  ["WOZ", "Wózki (kpl.)", "woz", 0, 0, 0, 1], ["POL", "Półki (kpl.)", "woz", 0, 0, 0, 1],
   ["BAN", "Banan", "inne", 0, 0, 0, 0], ["JED", "Jednorazówka", "inne", 0, 0, 0, 0],
 ].map(([k, n, g, t, s, max, aw]) => ({ k, n, g, t, s, max, aw: !!aw }));
+// wózki i półki liczymy w kompletach: komplet wózków = 20 wózków, komplet półek = 42 półki + 2 wózki pod półkami
+const WOZ_KPL = 20, POL_KPL = 42, POL_WOZ = 2;
+const wozSzt = st => ({ w: (+(st || {}).WOZ || 0) * WOZ_KPL + (+(st || {}).POL || 0) * POL_WOZ, p: (+(st || {}).POL || 0) * POL_KPL });
 const DEF_G = Object.fromEntries(DEF_CATS.map(c => [c.k, c.g]));
 const DEF_SLOTS = Array.from({ length: 12 }, (_, i) => ({ t: pad(i * 2) + ":00-" + pad((i * 2 + 2) % 24) + ":00", cap: 2 }));
 // mail z prośbą o umówienie odbioru (dostawca potwierdza termin)
@@ -674,7 +759,8 @@ let S = null, CFG = DEF_CFG(), CAT = {}, CATS = [];
 let DAYS = {};           // "RRRR-MM-DD" -> { items: {id: awizacja}, stan: {k: szt} }
 let SALMETA = { list: [] };
 let SAL = { date: null, rows: [], eur: new Map(), prev: new Map(), prevDate: null, opakNames: {} };
-let NAMES = new Map();   // kod -> nazwa (DOSTAWCY + salda)
+let NAMES = new Map();
+let MAILS = new Map();   // kod SAP -> adresy e-mail (po przecinku)   // kod -> nazwa (DOSTAWCY + salda)
 let email = "", local = false;
 let tab = LS.get("pk-tab", "dzien"); if (tab === "pulpit") tab = "dzien";
 let dayView = today(), dayFilter = "all", harmWeek = monday(today()), horizon = 7, gCat = "EUR", salFilter = "pos";
@@ -717,6 +803,8 @@ function fbStore(db) {
     getSalda: d => db.collection("pk_salda").doc(d).get().then(s => s.exists ? s.data() : null),
     saveSalda(doc, meta) { const b = db.batch(); b.set(db.collection("pk_salda").doc(doc.date), doc); b.set(db.collection("pk_meta").doc("salda"), meta); return b.commit(); },
     getDost: () => db.collection("pk_meta").doc("dostawcy").get().then(s => s.exists ? (s.data().txt || "") : ""),
+    getMails: () => db.collection("pk_meta").doc("maile").get().then(s => s.exists ? (s.data().txt || "") : ""),
+    saveMails: txt => db.collection("pk_meta").doc("maile").set({ txt, at: Date.now(), by: email }),
     saveDost: txt => db.collection("pk_meta").doc("dostawcy").set({ txt, at: Date.now(), by: email }),
     async importDays(map, prog) {
       const ent = Object.entries(map);
@@ -756,6 +844,8 @@ function localStore() {
       save(); L.meta.forEach(cb => cb(clone(meta)));
     },
     async getDost() { return D.dost || ""; },
+    async getMails() { return D.maile || ""; },
+    async saveMails(txt) { D.maile = txt; save(); },
     async saveDost(txt) { D.dost = txt; save(); },
     async importDays(map, prog) {
       for (const [d, data] of Object.entries(map)) { const x = day(d); x.items = Object.assign(x.items || {}, clone(data.items || {})); if (data.stan) x.stan = clone(data.stan); }
@@ -897,6 +987,16 @@ function showTab(t) {
   $$("#tabs [data-tab]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
   $$("main > section[role=tabpanel]").forEach(p => p.hidden = p.id !== "p-" + t);
   render();
+  enterAnim($("#p-" + t));
+}
+// wejście zakładki: sekcja się podnosi, a panele i wiersze wjeżdżają kaskadą
+let enterT;
+function enterAnim(sec) {
+  if (!sec || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const svg = $(".brand svg"); svg.classList.remove("lift"); void svg.offsetWidth; svg.classList.add("lift");
+  sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
+  $$(".panel, .aw, .sgroup, .act, .sec-h, .harm .hd, .sp-sec, .kpi", sec).slice(0, 40).forEach((el, i) => { el.classList.add("stag"); el.style.setProperty("--i", i); });
+  clearTimeout(enterT); enterT = setTimeout(() => { sec.classList.remove("enter"); $$(".stag", sec).forEach(el => el.classList.remove("stag")); }, 1400);
 }
 $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) showTab(b.dataset.tab); });
 document.addEventListener("click", e => {
@@ -999,15 +1099,19 @@ document.addEventListener("mousemove", e => { const t = $("#tip"); if (t.hidden)
 document.addEventListener("click", e => { const b = e.target.closest("[data-goday]"); if (b) { dayView = b.dataset.goday; showTab("dzien"); } });
 
 /* ---------- ZAŁADUNKI (DZIEŃ) ---------- */
+let doneSeen = { day: null, ids: new Set() }, JUST_DONE = new Set();
 function renderDay() {
   ensureRange(dayView, dayView);
+  { const ids = new Set(itemsOf(dayView).filter(i => i.st === "done").map(i => i.id));
+    JUST_DONE = doneSeen.day === dayView ? new Set([...ids].filter(x => !doneSeen.ids.has(x))) : new Set();
+    doneSeen = { day: dayView, ids }; }
   $("#dDate").value = dayView;
   $("#dName").textContent = DOW[dowOf(dayView)] + " " + plDate(dayView) + (dayView === today() ? " · dziś" : "");
   const all = itemsOf(dayView), act = all.filter(active);
   const list = all.filter(it => dayFilter === "all" || (dayFilter === "done" ? it.st === "done" : active(it) && it.st !== "done"));
   const done = act.filter(i => i.st === "done").length;
   $("#dSum").innerHTML = `<span class="tag info">${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag ok">wydane ${done} z ${act.length}</span>${all.length - act.length ? `<span class="tag bad">anul./nie przyj. ${all.length - act.length}</span>` : ""}`;
-  if (!all.length) { $("#dList").innerHTML = '<div class="panel"><p class="sub">Brak awizacji na ten dzień. <button class="btn xs" type="button" data-new>+ Dodaj</button></p></div>'; $("#dSide").innerHTML = '<h3>Podsumowanie dnia</h3><p class="sub">Brak awizacji.</p>'; return; }
+  if (!all.length) { $("#dList").innerHTML = '<div class="panel"><p class="sub">Brak awizacji na ten dzień. <button class="btn xs" type="button" data-new>+ Dodaj</button></p></div>'; $("#dSide").innerHTML = `<div class="sp-head"><h3>Podsumowanie dnia</h3><span>${DOW_S[dowOf(dayView)]} ${shortDate(dayView)}</span></div><div class="sp-body"><p class="sub">Brak awizacji na ten dzień.</p>${docSide([])}</div>`; return; }
   const secs = SEC_ORDER.filter(k => k === "eur" || k === "pul" || all.some(it => secOf(it) === k));
   $("#dList").innerHTML = secs.map(k => {
     const sAll = all.filter(it => secOf(it) === k), sAct = sAll.filter(active), sList = list.filter(it => secOf(it) === k);
@@ -1016,26 +1120,34 @@ function renderDay() {
     return `<div class="sec sec-${k}" id="sec-${k}"><div class="sec-h g-${SECS[k][2]}"><h3>${SECS[k][0]}</h3><span class="sub">${SECS[k][1]}</span><span class="spacer"></span><span class="tag">${sAct.length} aw. · ${fmt1(sAct.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag">wydane ${sDone}/${sAct.length}</span></div>
       ${sOpen.map(awRow).join("")}${sDoneL.length ? `<div class="done-h">Wydane · ${sDoneL.length}</div>` + sDoneL.map(awRow).join("") : ""}${sList.length ? "" : `<p class="sub" style="padding:4px 8px">${sAll.length ? "Brak pozycji w tym filtrze." : "Brak awizacji."}</p>`}</div>`;
   }).join("");
-  // panel boczny: podsumowanie dnia wg sekcji
-  const tr = act.reduce((s, i) => s + trucksQ(i.q), 0);
-  $("#dSide").innerHTML = `<h3>Podsumowanie dnia</h3>
-    <div class="row"><span class="tot">${done}/${act.length}</span><span class="sub">wydanych · ${fmt1(tr)} aut</span></div>
-    <div class="pbar2"><i style="width:${act.length ? done / act.length * 100 : 0}%"></i></div>
+  // panel boczny: podsumowanie dnia — pierścień postępu, sekcje z paskami, dokumenty
+  const tr = act.reduce((s, i) => s + trucksQ(i.q), 0), off = 314.16 * (1 - (act.length ? done / act.length : 0));
+  const pulSz = its => its.reduce((s, it) => s + CATS.filter(c => PUL_G.has("g-" + c.g)).reduce((a, c) => a + qSum(it.q, c.k), 0), 0);
+  const wait = act.filter(i => i.st === "wait").length;
+  $("#dSide").innerHTML = `<div class="sp-head"><h3>Podsumowanie dnia</h3><span>${DOW_S[dowOf(dayView)]} ${shortDate(dayView)}</span></div><div class="sp-body">
+    <div class="ringbox"><div class="ringwrap"><svg class="ring" viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" cx="60" cy="60" r="50" stroke-dasharray="314.16" style="stroke-dashoffset:${ringOff[dayView] ?? 314.16}" data-off="${off}"/></svg>
+      <div class="ringtxt"><b>${done}/${act.length}</b><span>wydane</span></div></div>
+      <div class="rstats"><div><b>${fmt1(tr)}</b>aut</div><div><b>${fmt(act.reduce((s, i) => s + qSum(i.q, "EUR"), 0))}</b>EUR szt.</div><div><b>${fmt(pulSz(act))}</b>PUL szt.</div>${wait ? `<div class="w"><b>${wait}</b>czeka na potw.</div>` : ""}${all.length - act.length ? `<div><b class="pos">${all.length - act.length}</b>anul. / nie przyj.</div>` : ""}</div></div>
     ${SEC_ORDER.filter(k => act.some(it => secOf(it) === k)).map(k => {
-      const its = act.filter(it => secOf(it) === k), d = its.filter(i => i.st === "done");
-      const cats = CATS.map(c => { const pl = its.reduce((s, it) => s + qSum(it.q, c.k), 0), wy = d.reduce((s, it) => s + qSum(qOf(it), c.k), 0); return pl || wy ? `<span class="q ${gcls(c.k)}" title="wydane / umówione">${esc(c.n)} ${fmt(wy)}/${fmt(pl)}</span>` : ""; }).join(" ");
-      return `<div class="sg g-${SECS[k][2]}" data-jump="${k}"><b>${SECS[k][0]}</b><span>${its.length} aw. · wydane ${d.length}/${its.length} · ${fmt1(its.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><div style="display:flex;flex-wrap:wrap;gap:3px">${cats || '<span>bez ilości</span>'}</div></div>`;
+      const its = act.filter(it => secOf(it) === k), d = its.filter(i => i.st === "done"), pct = its.length ? d.length / its.length * 100 : 0;
+      const cats = CATS.map(c => { const pl = its.reduce((s, it) => s + qSum(it.q, c.k), 0), wy = d.reduce((s, it) => s + qSum(qOf(it), c.k), 0); return pl || wy ? `<span class="q ${gcls(c.k)}" title="wydane / umówione">${esc(c.n)} ${fmt(wy)}/${fmt(pl)}</span>` : ""; }).join("");
+      return `<div class="sp-sec g-${SECS[k][2]}" data-jump="${k}"><div class="sp-top"><i class="dot"></i><b>${SECS[k][0]}</b><span class="num">${d.length}/${its.length}</span></div>
+        <div class="sp-bar"><i style="width:${barW[dayView + k] ?? 0}%" data-w="${pct}"></i></div>${cats ? `<div class="sp-cats">${cats}</div>` : ""}</div>`;
     }).join("")}
-    ${all.length - act.length ? `<span class="tag bad">anulowane / nie przyjechał: ${all.length - act.length}</span>` : ""}
-    ${docSide(act)}`;
+    ${docSide(act)}</div>`;
+  requestAnimationFrame(() => {
+    const fg = $("#dSide .ring .fg"); if (fg) { fg.style.strokeDashoffset = fg.dataset.off; ringOff[dayView] = fg.dataset.off; }
+    $$("#dSide .sp-sec .sp-bar i").forEach(i => { i.style.width = i.dataset.w + "%"; barW[dayView + i.closest("[data-jump]").dataset.jump] = i.dataset.w; });
+  });
 }
+const ringOff = {}, barW = {};
 function docSide(act) {
-  const d = act.filter(i => i.st === "done"); if (!d.length && !docsMissing().length) return "";
+  const d = act.filter(i => i.st === "done"), miss = docsMissing(); if (!d.length && !miss.length) return "";
   const back = d.filter(docBackOf).length, kor = d.filter(i => i.kor), korNo = kor.filter(i => !i.korFiled).length;
-  const miss = docsMissing();
-  return `<div class="sg g-woz"><b>Dokumenty wydania</b>
-    <span>wróciły ${back}/${d.length}${kor.length ? ` · korekty ${kor.length}${korNo ? `, <span class="pos">${korNo} bez dokumentacji</span>` : ""}` : ""}</span>
-    ${miss.length ? `<span>brak zwrotu (14 dni): ${miss.map(([dd, n]) => `<a href="#" data-docday="${dd}">${shortDate(dd)} (${n})</a>`).join(", ")}</span>` : "<span>wszystkie z 14 dni wróciły</span>"}</div>`;
+  return `<div class="sp-doc"><div class="h">📄 Dokumenty wydania</div>
+    ${d.length ? `<div class="g-own"><div class="sp-top"><span>wróciły</span><span class="num">${back}/${d.length}</span></div><div class="sp-bar" style="--gc:var(--ok)"><i style="width:${d.length ? back / d.length * 100 : 0}%"></i></div></div>` : ""}
+    ${kor.length ? `<div>✎ korekty: <b>${kor.length}</b>${korNo ? ` · <span class="pos">${korNo} bez dokumentacji</span>` : " · wszystkie w dokumentacji"}</div>` : ""}
+    ${miss.length ? `<div>⚠ brak zwrotu z ostatnich 14 dni:</div><div class="pills">${miss.map(([dd, n]) => `<a href="#" data-docday="${dd}" title="${n} bez dokumentów">${DOW_S[dowOf(dd)]} ${shortDate(dd)} · ${n}</a>`).join("")}</div>` : '<div class="okline2">✓ wszystkie dokumenty z 14 dni wróciły</div>'}</div>`;
 }
 function docsMissing() {
   const out = []; for (let i = 0; i <= 14; i++) { const d = addDays(today(), -i), n = itemsOf(d).filter(it => it.st === "done" && (!docBackOf(it) || (it.kor && !it.korFiled))).length; if (n) out.push([d, n]); } return out;
@@ -1060,7 +1172,7 @@ function awRow(it) {
   else if (it.st === "done") acts = docBtn(it) + `<button class="btn xs" data-act="undo" title="Cofnij wydanie">↶</button>`;
   else acts = `<span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span><button class="btn xs" data-act="undo" title="Cofnij status">↶</button>`;
   const times = it.tDone ? "wyd. " + it.tDone : "";
-  return `<div class="aw st-${it.st} ${itCls(q, it.name)}" data-id="${esc(it.id)}">
+  return `<div class="aw st-${it.st} ${itCls(q, it.name)} ${JUST_DONE.has(it.id) ? "flash" : ""}" data-id="${esc(it.id)}">
     <div class="ord">${it.ord || "–"}<span><button type="button" data-act="up" aria-label="Wyżej">▲</button><button type="button" data-act="down" aria-label="Niżej">▼</button></span></div>
     <div class="slot">${esc(it.slot || "")}<small>${esc(times)}</small></div>
     <div class="firm"><b data-act="edit" title="${esc(it.name)}">${esc(it.name || "(bez nazwy)")}</b><small title="${esc(meta)}">${esc(meta)}</small></div>
@@ -1092,11 +1204,6 @@ function move(it, dir) {
   [list[a], list[b]] = [list[b], list[a]];
   S.setOrds(it.date, list.map((x, k) => [x.id, k + 1])).catch(fail);
 }
-$("#dRenum").addEventListener("click", () => {
-  const list = itemsOf(dayView).filter(active).sort((a, b) => slotStart(a.slot) - slotStart(b.slot) || (a.ord || 999) - (b.ord || 999));
-  const rest = itemsOf(dayView).filter(i => !active(i));
-  S.setOrds(dayView, [...list, ...rest].map((x, k) => [x.id, k + 1])).then(() => toast("Ponumerowano wg okien")).catch(fail);
-});
 $("#dPrev").addEventListener("click", () => { dayView = addDays(dayView, -1); renderDay(); });
 $("#dNext").addEventListener("click", () => { dayView = addDays(dayView, 1); renderDay(); });
 $("#dToday").addEventListener("click", () => { dayView = today(); renderDay(); });
@@ -1303,7 +1410,9 @@ function updSal() {
   const code = $("#aCode").value.trim(), s = salOf(code), w = [];
   // saldo EUR i dublowanie awizacji mają sens tylko przy dostawcach EUR (CHEP, LPR itd. mają wiele aut dziennie)
   const pl = aGrp !== "own" ? [] : plannedFor(code, today(), addDays(today(), 60)).filter(x => !editing || x.id !== editing.id);
-  $("#aSal").innerHTML = code && aGrp === "own" ? (s ? `Saldo EUR: <b class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</b> szt. (plik ${plDate(SAL.date)}) ${aGrp === "own" ? '<button class="btn xs" type="button" id="aUseSal">wpisz saldo</button> <button class="btn xs" type="button" id="aUseTruck">1 auto EUR</button>' : ""}` : "Brak salda EUR dla tego kodu.") + (pl.length ? " · już umówione: " + pl.map(x => `${shortDate(x.date)} ${esc(x.slot)} (${fmt(qSum(x.q, "EUR"))})`).join(", ") : "") : "";
+  const ml = code ? MAILS.get(code) : "";
+  const mlTxt = code ? (ml ? `<div>✉ ${esc(ml)}</div>` : '<div class="mut">✉ brak maila w bazie — dodasz go w Ustawieniach</div>') : "";
+  $("#aSal").innerHTML = mlTxt + (code && aGrp === "own" ? (s ? `Saldo EUR: <b class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</b> szt. (plik ${plDate(SAL.date)}) ${aGrp === "own" ? '<button class="btn xs" type="button" id="aUseSal">wpisz saldo</button> <button class="btn xs" type="button" id="aUseTruck">1 auto EUR</button>' : ""}` : "Brak salda EUR dla tego kodu.") + (pl.length ? " · już umówione: " + pl.map(x => `${shortDate(x.date)} ${esc(x.slot)} (${fmt(qSum(x.q, "EUR"))})`).join(", ") : "") : "");
   const eur = +($("[data-q=EUR]") || {}).value || 0;
   if (s && eur > 0 && eur > Math.max(0, s.tot)) w.push(`EUR do wydania (${fmt(eur)}) większe niż saldo (${fmt(s.tot)}).`);
   if (pl.length) w.push("Ten dostawca ma już inną otwartą awizację.");
@@ -1417,9 +1526,9 @@ function sendMail(it) {
 async function copyMail(it) {
   const { subj, body } = mailText(it);
   try { await navigator.clipboard.writeText(body); } catch { prompt("Skopiuj treść maila:", body); }
-  const to = (it.contact || "").match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
-  if (to) { location.href = "mailto:" + encodeURIComponent(to[0]) + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body); toast("Treść skopiowana · otwieram program pocztowy"); }
-  else toast("Prośba do dostawcy skopiowana — wklej ją w Outlooku (Ctrl+V).");
+  const to = MAILS.get(String(it.code || "")) || "";
+  if (to) { location.href = "mailto:" + to.split(/\s*,\s*/).map(encodeURIComponent).join(",") + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body); toast("Treść skopiowana · otwieram pocztę do " + to); }
+  else toast("Prośba skopiowana — brak maila tego dostawcy w bazie (Ustawienia → Baza maili). Wklej ją w Outlooku (Ctrl+V).");
 }
 
 /* ---------- DIALOG DOKUMENTÓW ---------- */
@@ -1518,7 +1627,7 @@ function stanRowsX() {
   const ds = stanDates(), cs = CATS;
   const infl = Object.fromEntries(cs.map(c => [c.k, Object.fromEntries(inflow(c.k, 99999).rows.map(r => [r.b, r.inf]))]));
   return [
-    { name: "Stany", rows: [["Data", "Dzień", "Auta razem", ...cs.map(c => c.n)], ...ds.map(d => [xDate(d), DOW[dowOf(d)], r1(cs.reduce((s, c) => s + (c.t > 0 ? (+DAYS[d].stan[c.k] || 0) / c.t : 0), 0)), ...cs.map(c => DAYS[d].stan[c.k] ?? "")])] },
+    { name: "Stany", rows: [["Data", "Dzień", "Auta razem", ...cs.map(c => c.n), "Wózki szt.", "Półki szt."], ...ds.map(d => [xDate(d), DOW[dowOf(d)], r1(cs.reduce((s, c) => s + (c.t > 0 ? (+DAYS[d].stan[c.k] || 0) / c.t : 0), 0)), ...cs.map(c => DAYS[d].stan[c.k] ?? ""), wozSzt(DAYS[d].stan).w, wozSzt(DAYS[d].stan).p])] },
     { name: "Zjazd", rows: [["Data", "Dzień", ...cs.map(c => c.n)], ...ds.map(d => [xDate(d), DOW[dowOf(d)], ...cs.map(c => infl[c.k][d] ?? "")])] },
   ];
 }
@@ -1695,8 +1804,9 @@ function renderStany() {
     $("#sForm").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<div class="sgroup g-${g}"><h3>${GROUPS[g]}${g === "tr" ? ' <small class="mut" style="text-transform:none;letter-spacing:0;font-weight:500">palety z transporterami</small>' : ""}</h3>${CATS.filter(c => c.g === g).map(c => {
       const v = cur && cur[c.k] != null ? (c.s ? cur[c.k] / c.s : cur[c.k]) : "";
       const p = prev && prev[c.k] != null ? (c.s ? fmt1(prev[c.k] / c.s) + " st." : fmt(prev[c.k])) : "—";
-      return `<div class="it ${gcls(c.k)}"><label for="s_${c.k}">${esc(c.n)}${c.s ? ` <small class="mut">stosy×${c.s}</small>` : ""}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p} <span data-d="${c.k}"></span></small></div>`;
-    }).join("")}</div>`).join("");
+      const hint = c.s ? ` <small class="mut">stosy×${c.s}</small>` : c.k === "WOZ" ? ` <small class="mut">kpl. × ${WOZ_KPL} szt.</small>` : c.k === "POL" ? ` <small class="mut">kpl. = ${POL_KPL} półki + ${POL_WOZ} wózki</small>` : "";
+      return `<div class="it ${gcls(c.k)}"><label for="s_${c.k}">${esc(c.n)}${hint}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p} <span data-d="${c.k}"></span></small></div>`;
+    }).join("")}${g === "woz" ? '<div class="sub" id="wozConv" style="font-weight:600"></div>' : ""}</div>`).join("");
   }
   sTotal();
   // historia: kolorowe kolumny grup
@@ -1709,7 +1819,8 @@ function renderStany() {
     const st = DAYS[d].stan, pv = prevOf(d), tot = x => CATS.reduce((s, c) => s + (c.t > 0 ? (+x[c.k] || 0) / c.t : 0), 0), tt = tot(st), dt = pv ? r1(tt - tot(pv)) : 0;
     return `<tr class="click" data-sday="${d}"><td class="nw">${DOW_S[dowOf(d)]} ${shortDate(d)}</td><td class="n"><b>${fmt1(tt)}</b>${dt ? `<br><span class="${dt > 0 ? "up" : "down"}" style="font-size:.68rem">${dt > 0 ? "▲ +" : "▼ "}${fmt1(dt)}</span>` : ""}</td>${cs.map(c => {
       const r = infl[c.k][d], dd = pv && st[c.k] != null && pv[c.k] != null ? st[c.k] - pv[c.k] : 0;
-      return `<td class="n" title="${r ? "zjazd ze sklepów: " + fmt(r.inf) + " szt., wydane: " + fmt(r.iss) + " szt." : ""}">${st[c.k] == null ? "—" : fmt(st[c.k])}${dd ? `<br><span class="${dd > 0 ? "up" : "down"}" style="font-size:.68rem">${dd > 0 ? "▲ +" : "▼ "}${fmt(dd)}</span>` : ""}</td>`; }).join("")}</tr>`;
+      const wt = c.k === "WOZ" || c.k === "POL" ? ` · ${c.k === "WOZ" ? fmt(wozSzt(st).w) + " wózków" : fmt(wozSzt(st).p) + " półek"}` : "";
+      return `<td class="n" title="${r ? "zjazd ze sklepów: " + fmt(r.inf) + ", wydane: " + fmt(r.iss) : ""}${wt}">${st[c.k] == null ? "—" : fmt(st[c.k])}${dd ? `<br><span class="${dd > 0 ? "up" : "down"}" style="font-size:.68rem">${dd > 0 ? "▲ +" : "▼ "}${fmt(dd)}</span>` : ""}</td>`; }).join("")}</tr>`;
   }).join("")}</tbody></table>` : '<p class="sub">Brak zapisanych stanów.</p>';
 }
 const dTag = d => !d ? "" : `<b class="${d > 0 ? "up" : "down"}">${d > 0 ? "▲ +" : "▼ "}${fmt(d)}</b>`;
@@ -1721,6 +1832,8 @@ function sTotal() {
     const el = $(`#sForm [data-d="${c.k}"]`); if (el) el.innerHTML = i.value !== "" && prev[c.k] != null ? dTag(Math.round(+i.value * (c.s || 1)) - prev[c.k]) : "";
   });
   $("#sTot").textContent = "razem " + fmt1(t) + " aut";
+  const wv = k => { const i = $(`#sForm [data-s="${k}"]`); return i && i.value !== "" ? +i.value : 0; }, ws = wozSzt({ WOZ: wv("WOZ"), POL: wv("POL") });
+  const wc = $("#wozConv"); if (wc) wc.textContent = ws.w || ws.p ? `= ${fmt(ws.w)} wózków + ${fmt(ws.p)} półek` : "";
 }
 $("#sForm").addEventListener("input", () => { sDirty = true; sTotal(); });
 $("#sDate").addEventListener("change", e => { if (e.target.value) { sDate = e.target.value; sDirty = false; renderStany(); } });
@@ -1752,10 +1865,72 @@ function renderProg() {
 $("#gH").addEventListener("click", e => { const b = e.target.closest("[data-h]"); if (b) { horizon = +b.dataset.h; renderProg(); } });
 $("#gCat").addEventListener("change", e => { gCat = e.target.value; renderProg(); });
 
+/* ---------- BAZA MAILI DOSTAWCÓW ---------- */
+const EMAIL_RE = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, OWN_DOMAIN = /jeronimo-martins|biedronka/i;
+const packMails = () => [...MAILS].filter(([, v]) => v).map(([k, v]) => k + ";" + v).join("\n");
+const saveMails = () => S.saveMails(packMails()).catch(fail);
+// dopasowanie wiersza (tekst + opcjonalnie nazwa firmy) do dostawcy: kod SAP, potem nazwa, potem domena maila
+let NAME_IDX = null;
+function supplierFor(text, nameHint) {
+  const codes = (text.match(/\b\d{6}\b/g) || []).filter(c => NAMES.has(c)); if (codes.length) return codes[0];
+  if (!NAME_IDX || NAME_IDX.n !== NAMES.size) NAME_IDX = { n: NAMES.size, list: [...NAMES].map(([k, v]) => [k, norm(v).replace(/[^a-z0-9 ]/g, " ").replace(/\b(sp|z|o|oo|s|a|sa|spolka|komandytowa|jawna|zoo|k)\b/g, " ").replace(/\s+/g, " ").trim()]).filter(([, v]) => v.length >= 4) };
+  const hay = " " + norm((nameHint || "") + " " + text).replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ") + " ";
+  let best = null; for (const [k, v] of NAME_IDX.list) if (hay.includes(" " + v + " ") && (!best || v.length > best[1].length)) best = [k, v];
+  if (best) return best[0];
+  const doms = (text.match(EMAIL_RE) || []).map(m => m.split("@")[1].split(".")[0].toLowerCase()).filter(d => d.length >= 4 && !OWN_DOMAIN.test(d));
+  for (const d of doms) { const hit = NAME_IDX.list.filter(([, v]) => v.replace(/ /g, "").includes(d)); if (hit.length === 1) return hit[0][0]; }
+  return null;
+}
+let mlPending = null;
+function mlMatch(rows) { // rows: [{ text, name }]
+  const ok = new Map(), miss = [];
+  rows.forEach(r => {
+    const mails = [...new Set((r.text.match(EMAIL_RE) || []).map(m => m.toLowerCase()).filter(m => !OWN_DOMAIN.test(m)))]; if (!mails.length) return;
+    const code = supplierFor(r.text, r.name);
+    if (code) ok.set(code, [...new Set([...(ok.get(code) || []), ...mails])]); else miss.push({ mails, hint: (r.name || r.text).slice(0, 80) });
+  });
+  mlPending = { ok, miss };
+  $("#mlPrev").innerHTML = `<div class="notice ${ok.size ? "ok" : "warn"}">Dopasowano ${ok.size} ${plural(ok.size, "dostawcę", "dostawców", "dostawców")}${miss.length ? ` · bez dopasowania: ${miss.length} (wpisz kod SAP albo pomiń)` : ""}.</div>
+    <div class="tbl-wrap" style="max-height:220px"><table><tbody>${[...ok].map(([k, m]) => `<tr><td class="num">${k}</td><td class="cut" style="max-width:160px">${esc(NAMES.get(k) || "")}</td><td>${esc(m.join(", "))}</td></tr>`).join("")}
+    ${miss.map((x, i) => `<tr><td><input data-mlmiss="${i}" placeholder="kod SAP" style="width:90px"></td><td class="cut mut" style="max-width:160px" title="${esc(x.hint)}">${esc(x.hint)}</td><td>${esc(x.mails.join(", "))}</td></tr>`).join("")}</tbody></table></div>
+    <div class="row"><button class="btn primary" type="button" id="mlSave">Zapisz do bazy</button><button class="btn" type="button" id="mlCancel">Anuluj</button></div>`;
+}
+$("#mlParse").addEventListener("click", () => { const t = $("#mlPaste").value; if (!t.trim()) return toast("Wklej tekst z adresami.", true); mlMatch(t.split(/\n+/).map(text => ({ text }))); });
+dropZone($("#mlDrop"), $("#mlFile"), async file => {
+  try {
+    const wb = await readWorkbook(file), rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: "" });
+    const h = (rows[0] || []).map(x => norm(x)), ni = h.findIndex(x => /firma|company|organizac|nazwa|dostawca/.test(x));
+    mlMatch(rows.slice(1).map(r => ({ text: r.join(" "), name: ni >= 0 ? r[ni] : "" })));
+  } catch (e) { fail(e); }
+});
+$("#mlPrev").addEventListener("click", e => {
+  if (e.target.id === "mlCancel") { mlPending = null; $("#mlPrev").innerHTML = ""; }
+  if (e.target.id !== "mlSave" || !mlPending) return;
+  $$("#mlPrev [data-mlmiss]").forEach(i => { const c = i.value.trim(); if (c) { const x = mlPending.miss[+i.dataset.mlmiss]; mlPending.ok.set(c, [...new Set([...(mlPending.ok.get(c) || []), ...x.mails])]); } });
+  mlPending.ok.forEach((m, k) => MAILS.set(k, [...new Set([...(MAILS.get(k) || "").split(/\s*,\s*/).filter(Boolean), ...m])].join(", ")));
+  const n = mlPending.ok.size; saveMails().then(() => toast(`Zapisano maile: ${n} ${plural(n, "dostawca", "dostawców", "dostawców")}`)); mlPending = null; $("#mlPrev").innerHTML = ""; $("#mlPaste").value = ""; renderMails();
+});
+function renderMails() {
+  $("#mlSub").textContent = `${MAILS.size} ${plural(MAILS.size, "dostawca", "dostawców", "dostawców")} z mailem · ✉ przy awizacji otwiera pocztę z tym adresem`;
+  const q = norm($("#mlQ").value).trim();
+  const rows = [...MAILS].filter(([k, v]) => !q || k.startsWith(q) || norm(NAMES.get(k)).includes(q) || v.toLowerCase().includes(q)).sort((a, b) => String(NAMES.get(a[0]) || "").localeCompare(String(NAMES.get(b[0]) || "")));
+  $("#mlTbl").innerHTML = rows.length ? `<table><thead><tr><th>Kod</th><th>Dostawca</th><th>E-mail</th><th></th></tr></thead><tbody>${rows.slice(0, 300).map(([k, v]) => `<tr><td class="num">${esc(k)}</td><td class="cut" style="max-width:170px">${esc(NAMES.get(k) || "")}</td><td><input data-mled="${esc(k)}" value="${esc(v)}"></td><td><button class="btn xs danger" type="button" data-mldel="${esc(k)}">✕</button></td></tr>`).join("")}</tbody></table>` : '<p class="sub">Baza jest pusta — wgraj kontakty albo wklej maile obok.</p>';
+}
+$("#mlQ").addEventListener("input", renderMails);
+$("#mlTbl").addEventListener("change", e => { const i = e.target.closest("[data-mled]"); if (!i) return; const v = (i.value.match(EMAIL_RE) || []).join(", "); if (v) MAILS.set(i.dataset.mled, v); else MAILS.delete(i.dataset.mled); saveMails(); renderMails(); });
+$("#mlTbl").addEventListener("click", e => { const b = e.target.closest("[data-mldel]"); if (!b) return; MAILS.delete(b.dataset.mldel); saveMails(); renderMails(); });
+$("#mlAdd").addEventListener("click", () => {
+  const k = $("#mlNewCode").value.trim(), m = ($("#mlNewMail").value.match(EMAIL_RE) || []).join(", ");
+  if (!k || !m) return toast("Podaj kod SAP i adres e-mail.", true);
+  MAILS.set(k, [...new Set([...(MAILS.get(k) || "").split(/\s*,\s*/).filter(Boolean), ...m.split(", ")])].join(", ")); saveMails(); $("#mlNewCode").value = ""; $("#mlNewMail").value = ""; renderMails();
+});
+$("#mlXls").addEventListener("click", () => saveXlsx("maile_dostawcow.xlsx", [{ name: "Maile", rows: [["Kod SAP", "Dostawca", "E-mail"], ...[...MAILS].map(([k, v]) => [k, NAMES.get(k) || "", v])] }]));
+
 /* ---------- USTAWIENIA ---------- */
 let cfgDraft = null;
 function renderSet() {
   if (!cfgDraft) cfgDraft = clone(CFG);
+  renderMails();
   if (!$("#exFrom").value) { $("#exFrom").value = addDays(today(), -30); $("#exTo").value = addDays(today(), 14); }
   $("#cfgCats").innerHTML = `<table><thead><tr><th>Klucz</th><th>Nazwa</th><th>Grupa</th><th class="n">Szt. na auto</th><th class="n">Stos</th><th class="n">Maks. aut</th><th>W formularzu</th><th></th></tr></thead><tbody>${cfgDraft.cats.map((c, i) => `<tr data-ci="${i}" class="cat g-${c.g || DEF_G[c.k] || "inne"}">
     <td class="num mut">${esc(c.k)}</td><td><input data-cf="n" value="${esc(c.n)}"></td>
@@ -1895,6 +2070,7 @@ function applyConfig(c) {
   if (!Array.isArray(CFG.cats) || !CFG.cats.length) CFG.cats = d.cats;
   else { const have = new Set(CFG.cats.map(x => x.k)); d.cats.forEach(x => { if (!have.has(x.k)) CFG.cats.push(x); }); }
   if (!Array.isArray(CFG.slots) || !CFG.slots.length) CFG.slots = d.slots;
+  CFG.cats.forEach(x => { if (x.k === "WOZ" && x.n === "WÓZ") x.n = "Wózki (kpl.)"; if (x.k === "POL" && x.n === "PÓŁ") x.n = "Półki (kpl.)"; });
   setCats(); salLoadedFor = null; loadSalda(SALMETA); schedule();
 }
 function enter(store) {
@@ -1903,6 +2079,7 @@ function enter(store) {
   ensureRange(addDays(today(), -49), addDays(today(), 42));
   unsubs.push(S.watchConfig(applyConfig));
   unsubs.push(S.watchSalMeta(loadSalda));
+  S.getMails().then(txt => { MAILS = new Map(txt.split("\n").filter(Boolean).map(l => { const i = l.indexOf(";"); return [l.slice(0, i), l.slice(i + 1)]; })); }).catch(e => console.error(e));
   S.getDost().then(txt => { txt.split("\n").forEach(l => { const i = l.indexOf(";"); if (i > 0) NAMES.set(l.slice(0, i), l.slice(i + 1)); }); }).catch(e => console.error(e));
   showTab(tab);
 }
