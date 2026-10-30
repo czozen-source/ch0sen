@@ -122,6 +122,41 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .cols { display: grid; gap: 10px; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); align-items: start; }
 @media (max-width: 980px) { .cols { grid-template-columns: 1fr; } }
 
+/* podsumowanie sald */
+.kpis4 { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.kpis4 .k { border: 1px solid var(--line); border-top: 4px solid var(--gc, var(--line)); border-radius: var(--r); padding: 6px 10px 7px; background: var(--surface); display: grid; }
+.kpis4 .k .l { font: 600 .72rem var(--f-cond); color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+.kpis4 .k .v { font: 400 1.55rem/1.15 var(--f-stamp); }
+.kpis4 .k .v small { font: 600 .8rem var(--f-cond); color: var(--muted); }
+.kpis4 .k .d { font-size: .74rem; color: var(--muted); }
+.salarch { background: var(--warn-bg); color: var(--warn); border-radius: var(--r); padding: 6px 10px; font-size: .85rem; display: flex; gap: 10px; align-items: center; }
+/* plac: zbiorniki zapełnienia */
+.yard { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: flex-end; }
+.ygroup { display: grid; gap: 4px; padding: 64px 8px 4px; border-bottom: 3px solid var(--gc); }
+.ygroup > .yt { font: 700 .74rem var(--f-cond); letter-spacing: .08em; text-transform: uppercase; color: var(--gc); text-align: center; }
+.ygroup > .yr { display: flex; gap: 8px; align-items: flex-end; }
+.tank { width: 70px; display: grid; justify-items: center; gap: 2px; text-align: center; position: relative; }
+.tk { position: relative; width: 46px; height: 118px; border: 2px solid var(--gc); border-top: 2px dashed var(--gc); border-radius: 3px 3px 5px 5px; background: var(--surface-2); display: flex; align-items: flex-end; overflow: hidden; }
+.tk i { display: block; width: 100%; background: repeating-linear-gradient(180deg, var(--gc) 0 8px, color-mix(in srgb, var(--gc) 65%, #000) 8px 10px); transition: height .9s cubic-bezier(.2,.8,.2,1); }
+.tank b { font: 700 .72rem var(--f-cond); letter-spacing: .03em; line-height: 1.1; min-height: 2.2em; }
+.tank span { font: 600 .7rem var(--f-mono); color: var(--muted); }
+.tank.warn .tk { border-color: var(--warn); }
+.tank.over .tk { border-color: var(--bad); box-shadow: 0 0 0 0 var(--bad); }
+.tank.over span { color: var(--bad); }
+.spill { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% - 10px); display: grid; justify-items: center; gap: 2px; pointer-events: none; }
+.spill .pile { width: 52px; border-radius: 4px 4px 0 0; background: repeating-linear-gradient(180deg, var(--bad) 0 6px, #7a1610 6px 8px); }
+.spill em { font: 700 .66rem var(--f-mono); font-style: normal; background: var(--bad); color: #fff; padding: 1px 5px; border-radius: 3px; white-space: nowrap; }
+.yardtot { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; font-size: .84rem; }
+.yardtot .tr { height: 14px; border-radius: 7px; background: var(--line-2); overflow: hidden; position: relative; }
+.yardtot .tr i { display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--g-own) 0 10px, color-mix(in srgb, var(--g-own) 70%, #000) 10px 12px); border-radius: 7px; transition: width .9s; }
+.yardtot.over .tr i { background: repeating-linear-gradient(90deg, var(--bad) 0 10px, #7a1610 10px 12px); }
+@media (prefers-reduced-motion: no-preference) {
+  .tank.over .tk { animation: overGlow 1s ease-in-out infinite; }
+  .spill { animation: spillBlink 1s steps(2, jump-none) infinite; }
+  .yardtot.over b { animation: spillBlink 1s steps(2, jump-none) infinite; }
+  @keyframes overGlow { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--bad) 35%, transparent); } }
+  @keyframes spillBlink { 50% { opacity: .35; } }
+}
 /* „co trzeba zrobić”: karty działań */
 .acts-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
 .act { border: 1px solid var(--line); border-left: 6px solid var(--gc, var(--warn)); background: var(--surface); border-radius: var(--r); padding: 7px 10px 8px; display: grid; gap: 1px; align-content: start; }
@@ -280,12 +315,23 @@ tr.cat td:first-child { border-left: 4px solid var(--gc); }
 
 /* harmonogram */
 .harm-wrap { overflow-x: auto; }
-.harm { display: grid; grid-template-columns: 74px repeat(7, minmax(118px, 1fr)); gap: 2px; min-width: 900px; }
-.harm .hd { font: 600 .78rem var(--f-cond); letter-spacing: .04em; text-transform: uppercase; padding: 3px 5px; background: var(--wood-1); color: var(--wood-fg); border-radius: 3px; display: grid; cursor: pointer; }
+.harm { display: grid; grid-template-columns: 74px repeat(7, minmax(140px, 1fr)); gap: 3px; min-width: 1060px; }
+.harm .hd { font: 700 1rem var(--f-cond); letter-spacing: .05em; text-transform: uppercase; padding: 7px 9px 8px; background: var(--wood-1); color: var(--wood-fg); border-radius: 4px; display: grid; gap: 3px; cursor: pointer; align-content: start; }
 .harm .hd.today { background: var(--pine); color: var(--pine-ink); }
-.harm .hd small { font: 400 .66rem var(--f-mono); text-transform: none; letter-spacing: 0; opacity: .9; }
-.harm .hd .ov { background: var(--bad); color: #fff; border-radius: 2px; padding: 0 3px; opacity: 1; }
-.harm .hd .okk { color: #9be29f; opacity: 1; } .harm .hd.today .okk { color: var(--ok); }
+.harm .hd .eur { font: 400 1.7rem/1 var(--f-stamp); color: var(--pine); letter-spacing: .02em; }
+.harm .hd.today .eur { color: var(--pine-ink); }
+.harm .hd .eur small { font: 600 .72rem var(--f-cond); letter-spacing: .06em; opacity: .85; margin-left: 3px; }
+.harm .hd small { font: 500 .74rem var(--f-mono); text-transform: none; letter-spacing: 0; opacity: .9; }
+.harm .hd .ov, .harm .hd .okk { font: 700 .8rem var(--f-mono); text-transform: none; letter-spacing: 0; padding: 3px 6px; border-radius: 4px; opacity: 1; }
+.harm .hd .ov { background: var(--bad); color: #fff; }
+.harm .hd .okk { background: rgba(110, 200, 110, .18); color: #9be29f; } .harm .hd.today .okk { color: var(--ok); background: rgba(46, 125, 50, .15); }
+.harm .hd.need { box-shadow: 0 0 0 2px var(--bad); }
+@media (prefers-reduced-motion: no-preference) {
+  .harm .hd .ov { animation: needBlink 1.1s ease-in-out infinite; }
+  .harm .hd.need { animation: needRing 1.1s ease-in-out infinite; }
+  @keyframes needBlink { 50% { background: #ffd3cf; color: #8e0d06; } }
+  @keyframes needRing { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--bad) 45%, transparent); } }
+}
 .harm .cell.hide { opacity: .25; }
 th.sort { cursor: pointer; } th.sort:hover { color: var(--fg); } th.sort.on::after { content: " ▾"; } th.sort.on.asc::after { content: " ▴"; }
 .harm .sl { font: 600 .7rem var(--f-mono); color: var(--muted); padding: 2px; align-self: center; }
@@ -470,9 +516,10 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
     <div class="panel">
       <div class="row">
         <label class="drop grow" id="salDrop" style="flex:1 1 280px">⤒ Plik z saldami („Stan rozliczeń opakowań”, xlsx/xls/csv) — upuść albo <u>wybierz</u><input type="file" id="salFile" accept=".xlsx,.xls,.xlsm,.csv" hidden></label>
-        <span class="sub" id="salSub"></span>
+        <label class="field">Stan na dzień <select id="salDay" style="width:auto"></select></label>
       </div>
       <div id="salPrev"></div>
+      <div class="kpis4" id="salSum"></div>
       <div class="row">
         <input id="salQ" type="search" placeholder="Szukaj: kod SAP lub nazwa…" style="max-width:300px">
         <select id="salOpak" style="width:auto"></select>
@@ -488,7 +535,7 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       <div class="tbl-wrap" id="salTbl" style="max-height:calc(100vh - 260px)"></div>
     </div>
     <div class="panel">
-      <header><h3>Historia plików</h3></header>
+      <header><h3>Archiwum sald</h3><span class="sub">każdy wczytany plik zostaje w bazie · kliknij dzień, aby go otworzyć</span></header>
       <div class="tbl-wrap" id="salHist"></div>
     </div>
   </section>
@@ -505,6 +552,11 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
         <button class="btn primary" type="button" id="sSave">Zapisz stan</button>
       </div>
       <form id="sForm" class="sgroups"></form>
+    </div>
+    <div class="panel">
+      <header><h3>Plac — zapełnienie</h3><span class="sub">na żywo z wpisanych liczb · maksimum ustawiasz w Ustawieniach → Kategorie (kolumna „Maks.”)</span></header>
+      <div class="yardtot" id="yardTot"></div>
+      <div class="yard" id="yard"></div>
     </div>
     <div class="panel">
       <header><h3>Historia · stan i zjazd</h3><span class="sub">zjazd = stan dziś − stan poprzedni + wydane w międzyczasie</span><button class="btn xl spacer" type="button" data-xls="stany">⤓ Excel</button></header>
@@ -1035,7 +1087,7 @@ document.addEventListener("click", e => {
   openAw(null, { date: firstFreeDate(), code, name: code ? NAMES.get(code) || "" : "", q: { [c.k]: c.t || "" } });
 });
 function salCells(r, short) {
-  const pv = SAL.prev.get(r.code), dlt = pv ? r.tot - pv.tot : null;
+  const pv = SALX.prev.get(r.code), dlt = pv ? r.tot - pv.tot : null;
   const eurT = (CAT.EUR && CAT.EUR.t) || 495;
   const base = `<td class="num" style="font-size:.76rem">${esc(r.code)}</td><td class="cut" style="max-width:${short ? 190 : 300}px" title="${esc(r.name)}">${esc(r.name)}</td><td class="n ${r.tot > 0 ? "pos" : r.tot < 0 ? "neg" : ""}">${fmt(r.tot)}</td><td class="n mut">${dlt == null || !dlt ? "" : (dlt > 0 ? "+" : "") + fmt(dlt)}</td>`;
   if (short) return base + `<td class="n">${fmt1(r.tot / eurT)}</td><td><button class="btn xs" type="button" data-aw="${esc(r.code)}">Awizuj</button></td>`;
@@ -1164,7 +1216,7 @@ function docState(it) {
 }
 const docBtn = it => { const [c, t] = docState(it); return `<button class="docb ${c}" type="button" data-act="doc" title="Dokumenty wydania — kliknij, aby uzupełnić">${t}</button>`; };
 function awRow(it) {
-  const s = salOf(it.code), q = qOf(it);
+  const s = secOf(it) === "pul" ? null : salOf(it.code), q = qOf(it); // przy CHEP/LPR/IPP/NDHP saldo EUR nic nie mówi
   const meta = [it.code, it.driver, it.dostChep && "dost. " + it.dostChep, it.dok && "dok. " + it.dok, it.note].filter(Boolean).join(" · ");
   let acts = "";
   if (it.st === "wait") acts = `<span class="tag warn" title="wysłano prośbę, dostawca jeszcze nie potwierdził">czeka</span><button class="btn xs" data-act="conf" title="Dostawca potwierdził termin">Potwierdź</button><button class="btn xs ok" data-act="iss">Wydaj</button>`;
@@ -1294,10 +1346,12 @@ function renderHarm() {
   let h = "<div></div>";
   per.forEach(p => {
     const act = p.its.filter(active), ev = ep && ep.v[p.d];
-    h += `<div class="hd ${p.d === T ? "today" : ""}" data-goday="${p.d}" title="kliknij — Załadunki tego dnia">${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}
-      <small>${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut</small>
-      <small>EUR ${fmt(act.reduce((s, i) => s + qSum(i.q, "EUR"), 0))} · PUL ${fmt(act.reduce((s, i) => s + pulSzt(i.q), 0))}</small>
-      ${ev != null ? `<small class="${ev > ep.lim ? "ov" : "okk"}">stan EUR ${fmt1(ev / ep.t)}/${fmt1(ep.max)} aut</small>` : "<small>&nbsp;</small>"}</div>`;
+    // dzień wymaga działania, gdy prognozowany stan EUR przekracza limit — nagłówek miga i podpowiada, ile aut umówić
+    const over = ev != null && ev > ep.lim && p.d >= T, need = over ? Math.ceil((ev - ep.lim) / ep.t) : 0;
+    h += `<div class="hd ${p.d === T ? "today" : ""} ${over ? "need" : ""}" data-goday="${p.d}" title="kliknij — Załadunki tego dnia">${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}
+      <span class="eur">${fmt(act.reduce((s, i) => s + qSum(i.q, "EUR"), 0))}<small>EUR</small></span>
+      <small>${act.length} aw. · ${fmt1(act.reduce((s, i) => s + trucksQ(i.q), 0))} aut · PUL ${fmt(act.reduce((s, i) => s + pulSzt(i.q), 0))}</small>
+      ${ev != null ? `<span class="${ev > ep.lim ? "ov" : "okk"}">stan EUR ${fmt1(ev / ep.t)}/${fmt1(ep.max)}${ev > ep.lim ? "" : " ✓"}</span>${need ? `<span class="ov" title="tyle aut EUR trzeba wydać do tego dnia (łącznie od dziś), żeby zmieścić się w limicie">⚠ umów do tego dnia +${need}</span>` : ""}` : "<small>&nbsp;</small>"}</div>`;
   });
   const chip = it => `<div class="chip st-${it.st} ${itCls(it.q, it.name)}" data-hedit="${esc(it.id)}" data-date="${it.date}" title="${esc((it.name || "") + " · " + it.slot + " · " + ST[it.st] + " · " + qText(it.q) + (it.note ? " · " + it.note : ""))}">${it.ord ? `<b>${it.ord}</b> ` : ""}${esc((it.name || it.code || "").slice(0, 20))} <b>${fmt(CATS.reduce((s, c) => s + qSum(it.q, c.k), 0))}</b></div>`;
   CFG.slots.forEach((s, i) => {
@@ -1620,7 +1674,7 @@ function catRows(H) {
 }
 function salRowsX(rows) {
   return [["Kod", "Dostawca", "Opakowanie", "Saldo mag.", "Bufor", "Saldo ogółem", "Zmiana vs poprzedni", "Umówione odbiory", "Umówione EUR", "Po odbiorach"],
-    ...rows.map(r => { const pv = SAL.prev.get(r.code), pl = plannedFor(r.code), plq = pl.reduce((s, it) => s + qSum(it.q, "EUR"), 0);
+    ...rows.map(r => { const pv = SALX.prev.get(r.code), pl = plannedFor(r.code), plq = pl.reduce((s, it) => s + qSum(it.q, "EUR"), 0);
       return [r.code, r.name, r.opak, r.mag, r.buf, r.tot, pv ? r.tot - pv.tot : "", pl.map(it => `${shortDate(it.date)} ${it.slot}`).join(", "), plq || "", pl.length ? r.tot - plq : ""]; })];
 }
 function stanRowsX() {
@@ -1642,7 +1696,7 @@ document.addEventListener("click", async e => {
         ...SEC_ORDER.map(k => its.filter(i => secOf(i) === k).length || ""), its.filter(i => i.st === "done").length, ep && ep.v[d] != null ? r1(ep.v[d] / ep.t) : "", ep ? ep.max : ""]; })];
     saveXlsx(`harmonogram_${harmWeek}.xlsx`, [{ name: "Podsumowanie dni", rows: sum }, { name: "Awizacje", rows: itemRows(days.flatMap(itemsOf)) }]);
   }
-  if (w === "salda") saveXlsx(`salda_${SAL.date || T}.xlsx`, [{ name: "Salda", rows: salRowsX(salFiltered()) }]);
+  if (w === "salda") saveXlsx(`salda_${SALX.date || T}.xlsx`, [{ name: "Salda", rows: salRowsX(salFiltered()) }]);
   if (w === "stany") saveXlsx(`stany_placu_${T}.xlsx`, stanRowsX());
   if (w === "prog") {
     const ser = [["Data", "Dzień", ...CATS.map(c => c.n + " szt."), ...CATS.filter(c => c.t).map(c => c.n + " aut")]];
@@ -1767,28 +1821,62 @@ async function loadSalda(meta) {
   } catch (e) { showDbErr(e); }
 }
 function salFiltered() {
-  const opaks = [...new Set(SAL.rows.map(r => r.opak))].filter(Boolean), op = $("#salOpak").value || CFG.opak;
+  const opaks = [...new Set(SALX.rows.map(r => r.opak))].filter(Boolean), op = $("#salOpak").value || CFG.opak;
   const q = norm($("#salQ").value).trim(), booked = bookedCodes();
-  let rows = SAL.rows.filter(r => r.opak === op || !r.opak || !opaks.length);
+  let rows = SALX.rows.filter(r => r.opak === op || !r.opak || !opaks.length);
   if (q) rows = rows.filter(r => r.code.startsWith(q) || norm(r.name).includes(q));
   if (salFilter === "pos") rows = rows.filter(r => r.tot > 0);
   if (salFilter === "neg") rows = rows.filter(r => r.tot < 0);
   if (salFilter === "free") rows = rows.filter(r => r.tot > 0 && !booked.has(r.code));
   return rows.sort((a, b) => salFilter === "neg" ? a.tot - b.tot : b.tot - a.tot);
 }
+// archiwum: każdy plik to osobny dokument pk_salda/{data}; podgląd dowolnego dnia bez zmiany bieżących sald
+let SALX = SAL, salViewDate = null;
+async function viewSalda(date) {
+  const dates = (SALMETA.list || []).map(x => x.date).sort();
+  if (!date || date === SAL.date) { salViewDate = null; SALX = SAL; renderSalda(); return; }
+  const prev = dates.filter(d => d < date).pop();
+  try {
+    const [a, b] = await Promise.all([S.getSalda(date), prev ? S.getSalda(prev) : null]);
+    if (!a) { toast("Tego pliku nie ma już w archiwum (tryb lokalny trzyma 3 ostatnie).", true); return viewSalda(null); }
+    const eurMap = rs => new Map(rs.filter(r => r.opak === CFG.opak || !r.opak).map(r => [r.code, r]));
+    const rows = unpackSalda(a), prows = unpackSalda(b);
+    salViewDate = date; SALX = { date, rows, eur: eurMap(rows), prev: eurMap(prows), prevDate: prev || null, opakNames: a.opak || {} };
+    renderSalda();
+  } catch (e) { fail(e); }
+}
 function renderSalda() {
-  const opaks = [...new Set(SAL.rows.map(r => r.opak))].filter(Boolean);
+  if (!salViewDate) SALX = SAL;
+  const V = SALX, opaks = [...new Set(V.rows.map(r => r.opak))].filter(Boolean);
   const sel = $("#salOpak"), cur = sel.value || CFG.opak;
-  sel.innerHTML = opaks.map(o => `<option value="${esc(o)}">${esc(o)} ${esc(SAL.opakNames[o] || "")}</option>`).join("");
+  sel.innerHTML = opaks.map(o => `<option value="${esc(o)}">${esc(o)} ${esc(V.opakNames[o] || "")}</option>`).join("");
   sel.hidden = opaks.length < 2; if (opaks.includes(cur)) sel.value = cur;
-  $("#salSub").textContent = SAL.date ? `stan na ${plDate(SAL.date)}${SAL.prevDate ? " · zmiana vs " + plDate(SAL.prevDate) : ""}` : "brak wczytanych sald";
+  const dates = (SALMETA.list || []).map(x => x.date).sort().reverse();
+  $("#salDay").innerHTML = dates.map((d, i) => `<option value="${d}">${plDate(d)}${i === 0 ? " (bieżący)" : ""}</option>`).join("") || "<option>—</option>";
+  $("#salDay").value = V.date || ""; $("#salDay").disabled = !dates.length;
+  // podsumowanie: ile jest teraz (EUR)
+  const eur = [...V.eur.values()], pos = eur.reduce((s, r) => s + Math.max(0, r.tot), 0), neg = eur.reduce((s, r) => s + Math.min(0, r.tot), 0);
+  const ppos = [...V.prev.values()].reduce((s, r) => s + Math.max(0, r.tot), 0), dpos = V.prevDate ? pos - ppos : null;
+  const t = (CAT.EUR && CAT.EUR.t) || 495, cand = salViewDate ? [] : salCandidates();
+  const k = (l, v, d, g = "") => `<div class="k ${g}"><span class="l">${l}</span><span class="v">${v}</span><span class="d">${d}</span></div>`;
+  $("#salSum").innerHTML = !V.date ? "" : (salViewDate ? `<div class="salarch">📂 Podgląd archiwum z ${plDate(V.date)} <button class="btn xs" type="button" id="salBack">Wróć do bieżących</button></div>` : "") + `<div class="kpis4">${[
+    k("Do oddania dostawcom", `${fmt(pos)} <small>szt.</small>`, `≈ ${fmt1(pos / t)} aut EUR · ${eur.filter(r => r.tot > 0).length} dostawców`, "g-own"),
+    k("Zmiana od poprzedniego", dpos == null ? "—" : `<span class="${dpos > 0 ? "up" : dpos < 0 ? "down" : ""}">${dpos > 0 ? "▲ +" : dpos < 0 ? "▼ " : ""}${fmt(dpos)}</span>`, V.prevDate ? "vs plik z " + plDate(V.prevDate) : "brak wcześniejszego pliku"),
+    k("Dostawcy winni nam", `${fmt(-neg)} <small>szt.</small>`, `${eur.filter(r => r.tot < 0).length} z saldem ujemnym`, "g-ndhp"),
+    k("Netto", `${fmt(pos + neg)} <small>szt.</small>`, "suma wszystkich sald EUR"),
+    salViewDate ? "" : k("Bez awizacji", `${cand.length} <small>${plural(cand.length, "firma", "firmy", "firm")}</small>`, `saldo ≥ ${fmt(CFG.salMin)} szt. · ${fmt(cand.reduce((s, r) => s + r.tot, 0))} szt.`, "g-lpr"),
+  ].join("")}</div>`;
   const rows = salFiltered(), sum = rows.reduce((s, r) => s + r.tot, 0);
-  $("#salTbl").innerHTML = !SAL.date ? '<p class="sub">Wczytaj pierwszy plik z saldami.</p>' :
+  $("#salTbl").innerHTML = !V.date ? '<p class="sub">Wczytaj pierwszy plik z saldami.</p>' :
     `<table><thead><tr><th>Kod</th><th>Dostawca</th><th class="n">Saldo</th><th class="n">Zmiana</th><th class="n">Bufor</th><th>Umówione odbiory</th><th class="n">Po odbiorach</th><th></th></tr></thead><tbody>${rows.slice(0, 400).map(r => `<tr>${salCells(r, false)}</tr>`).join("")}</tbody></table>
     <p class="sub">${fmt(rows.length)} pozycji · suma ${fmt(sum)} szt.${rows.length > 400 ? " · na ekranie 400 największych, w Excelu wszystkie" : ""}</p>`;
-  const hist = (SALMETA.list || []).slice(-15).reverse();
-  $("#salHist").innerHTML = hist.length ? `<table><thead><tr><th>Stan na</th><th class="n">Wierszy</th><th class="n">Saldo dodatnie EUR</th><th class="n">Ujemne</th><th class="n">Dostawców &gt; 0</th><th>Wczytał</th></tr></thead><tbody>${hist.map(h => `<tr><td>${plDate(h.date)}</td><td class="n">${fmt(h.n)}</td><td class="n">${fmt(h.pos)}</td><td class="n">${fmt(h.neg)}</td><td class="n">${fmt(h.cnt)}</td><td class="mut">${esc(h.by || "")}</td></tr>`).join("")}</tbody></table>` : '<p class="sub">Brak.</p>';
+  const hist = (SALMETA.list || []).slice().reverse();
+  $("#salHist").innerHTML = hist.length ? `<table><thead><tr><th>Stan na</th><th class="n">Do oddania (saldo &gt; 0)</th><th class="n">Zmiana</th><th class="n">Winni nam</th><th class="n">Dostawców &gt; 0</th></tr></thead><tbody>${hist.map((h, i) => { const pv = hist[i + 1], dd = pv ? h.pos - pv.pos : null;
+    return `<tr class="click ${h.date === V.date ? "cat g-own" : ""}" data-salday="${h.date}"><td class="nw">${DOW_S[dowOf(h.date)]} ${plDate(h.date)}${i === 0 ? ' <span class="tag ok">bieżący</span>' : ""}</td><td class="n"><b>${fmt(h.pos)}</b></td><td class="n ${dd > 0 ? "up" : dd < 0 ? "down" : ""}">${dd == null ? "" : (dd > 0 ? "▲ +" : dd < 0 ? "▼ " : "") + fmt(dd)}</td><td class="n">${fmt(-h.neg)}</td><td class="n">${fmt(h.cnt)}</td></tr>`; }).join("")}</tbody></table>` : '<p class="sub">Brak.</p>';
 }
+$("#salDay").addEventListener("change", e => viewSalda(e.target.value));
+$("#salHist").addEventListener("click", e => { const tr = e.target.closest("[data-salday]"); if (tr) { viewSalda(tr.dataset.salday); scrollTo({ top: 0, behavior: "smooth" }); } });
+$("#salSum").addEventListener("click", e => { if (e.target.id === "salBack") viewSalda(null); });
 $("#salQ").addEventListener("input", renderSalda);
 $("#salOpak").addEventListener("change", renderSalda);
 $("#salF").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (!b) return; salFilter = b.dataset.f; $$("#salF button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); renderSalda(); });
@@ -1832,6 +1920,7 @@ function sTotal() {
     const el = $(`#sForm [data-d="${c.k}"]`); if (el) el.innerHTML = i.value !== "" && prev[c.k] != null ? dTag(Math.round(+i.value * (c.s || 1)) - prev[c.k]) : "";
   });
   $("#sTot").textContent = "razem " + fmt1(t) + " aut";
+  renderYard();
   const wv = k => { const i = $(`#sForm [data-s="${k}"]`); return i && i.value !== "" ? +i.value : 0; }, ws = wozSzt({ WOZ: wv("WOZ"), POL: wv("POL") });
   const wc = $("#wozConv"); if (wc) wc.textContent = ws.w || ws.p ? `= ${fmt(ws.w)} wózków + ${fmt(ws.p)} półek` : "";
 }
@@ -1843,6 +1932,29 @@ $("#sSave").addEventListener("click", async () => {
   if (!Object.keys(stan).length) return toast("Wpisz co najmniej jedną kategorię.", true);
   try { await S.putStan(sDate, stan); sDirty = false; toast("Zapisano stan z " + plDate(sDate)); } catch (e) { fail(e); }
 });
+
+// zbiorniki placu: wypełnienie = stan / maksimum (auta; przy kategoriach bez przelicznika — ich jednostki); ponad limit mruga na czerwono
+const limOf = c => c.max > 0 ? (c.t > 0 ? c.max * c.t : c.max) : 0;
+function renderYard() {
+  const val = k => { const i = $(`#sForm [data-s="${k}"]`), c = CAT[k]; return i && i.value !== "" ? +i.value * ((c && c.s) || 1) : null; };
+  const cats = CATS.filter(c => limOf(c) > 0);
+  let tot = 0, totMax = 0;
+  const tank = c => {
+    const v = val(c.k); if (c.t > 0) { tot += (v || 0) / c.t; totMax += c.max; }
+    const lim = limOf(c), r = (v || 0) / lim, over = r > 1, u = c.t > 0 ? x => fmt1(x / c.t) : fmt, unit = c.t > 0 ? "aut" : "";
+    const spillH = Math.min(46, 8 + (r - 1) * 60);
+    return `<div class="tank ${gcls(c.k)} ${over ? "over" : r >= .85 ? "warn" : ""}" title="${esc(c.n)}: ${v == null ? "brak liczenia" : fmt(v) + " szt."} · maks. ${fmt(lim)} szt.">
+      ${over ? `<div class="spill"><em>+${u(v - lim)} ${unit}</em><div class="pile" style="height:${spillH}px"></div></div>` : ""}
+      <div class="tk"><i style="height:${Math.min(100, r * 100)}%"></i></div>
+      <b>${esc(c.n)}</b><span>${v == null ? "—" : u(v)}/${u(lim)}${unit ? " " + unit : ""}</span></div>`;
+  };
+  const groups = GORDER.filter(g => cats.some(c => c.g === g));
+  $("#yard").innerHTML = groups.length ? groups.map(g => `<div class="ygroup g-${g}"><div class="yr">${cats.filter(c => c.g === g).map(tank).join("")}</div><div class="yt">${GROUPS[g]}</div></div>`).join("")
+    : '<p class="sub">Ustaw maksymalny stan kategorii w Ustawieniach, żeby zobaczyć zapełnienie placu.</p>';
+  const over = totMax > 0 && tot > totMax;
+  $("#yardTot").className = "yardtot" + (over ? " over" : "");
+  $("#yardTot").innerHTML = totMax > 0 ? `<span>Plac razem</span><span class="tr"><i style="width:${Math.min(100, tot / totMax * 100)}%"></i></span><b class="${over ? "pos" : ""}">${fmt1(tot)} / ${fmt1(totMax)} aut${over ? ` · +${fmt1(tot - totMax)} ponad` : ""}</b>` : "";
+}
 
 /* ---------- PROGNOZA ---------- */
 function renderProg() {
@@ -1932,7 +2044,7 @@ function renderSet() {
   if (!cfgDraft) cfgDraft = clone(CFG);
   renderMails();
   if (!$("#exFrom").value) { $("#exFrom").value = addDays(today(), -30); $("#exTo").value = addDays(today(), 14); }
-  $("#cfgCats").innerHTML = `<table><thead><tr><th>Klucz</th><th>Nazwa</th><th>Grupa</th><th class="n">Szt. na auto</th><th class="n">Stos</th><th class="n">Maks. aut</th><th>W formularzu</th><th></th></tr></thead><tbody>${cfgDraft.cats.map((c, i) => `<tr data-ci="${i}" class="cat g-${c.g || DEF_G[c.k] || "inne"}">
+  $("#cfgCats").innerHTML = `<table><thead><tr><th>Klucz</th><th>Nazwa</th><th>Grupa</th><th class="n">Szt. na auto</th><th class="n">Stos</th><th class="n" title="w autach; przy kategoriach bez „szt. na auto” — w ich jednostkach (np. komplety, palety)">Maks. (auta / kpl.)</th><th>W formularzu</th><th></th></tr></thead><tbody>${cfgDraft.cats.map((c, i) => `<tr data-ci="${i}" class="cat g-${c.g || DEF_G[c.k] || "inne"}">
     <td class="num mut">${esc(c.k)}</td><td><input data-cf="n" value="${esc(c.n)}"></td>
     <td><select data-cf="g">${GORDER.map(g => `<option value="${g}" ${g === (c.g || DEF_G[c.k]) ? "selected" : ""}>${GROUPS[g]}</option>`).join("")}</select></td>
     <td><input type="number" min="0" data-cf="t" value="${c.t}" style="width:80px"></td><td><input type="number" min="0" data-cf="s" value="${c.s || 0}" style="width:70px"></td>

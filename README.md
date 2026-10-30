@@ -101,6 +101,9 @@ Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch
 - **Wózki w stanach** wpisuje się w kompletach: komplet wózków = 20 wózków, komplet półek = 42 półki + 2 wózki (przeliczenie pod polami i w Excelu).
 - **Baza maili dostawców** (Ustawienia): import kontaktów z Outlooka (CSV/XLSX) albo wklejone adresy z maili; dopasowanie po kodzie SAP, nazwie firmy lub domenie. ✉ przy awizacji otwiera pocztę z adresem z bazy. Dane: `pk_meta/maile`.
 - Animacje przejść (zakładki, okna, wiersze, wykresy, świeżo wydane) — wyłączają się, gdy system ma ustawione „ogranicz ruch”.
+- **Salda**: kafelki „ile jest teraz” (do oddania, zmiana od poprzedniego pliku, winni nam, netto, bez awizacji) i **archiwum** — każdy wczytany plik zostaje w bazie (`pk_salda/{data}`), wybór dnia albo klik w historii otwiera podgląd archiwalny.
+- **Stany placu — zapełnienie**: zbiorniki w kolorach grup (stan / maks. z Ustawień), ponad limitem mrugają na czerwono z „wylewającym się” stosem; pasek „plac razem”.
+- **Harmonogram**: duży nagłówek dnia z sumą umówionych EUR; dzień, w którym prognozowany stan EUR przekracza limit, miga i podpowiada, ile aut umówić.
 - Skróty: <kbd>N</kbd> nowa awizacja, ←/→ zmiana dnia, w formularzu <kbd>Enter</kbd> zapisuje. Podpowiedź firmy po kodzie SAP albo 2 literach nazwy (z listy DOSTAWCY i sald).
 
 ### Jednorazowo
