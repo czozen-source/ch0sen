@@ -53,6 +53,13 @@
 .g-lpr { --gc: var(--g-lpr); --gb: var(--g-lpr-bg); } .g-ndhp { --gc: var(--g-ndhp); --gb: var(--g-ndhp-bg); }
 .g-ipp { --gc: var(--g-ipp); --gb: var(--g-ipp-bg); } .g-woz { --gc: var(--g-woz); --gb: var(--g-woz-bg); }
 .g-inne { --gc: var(--g-inne); --gb: var(--g-inne-bg); } .g-tr { --gc: var(--g-tr); --gb: var(--g-tr-bg); }
+/* transportery: kolor firmy — Carlsberg jasnozielony, Grupa Żywiec czerwony, Kompania Piwowarska fioletowy */
+.k-TR_CARL { --gc: #6aa84f; --gb: #eef6e6; } .k-TR_ZYW { --gc: #d32f2f; --gb: #fbe5e3; } .k-TR_KP { --gc: #7b1fa2; --gb: #f3e5f7; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .k-TR_CARL { --gc: #9ccc65; --gb: #233019; } :root:not([data-theme="light"]) .k-TR_ZYW { --gc: #ef7a72; --gb: #3e1a18; } :root:not([data-theme="light"]) .k-TR_KP { --gc: #ce93d8; --gb: #33203b; } }
+.sgroup .it.k-TR_CARL, .sgroup .it.k-TR_ZYW, .sgroup .it.k-TR_KP { border-left: 4px solid var(--gc); background: var(--gb); padding: 3px 5px; border-radius: 3px; }
+.sgroup .it.k-TR_CARL label, .sgroup .it.k-TR_ZYW label, .sgroup .it.k-TR_KP label { color: var(--gc); }
+.chip.st-wait { border-left-style: dashed; font-style: italic; }
+.aw.st-wait { border-left-style: dashed; }
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -607,7 +614,7 @@ const LS = {
 };
 
 /* ---------- konfiguracja domyślna (z arkusza WYDANIA / WZÓR) ---------- */
-const GROUPS = { own: "EUR własne", chep: "CHEP", lpr: "LPR", ndhp: "NDHP", ipp: "IPP", tr: "Transportery", woz: "Wózki", inne: "Inne" };
+const GROUPS = { own: "EUR własne", chep: "CHEP", lpr: "LPR", ndhp: "NDHP", ipp: "IPP", woz: "Wózki", inne: "Inne", tr: "Transportery" };
 const GORDER = Object.keys(GROUPS);
 // k, nazwa, grupa, szt. na auto, stos (szt.), maks. stan w autach, pokazywane w formularzu awizacji
 const DEF_CATS = [
@@ -631,9 +638,9 @@ const DEF_CFG = () => ({
   cats: clone(DEF_CATS), slots: clone(DEF_SLOTS), opak: "4997", salMin: 300,
   mailSubj: MAIL_SUBJ, mailTpl: MAIL_TPL,
 });
-const ST = { plan: "Umówione", arr: "Przyjechał", load: "Załadunek", done: "Wydane", cancel: "Anulowane", noshow: "Nie przyjechał" };
-const ST_SHORT = { plan: "", arr: "przyj.", load: "zał.", done: "✓", cancel: "✗", noshow: "✗" };
-const ST_TAG = { plan: "", arr: "info", load: "warn", done: "ok", cancel: "bad", noshow: "bad" };
+const ST = { wait: "Czeka na potwierdzenie", plan: "Umówione", arr: "Przyjechał", load: "Załadunek", done: "Wydane", cancel: "Anulowane", noshow: "Nie przyjechał" };
+const ST_SHORT = { wait: "?", plan: "", arr: "przyj.", load: "zał.", done: "✓", cancel: "✗", noshow: "✗" };
+const ST_TAG = { wait: "warn", plan: "", arr: "info", load: "warn", done: "ok", cancel: "bad", noshow: "bad" };
 
 /* ---------- stan aplikacji ---------- */
 let S = null, CFG = DEF_CFG(), CAT = {}, CATS = [];
@@ -653,7 +660,7 @@ function setCats() {
   CAT = Object.fromEntries(CATS.map(c => [c.k, c]));
 }
 setCats();
-const gcls = k => "g-" + ((CAT[k] && CAT[k].g) || "inne");
+const gcls = k => "g-" + ((CAT[k] && CAT[k].g) || "inne") + " k-" + k;
 
 /* ---------- magazyn: Firestore ---------- */
 function fbStore(db) {
@@ -759,6 +766,14 @@ const qText = q => CATS.filter(c => qSum(q, c.k)).map(c => fmt(q[c.k]) + " szt. 
 const qChips = q => CATS.filter(c => qSum(q, c.k)).map(c => `<span class="q ${gcls(c.k)}">${esc(c.n)} ${fmt(q[c.k])}</span>`).join("") || '<span class="mut" style="font-size:.72rem">bez ilości</span>';
 // grupa dominująca w awizacji (wg liczby aut, a gdy brak przelicznika — sztuk); bez ilości — wg nazwy operatora palet
 const NAME_G = [[/chep/i, "chep"], [/lpr|palette rouge/i, "lpr"], [/\bipp\b/i, "ipp"], [/ndhp|green/i, "ndhp"], [/carlsberg|kompania piwowarska|[zż]ywiec/i, "tr"]];
+// kolor firmy dla transporterów (Carlsberg / Kompania Piwowarska / Grupa Żywiec)
+const TR_NAME = [[/carlsberg/i, "TR_CARL"], [/kompania piwowarska/i, "TR_KP"], [/[zż]ywiec/i, "TR_ZYW"]];
+function itCls(q, name) {
+  const g = mainGroup(q, name); if (g !== "g-tr") return g;
+  const k = CATS.filter(c => c.g === "tr").sort((a, b) => qSum(q, b.k) - qSum(q, a.k)).find(c => qSum(q, c.k)) ;
+  const m = k ? k.k : (TR_NAME.find(([re]) => re.test(name || "")) || [])[1];
+  return g + (m ? " k-" + m : "");
+}
 function mainGroup(q, name) {
   let best = null, bv = 0;
   CATS.forEach(c => { const v = qSum(q, c.k); const w = c.t > 0 ? v / c.t : v / 1e4; if (w > bv) { bv = w; best = c.g; } });
@@ -782,7 +797,7 @@ function secOf(it) {
   if (g === "g-tr") return "tr"; if (g === "g-woz") return "woz"; if (g === "g-inne") return "inne";
   const k = kindOf(it); return k === "napr" ? "napr" : k === "sprz" ? "sprz" : "eur";
 }
-const SEC_ORDER = ["eur", "pul", "napr", "sprz", "tr", "woz", "inne"];
+const SEC_ORDER = ["eur", "pul", "napr", "sprz", "woz", "inne", "tr"];
 const SECS = { eur: ["Palety EUR", "wydania do dostawców", "own"], pul: ["Palety PUL", "CHEP · LPR · IPP · NDHP", "chep"], napr: ["Naprawa", "palety do naprawy", "ipp"],
   sprz: ["Sprzedaż", "sprzedaż palet", "inne"], tr: ["Transportery", "Carlsberg · Kompania Piwowarska · Grupa Żywiec", "tr"], woz: ["Wózki", "WÓZ · PÓŁ", "woz"], inne: ["Inne", "", "inne"] };
 const stanDates = () => Object.keys(DAYS).filter(d => DAYS[d].stan && Object.keys(DAYS[d].stan).length).sort();
@@ -986,10 +1001,11 @@ function awRow(it) {
   const s = salOf(it.code), q = qOf(it);
   const meta = [it.code, it.driver, it.dostChep && "dost. " + it.dostChep, it.dok && "dok. " + it.dok, it.note].filter(Boolean).join(" · ");
   let acts = "";
-  if (it.st === "plan" || it.st === "arr" || it.st === "load") acts = `<button class="btn xs ok" data-act="iss">Wydaj</button>`;
+  if (it.st === "wait") acts = `<span class="tag warn" title="wysłano prośbę, dostawca jeszcze nie potwierdził">czeka</span><button class="btn xs" data-act="conf" title="Dostawca potwierdził termin">Potwierdź</button><button class="btn xs ok" data-act="iss">Wydaj</button>`;
+  else if (it.st === "plan" || it.st === "arr" || it.st === "load") acts = `<button class="btn xs ok" data-act="iss">Wydaj</button>`;
   else acts = `<span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span><button class="btn xs" data-act="undo" title="Cofnij status">↶</button>`;
   const times = it.tDone ? "wyd. " + it.tDone : "";
-  return `<div class="aw st-${it.st} ${mainGroup(q, it.name)}" data-id="${esc(it.id)}">
+  return `<div class="aw st-${it.st} ${itCls(q, it.name)}" data-id="${esc(it.id)}">
     <div class="ord">${it.ord || "–"}<span><button type="button" data-act="up" aria-label="Wyżej">▲</button><button type="button" data-act="down" aria-label="Niżej">▼</button></span></div>
     <div class="slot">${esc(it.slot || "")}<small>${esc(times)}</small></div>
     <div class="firm"><b data-act="edit" title="${esc(it.name)}">${esc(it.name || "(bez nazwy)")}</b><small title="${esc(meta)}">${esc(meta)}</small></div>
@@ -1003,11 +1019,11 @@ $("#dList").addEventListener("click", e => {
   const id = b.closest("[data-id]").dataset.id, it = DAYS[dayView].items[id]; if (!it) return;
   const a = b.dataset.act;
   if (a === "edit") return openAw(it);
-  if (a === "mail") return copyMail(it);
+  if (a === "mail") return sendMail(it);
   if (a === "iss") return openIss(it);
   if (a === "up" || a === "down") return move(it, a === "up" ? -1 : 1);
   const n = clone(it);
-  if (a === "arr") { n.st = "arr"; n.tArr = nowHM(); }
+  if (a === "conf") { n.st = "plan"; n.tConf = nowHM(); }
   if (a === "load") { n.st = "load"; n.tLoad = nowHM(); }
   if (a === "undo") { n.st = "plan"; delete n.tDone; n.iq = null; }
   saveItem(n);
@@ -1120,7 +1136,7 @@ function renderHarm() {
       <small>EUR ${fmt(act.reduce((s, i) => s + qSum(i.q, "EUR"), 0))} · PUL ${fmt(act.reduce((s, i) => s + pulSzt(i.q), 0))}</small>
       ${ev != null ? `<small class="${ev > ep.lim ? "ov" : "okk"}">stan EUR ${fmt1(ev / ep.t)}/${fmt1(ep.max)} aut</small>` : "<small>&nbsp;</small>"}</div>`;
   });
-  const chip = it => `<div class="chip st-${it.st} ${mainGroup(it.q, it.name)}" data-hedit="${esc(it.id)}" data-date="${it.date}" title="${esc((it.name || "") + " · " + it.slot + " · " + ST[it.st] + " · " + qText(it.q) + (it.note ? " · " + it.note : ""))}">${it.ord ? `<b>${it.ord}</b> ` : ""}${esc((it.name || it.code || "").slice(0, 20))} <b>${fmt(CATS.reduce((s, c) => s + qSum(it.q, c.k), 0))}</b></div>`;
+  const chip = it => `<div class="chip st-${it.st} ${itCls(it.q, it.name)}" data-hedit="${esc(it.id)}" data-date="${it.date}" title="${esc((it.name || "") + " · " + it.slot + " · " + ST[it.st] + " · " + qText(it.q) + (it.note ? " · " + it.note : ""))}">${it.ord ? `<b>${it.ord}</b> ` : ""}${esc((it.name || it.code || "").slice(0, 20))} <b>${fmt(CATS.reduce((s, c) => s + qSum(it.q, c.k), 0))}</b></div>`;
   CFG.slots.forEach((s, i) => {
     h += `<div class="sl">${esc(s.t)}</div>`;
     per.forEach(p => {
@@ -1207,12 +1223,12 @@ $("#aGrp").addEventListener("click", e => { const b = e.target.closest("[data-gr
 function autoGrp() { if (aGrpManual) return; const g = supGroup($("#aCode").value.trim(), $("#aName").value.trim()); if (g !== aGrp) { aGrp = g; qInputs({}); } }
 function openAw(it, pre = {}) {
   editing = it ? clone(it) : null;
-  const v = it || Object.assign({ st: "plan", q: {} }, pre);
+  const v = it || Object.assign({ st: "wait", q: {} }, pre); // nowa awizacja = wysłana prośba do dostawcy
   $("#awTitle").textContent = it ? "Edycja awizacji" : "Nowa awizacja";
   $("#aDate").value = v.date || today();
   ensureRange($("#aDate").value, $("#aDate").value);
   slotOptions($("#aDate").value, v.slot);
-  $("#aSt").innerHTML = ["plan", "done", "cancel", "noshow"].map(k => `<option value="${k}">${ST[k]}</option>`).join(""); $("#aSt").value = v.st === "arr" || v.st === "load" ? "plan" : v.st || "plan";
+  $("#aSt").innerHTML = ["wait", "plan", "done", "cancel", "noshow"].map(k => `<option value="${k}">${ST[k]}</option>`).join(""); $("#aSt").value = v.st === "arr" || v.st === "load" ? "plan" : v.st || "wait";
   $("#aOrd").value = v.ord || "";
   $("#aCode").value = v.code || ""; $("#aName").value = v.name || "";
   $("#aDrv").value = v.driver || ""; $("#aCon").value = v.contact || ""; $("#aDost").value = v.dostChep || ""; $("#aDok").value = v.dok || ""; $("#aNote").value = v.note || "";
@@ -1318,6 +1334,7 @@ $("#awForm").addEventListener("submit", async e => {
 });
 $("#aSaveMail").addEventListener("click", async () => {
   const it = readAw(); if (!it) return;
+  if (it.st === "plan") it.st = "wait";
   if (await saveItem(it)) { $("#dlgAw").close(); copyMail(it); }
 });
 $("#aDel").addEventListener("click", async () => {
@@ -1333,6 +1350,11 @@ function mailText(it) {
   const map = { kod: it.code || "", nazwa: it.name || "", data: plDate(it.date), dzien: DOW[dowOf(it.date)], okno: it.slot || "", ilosc: qText(it.q) || "—", saldo: s ? fmt(s.tot) : "—", nr: it.ord || "" };
   const f = t => String(t || "").replace(/\{(\w+)\}/g, (m, k) => k in map ? map[k] : m);
   return { subj: f(CFG.mailSubj), body: f(CFG.mailTpl) };
+}
+// wysłanie (ponowne) prośby z listy: umówione wraca do „czeka na potwierdzenie”
+function sendMail(it) {
+  if (it.st === "plan") { const n = clone(it); n.st = "wait"; editing = null; saveItem(n); }
+  copyMail(it);
 }
 async function copyMail(it) {
   const { subj, body } = mailText(it);
@@ -1593,7 +1615,7 @@ function renderStany() {
     $("#sForm").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<div class="sgroup g-${g}"><h3>${GROUPS[g]}${g === "tr" ? ' <small class="mut" style="text-transform:none;letter-spacing:0;font-weight:500">palety z transporterami</small>' : ""}</h3>${CATS.filter(c => c.g === g).map(c => {
       const v = cur && cur[c.k] != null ? (c.s ? cur[c.k] / c.s : cur[c.k]) : "";
       const p = prev && prev[c.k] != null ? (c.s ? fmt1(prev[c.k] / c.s) + " st." : fmt(prev[c.k])) : "—";
-      return `<div class="it"><label for="s_${c.k}">${esc(c.n)}${c.s ? ` <small class="mut">stosy×${c.s}</small>` : ""}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p} <span data-d="${c.k}"></span></small></div>`;
+      return `<div class="it ${gcls(c.k)}"><label for="s_${c.k}">${esc(c.n)}${c.s ? ` <small class="mut">stosy×${c.s}</small>` : ""}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p} <span data-d="${c.k}"></span></small></div>`;
     }).join("")}</div>`).join("");
   }
   sTotal();
@@ -1603,7 +1625,7 @@ function renderStany() {
   const groupsUsed = GORDER.filter(g => cs.some(c => c.g === g));
   const allD = stanDates(), prevOf = d => { const i = allD.indexOf(d); return i > 0 ? DAYS[allD[i - 1]].stan : null; };
   $("#sHist").innerHTML = ds.length ? `<p class="sub">Pod stanem: zmiana względem poprzedniego liczenia — <b class="up">▲ wzrost zapasu</b>, <b class="down">▼ spadek</b>. Zjazd ze sklepów w dymku.</p><table><thead><tr><th rowspan="2">Dzień</th><th class="n" rowspan="2">Aut</th>${groupsUsed.map(g => `<th colspan="${cs.filter(c => c.g === g).length}" class="g-${g}" style="color:var(--gc);background:var(--gb);text-align:center">${GROUPS[g]}</th>`).join("")}</tr>
-    <tr>${cs.map(c => `<th class="n g-${c.g}" style="top:20px;border-top:3px solid var(--gc)">${esc(c.n)}</th>`).join("")}</tr></thead><tbody>${ds.map(d => {
+    <tr>${cs.map(c => `<th class="n ${gcls(c.k)}" style="top:20px;border-top:3px solid var(--gc)">${esc(c.n)}</th>`).join("")}</tr></thead><tbody>${ds.map(d => {
     const st = DAYS[d].stan, pv = prevOf(d), tot = x => CATS.reduce((s, c) => s + (c.t > 0 ? (+x[c.k] || 0) / c.t : 0), 0), tt = tot(st), dt = pv ? r1(tt - tot(pv)) : 0;
     return `<tr class="click" data-sday="${d}"><td class="nw">${DOW_S[dowOf(d)]} ${shortDate(d)}</td><td class="n"><b>${fmt1(tt)}</b>${dt ? `<br><span class="${dt > 0 ? "up" : "down"}" style="font-size:.68rem">${dt > 0 ? "▲ +" : "▼ "}${fmt1(dt)}</span>` : ""}</td>${cs.map(c => {
       const r = infl[c.k][d], dd = pv && st[c.k] != null && pv[c.k] != null ? st[c.k] - pv[c.k] : 0;
