@@ -235,6 +235,8 @@ dialog .dh { display: flex; align-items: center; gap: 10px; }
 dialog .dh h2 { margin-right: auto; }
 .fgrid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 .qgrid { display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+.seg button[class*="g-"] { color: var(--gc); }
+.seg button.g-on { background: var(--gc); color: #fff; }
 .qgrid .field { border-left: 3px solid var(--gc, var(--line)); padding-left: 6px; }
 .sugg { position: relative; }
 .sugg ul { position: absolute; z-index: 4; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 3px; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: 0 6px 20px rgba(0,0,0,.2); max-height: 260px; overflow: auto; }
@@ -471,8 +473,8 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       <label class="field sugg">Firma <input id="aName" autocomplete="off" placeholder="kod albo min. 2 litery nazwy"><ul id="aSugg" hidden role="listbox"></ul></label>
     </div>
     <div class="salinfo" id="aSal"></div>
+    <div class="row"><span class="field" style="display:block">Opakowania</span><div class="seg" id="aGrp"></div></div>
     <div class="qgrid" id="aQty"></div>
-    <details id="aMore"><summary class="sub">Pozostałe kategorie</summary><div class="qgrid" id="aQty2" style="margin-top:6px"></div></details>
     <div class="fgrid">
       <label class="field">Kierowca / nr rej. <input id="aDrv"></label>
       <label class="field">Kontakt (mail / tel.) <input id="aCon"></label>
@@ -909,14 +911,12 @@ function awRow(it) {
   const s = salOf(it.code), q = qOf(it);
   const meta = [it.code, it.driver, it.dostChep && "dost. " + it.dostChep, it.dok && "dok. " + it.dok, it.note].filter(Boolean).join(" · ");
   let acts = "";
-  if (it.st === "plan") acts = `<button class="btn xs" data-act="arr">Przyjechał</button><button class="btn xs ok" data-act="iss">Wydaj</button>`;
-  else if (it.st === "arr") acts = `<button class="btn xs" data-act="load">Załadunek</button><button class="btn xs ok" data-act="iss">Wydaj</button>`;
-  else if (it.st === "load") acts = `<button class="btn xs ok" data-act="iss">Wydaj</button>`;
+  if (it.st === "plan" || it.st === "arr" || it.st === "load") acts = `<button class="btn xs ok" data-act="iss">Wydaj</button>`;
   else acts = `<span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span><button class="btn xs" data-act="undo" title="Cofnij status">↶</button>`;
-  const times = [it.tArr && "przyj. " + it.tArr, it.tLoad && "zał. " + it.tLoad, it.tDone && "wyd. " + it.tDone].filter(Boolean).join(" · ");
+  const times = it.tDone ? "wyd. " + it.tDone : "";
   return `<div class="aw st-${it.st} ${mainGroup(q, it.name)}" data-id="${esc(it.id)}">
     <div class="ord">${it.ord || "–"}<span><button type="button" data-act="up" aria-label="Wyżej">▲</button><button type="button" data-act="down" aria-label="Niżej">▼</button></span></div>
-    <div class="slot">${esc(it.slot || "")}<small>${esc(times || (it.st === "arr" || it.st === "load" ? ST[it.st] : ""))}</small></div>
+    <div class="slot">${esc(it.slot || "")}<small>${esc(times)}</small></div>
     <div class="firm"><b data-act="edit" title="${esc(it.name)}">${esc(it.name || "(bez nazwy)")}</b><small title="${esc(meta)}">${esc(meta)}</small></div>
     <div class="qty">${qChips(q)}</div>
     <div class="sal">${s ? `<small>saldo</small><span class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</span>` : ""}</div>
@@ -934,7 +934,7 @@ $("#dList").addEventListener("click", e => {
   const n = clone(it);
   if (a === "arr") { n.st = "arr"; n.tArr = nowHM(); }
   if (a === "load") { n.st = "load"; n.tLoad = nowHM(); }
-  if (a === "undo") { n.st = it.st === "done" ? (it.tLoad ? "load" : it.tArr ? "arr" : "plan") : "plan"; delete n.tDone; if (it.st === "done") n.iq = null; }
+  if (a === "undo") { n.st = "plan"; delete n.tDone; n.iq = null; }
   saveItem(n);
 });
 // przesuwanie w obrębie sekcji (EUR / PUL); numeracja dnia zostaje wspólna
@@ -1012,12 +1012,21 @@ function slotOptions(d, cur) {
     $("#aSlot").selectedIndex = Math.max(0, f);
   }
 }
-function qInputs(q) {
-  const inp = c => `<label class="field ${gcls(c.k)}">${esc(c.n)}${c.t ? ` <small>${fmt(c.t)}/auto</small>` : ""}<input type="number" min="0" data-q="${c.k}" value="${q && q[c.k] ? q[c.k] : ""}"></label>`;
-  $("#aQty").innerHTML = CATS.filter(c => c.aw).map(inp).join("");
-  $("#aQty2").innerHTML = CATS.filter(c => !c.aw).map(inp).join("");
-  $("#aMore").open = CATS.some(c => !c.aw && q && q[c.k]);
+function supGroup(code, name) {
+  const m = name && NAME_G.find(([re]) => re.test(name)); if (m) return m[1];
+  if (code) { const ds = Object.keys(DAYS).sort().reverse(); for (const d of ds) for (const it of itemsOf(d)) if (String(it.code) === String(code)) { const g = mainGroup(it.q); if (g) return g.slice(2); } }
+  return "own";
 }
+let aGrp = "own", aGrpManual = false;
+// pola ilości tylko dla jednej grupy (dostawca EUR — tylko EUR, CHEP — tylko CHEP itd.)
+function qInputs(q) {
+  const keep = {}; $$("#aQty [data-q]").forEach(i => { if (i.value) keep[i.dataset.q] = i.value; });
+  q = q || keep;
+  $("#aGrp").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<button type="button" class="g-${g} ${g === aGrp ? "g-on" : ""}" data-grp="${g}" aria-pressed="${g === aGrp}">${GROUPS[g]}</button>`).join("");
+  $("#aQty").innerHTML = CATS.filter(c => c.g === aGrp).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)}${c.t ? ` <small>${fmt(c.t)}/auto</small>` : ""}<input type="number" min="0" data-q="${c.k}" value="${q && q[c.k] ? q[c.k] : ""}"></label>`).join("");
+}
+$("#aGrp").addEventListener("click", e => { const b = e.target.closest("[data-grp]"); if (!b || b.dataset.grp === aGrp) return; aGrp = b.dataset.grp; aGrpManual = true; qInputs({}); updSal(); const f = $("#aQty input"); if (f) f.focus(); });
+function autoGrp() { if (aGrpManual) return; const g = supGroup($("#aCode").value.trim(), $("#aName").value.trim()); if (g !== aGrp) { aGrp = g; qInputs({}); } }
 function openAw(it, pre = {}) {
   editing = it ? clone(it) : null;
   const v = it || Object.assign({ st: "plan", q: {} }, pre);
@@ -1025,11 +1034,13 @@ function openAw(it, pre = {}) {
   $("#aDate").value = v.date || today();
   ensureRange($("#aDate").value, $("#aDate").value);
   slotOptions($("#aDate").value, v.slot);
-  $("#aSt").innerHTML = Object.entries(ST).map(([k, n]) => `<option value="${k}">${n}</option>`).join(""); $("#aSt").value = v.st || "plan";
+  $("#aSt").innerHTML = ["plan", "done", "cancel", "noshow"].map(k => `<option value="${k}">${ST[k]}</option>`).join(""); $("#aSt").value = v.st === "arr" || v.st === "load" ? "plan" : v.st || "plan";
   $("#aOrd").value = v.ord || "";
   $("#aCode").value = v.code || ""; $("#aName").value = v.name || "";
   $("#aDrv").value = v.driver || ""; $("#aCon").value = v.contact || ""; $("#aDost").value = v.dostChep || ""; $("#aDok").value = v.dok || ""; $("#aNote").value = v.note || "";
-  qInputs(v.q);
+  aGrpManual = !!(it || (v.q && Object.keys(v.q).length));
+  const g0 = mainGroup(v.q); aGrp = g0 ? g0.slice(2) : supGroup(v.code, v.name);
+  qInputs(v.q || {});
   $("#aDel").hidden = !it; $("#aSugg").hidden = true;
   updSal();
   $("#dlgAw").showModal();
@@ -1037,8 +1048,9 @@ function openAw(it, pre = {}) {
 }
 function updSal() {
   const code = $("#aCode").value.trim(), s = salOf(code), w = [];
-  const pl = plannedFor(code, today(), addDays(today(), 60)).filter(x => !editing || x.id !== editing.id);
-  $("#aSal").innerHTML = code ? (s ? `Saldo EUR: <b class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</b> szt. (plik ${plDate(SAL.date)}) <button class="btn xs" type="button" id="aUseSal">wpisz saldo</button> <button class="btn xs" type="button" id="aUseTruck">1 auto EUR</button>` : "Brak salda EUR dla tego kodu.") + (pl.length ? " · już umówione: " + pl.map(x => `${shortDate(x.date)} ${esc(x.slot)} (${fmt(qSum(x.q, "EUR"))})`).join(", ") : "") : "";
+  // saldo EUR i dublowanie awizacji mają sens tylko przy dostawcach EUR (CHEP, LPR itd. mają wiele aut dziennie)
+  const pl = aGrp !== "own" ? [] : plannedFor(code, today(), addDays(today(), 60)).filter(x => !editing || x.id !== editing.id);
+  $("#aSal").innerHTML = code && aGrp === "own" ? (s ? `Saldo EUR: <b class="${s.tot > 0 ? "pos" : "neg"}">${fmt(s.tot)}</b> szt. (plik ${plDate(SAL.date)}) ${aGrp === "own" ? '<button class="btn xs" type="button" id="aUseSal">wpisz saldo</button> <button class="btn xs" type="button" id="aUseTruck">1 auto EUR</button>' : ""}` : "Brak salda EUR dla tego kodu.") + (pl.length ? " · już umówione: " + pl.map(x => `${shortDate(x.date)} ${esc(x.slot)} (${fmt(qSum(x.q, "EUR"))})`).join(", ") : "") : "";
   const eur = +($("[data-q=EUR]") || {}).value || 0;
   if (s && eur > 0 && eur > Math.max(0, s.tot)) w.push(`EUR do wydania (${fmt(eur)}) większe niż saldo (${fmt(s.tot)}).`);
   if (pl.length) w.push("Ten dostawca ma już inną otwartą awizację.");
@@ -1075,12 +1087,13 @@ function showSugg(src) {
 function pickSugg(i) {
   const r = suggList[i]; if (!r) return;
   $("#aCode").value = r.code; $("#aName").value = r.name; $("#aSugg").hidden = true;
+  aGrpManual = false; autoGrp();
   const eur = $("[data-q=EUR]"); if (eur && !eur.value && r.tot > 0) eur.value = Math.min(r.tot, (CAT.EUR && CAT.EUR.t) || 495);
-  updSal(); if (eur) { eur.focus(); eur.select(); }
+  updSal(); const f = eur || $("#aQty input"); if (f) { f.focus(); f.select(); }
 }
 ["#aCode", "#aName"].forEach(s => {
   $(s).addEventListener("input", e => {
-    if (s === "#aCode") { const n = NAMES.get(e.target.value.trim()); if (n) $("#aName").value = n; updSal(); }
+    if (s === "#aCode") { const n = NAMES.get(e.target.value.trim()); if (n) { $("#aName").value = n; autoGrp(); } updSal(); }
     showSugg(e.target);
   });
   $(s).addEventListener("keydown", e => {
@@ -1089,7 +1102,7 @@ function pickSugg(i) {
     if (e.key === "Enter" && suggList.length) { e.preventDefault(); pickSugg(Math.max(0, suggSel)); }
     if (e.key === "Escape") { e.preventDefault(); ul.hidden = true; }
   });
-  $(s).addEventListener("blur", () => setTimeout(() => $("#aSugg").hidden = true, 150));
+  $(s).addEventListener("blur", () => setTimeout(() => { if (!["aCode", "aName"].includes((document.activeElement || {}).id)) $("#aSugg").hidden = true; }, 150));
 });
 $("#aSugg").addEventListener("mousedown", e => { const li = e.target.closest("li"); if (li) { e.preventDefault(); pickSugg(+li.dataset.i); } });
 
@@ -1155,7 +1168,8 @@ let issuing = null;
 function openIss(it) {
   issuing = clone(it);
   $("#iInfo").textContent = `${it.name || it.code} · ${plDate(it.date)} ${it.slot} · umówione: ${qText(it.q) || "bez ilości"}`;
-  const keys = new Set(CATS.filter(c => c.aw).map(c => c.k)); Object.keys(it.q || {}).forEach(k => keys.add(k));
+  const g = (mainGroup(it.q, it.name) || "g-" + supGroup(it.code, it.name)).slice(2);
+  const keys = new Set(CATS.filter(c => c.g === g).map(c => c.k)); Object.keys(it.q || {}).forEach(k => keys.add(k));
   $("#iQty").innerHTML = CATS.filter(c => keys.has(c.k)).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)}<input type="number" min="0" data-iq="${c.k}" value="${(it.iq || it.q || {})[c.k] || ""}"></label>`).join("");
   $("#iDok").value = it.dok || ""; $("#iDrv").value = it.driver || ""; $("#iDost").value = it.dostChep || "";
   $("#dlgIss").showModal();
