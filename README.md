@@ -82,6 +82,9 @@ Osobisty budżet: `https://czozen-source.github.io/ch0sen/budzet.html` (widżet:
 - Konto dla Anny: Authentication → Users → **Add user** (annakurnik90@gmail.com + hasło tymczasowe); hasło zmieni sama przez „Nie pamiętam hasła”.
 - Jednorazowo: wklej aktualne `firestore.rules` w konsoli Firebase → Firestore → Reguły → **Opublikuj** (dochodzi blok `budgets`).
 - Źródło jest w `budzet/kokosza.html`; `docs/budzet.html` to ten sam kod z nagłówkiem strony i skryptami Firebase.
+- **Na telefonie**: żółty przycisk **+** otwiera panel dodawania — własna klawiatura do kwot, kategorie z ikonami, podpowiedzi z ostatnich zakupów, data dziś / wczoraj / przedwczoraj, potrzeba / zachcianka; podpowiedź „ile zostanie na dziś”. Stuknięcie w wydatek otwiera jego edycję; dodanie i usunięcie można cofnąć.
+- Działa bez zasięgu (pamięć offline Firestore): wydatek zapisuje się w telefonie i wysyła sam po powrocie sieci.
+- Link `budzet.html#dodaj` (i skrót „Dodaj wydatek” po przytrzymaniu ikony na Androidzie) otwiera od razu dodawanie.
 
 ## Awizacja opakowań (`docs/opakowania.html`)
 Codzienna obsługa wydań palet i opakowań: `https://czozen-source.github.io/ch0sen/opakowania.html`. **Dostęp tylko dla konta czozen@gmail.com** (stała `OWNER` w `docs/opakowania.html`, `isOwner()` dla kolekcji `pk_*` w `firestore.rules`); inne konta są wylogowywane z komunikatem o braku dostępu, a link „Awizacja opakowań →” w raporcie zmiany widzi tylko właściciel.
