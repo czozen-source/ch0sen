@@ -170,14 +170,15 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .yn { font-size: 13px !important; }
 .yarea .yf { transition: clip-path 1.1s cubic-bezier(.2,.8,.2,1); }
 .yarea:hover .yb { stroke-width: 4; filter: drop-shadow(0 3px 6px rgba(40, 25, 10, .25)); }
-.yl { font: 700 19px var(--f-cond); fill: var(--fg); paint-order: stroke; stroke: var(--surface); stroke-width: 3.5px; letter-spacing: .3px; }
+.yl { font: 700 19px var(--f-cond); fill: var(--fg); paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; letter-spacing: .3px; }
 .ys { font: 700 19px var(--f-mono); } .yn { font-weight: 700; }
 .ya-near .yb { stroke: var(--warn) !important; stroke-width: 3.5; }
 .ya-over .yb { stroke: var(--bad) !important; stroke-width: 4; }
 .ya-nolim .yb { stroke-dasharray: 4 3; }
 .ybadge rect { fill: var(--bad); } .ybadge text { font: 700 14px var(--f-mono); fill: #fff; }
 .ylegs { display: grid; gap: 4px; }
-.yleg { display: grid; grid-template-columns: 1fr 56px 38px; gap: 6px; align-items: center; font-size: .76rem; padding: 3px 6px; border-left: 4px solid var(--gc); border-radius: 3px; background: var(--surface-2); }
+.yleg { display: grid; grid-template-columns: 26px 1fr 56px 38px; gap: 6px; align-items: center; font-size: .76rem; padding: 3px 6px; border-left: 4px solid var(--gc); border-radius: 3px; background: var(--surface-2); }
+.ico { display: inline-block; vertical-align: middle; overflow: visible; } .ico.yi { width: 24px; height: 20px; } .ico.si { width: 34px; height: 24px; margin-right: 6px; } .ico.hi { width: 40px; height: 30px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
 .yleg b { font: 700 .8rem var(--f-mono); color: var(--gc); } .yleg span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .yleg i { display: block; height: 7px; border-radius: 4px; background: var(--line-2); overflow: hidden; } .yleg em { display: block; height: 100%; background: var(--gc); }
 .yleg small { font: 600 .72rem var(--f-mono); text-align: right; color: var(--muted); }
@@ -1109,6 +1110,7 @@ function secOf(it) {
   if (g === "g-tr") return "tr"; if (g === "g-woz") return "woz"; if (g === "g-inne") return "inne";
   const k = kindOf(it); return k === "napr" ? "napr" : k === "sprz" ? "sprz" : "eur";
 }
+const SEC_ICO = { eur: ["eur", () => GCOL.own], pul: ["eur", () => GCOL.chep], napr: ["rem", () => GCOL.own], sprz: ["eur", () => GCOL.inne], woz: ["woz", () => GCOL.woz], inne: ["jed", () => WOOD], tr: ["tr", () => GCOL.tr] };
 const SEC_ORDER = ["eur", "pul", "napr", "sprz", "woz", "inne", "tr"];
 const SECS = { eur: ["Palety EUR", "wydania do dostawców", "own"], pul: ["Palety PUL", "CHEP · LPR · IPP · NDHP", "chep"], napr: ["Naprawa", "palety do naprawy", "ipp"],
   sprz: ["Sprzedaż", "sprzedaż palet", "inne"], tr: ["Transportery", "Carlsberg · Kompania Piwowarska · Grupa Żywiec", "tr"], woz: ["Wózki", "WÓZ · PÓŁ", "woz"], inne: ["Inne", "", "inne"] };
@@ -1308,7 +1310,7 @@ function renderDay() {
     const sAll = all.filter(it => secOf(it) === k), sAct = sAll.filter(active), sList = list.filter(it => secOf(it) === k);
     const sDone = sAct.filter(i => i.st === "done").length;
     const sOpen = sList.filter(i => i.st !== "done"), sDoneL = sList.filter(i => i.st === "done");
-    return `<div class="sec sec-${k}" id="sec-${k}"><div class="sec-h g-${SECS[k][2]}"><h3>${SECS[k][0]}</h3><span class="sub">${SECS[k][1]}</span><span class="spacer"></span><span class="tag">${sAct.length} aw. · ${fmt1(sAct.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag">wydane ${sDone}/${sAct.length}</span></div>
+    return `<div class="sec sec-${k}" id="sec-${k}"><div class="sec-h g-${SECS[k][2]}">${SEC_ICO[k] ? icoSvg(SEC_ICO[k][0], SEC_ICO[k][1](), "ico hi") : ""}<h3>${SECS[k][0]}</h3><span class="sub">${SECS[k][1]}</span><span class="spacer"></span><span class="tag">${sAct.length} aw. · ${fmt1(sAct.reduce((s, i) => s + trucksQ(i.q), 0))} aut</span><span class="tag">wydane ${sDone}/${sAct.length}</span></div>
       ${sOpen.map(awRow).join("")}${sDoneL.length ? `<div class="done-h">Wydane · ${sDoneL.length}</div>` + sDoneL.map(awRow).join("") : ""}${sList.length ? "" : `<p class="sub" style="padding:4px 8px">${sAll.length ? "Brak pozycji w tym filtrze." : "Brak awizacji."}</p>`}</div>`;
   }).join("");
   $("#dSide").innerHTML = sideTodo();
@@ -2120,7 +2122,7 @@ function renderStany() {
       const v = cur && cur[c.k] != null ? (c.s ? cur[c.k] / c.s : cur[c.k]) : "";
       const p = prev && prev[c.k] != null ? (c.s ? fmt1(prev[c.k] / c.s) + " st." : fmt(prev[c.k])) : "—";
       const hint = c.s ? ` <small class="mut">stosy×${c.s}</small>` : c.k === "WOZ" ? ` <small class="mut">kpl. × ${WOZ_KPL} szt.</small>` : c.k === "POL" ? ` <small class="mut">kpl. = ${POL_KPL} półki + ${POL_WOZ} wózki</small>` : "";
-      return `<div class="it ${gcls(c.k)}"><label for="s_${c.k}">${esc(c.n)}${hint}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p} <span data-d="${c.k}"></span></small></div>`;
+      return `<div class="it ${gcls(c.k)}"><label for="s_${c.k}">${catIco(c.k, "ico si")}${esc(c.n)}${hint}</label><input id="s_${c.k}" type="number" min="0" step="any" data-s="${c.k}" value="${v === "" ? "" : Math.round(v * 100) / 100}"><small>poprz. ${p} <span data-d="${c.k}"></span></small></div>`;
     }).join("")}${g === "woz" ? '<div class="sub" id="wozConv" style="font-weight:600"></div>' : ""}</div>`).join("");
   }
   sTotal();
@@ -2164,6 +2166,76 @@ $("#sSave").addEventListener("click", async () => {
 const limOf = c => c.max > 0 ? (c.t > 0 ? c.max * c.t : c.max) : 0;
 // mapa placu: ten sam układ co na planie magazynu (hala zmniejszona, obszary placu powiększone), układ 1000×640
 // dir: "up" — wypełnia się od dołu, "right" — od lewej; cap — pojemność obszaru (zamiast sumy „Maks.” kategorii), np. 20 miejsc na komplety wózków i półek
+/* ---------- IKONY 3D: każdy indeks ma swój kształt (rzut izometryczny, wymiary w dm) ---------- */
+// EUR 1200×800 · półpaleta DHP 800×600 · plastikowa · jednorazowa · bananowa · EUR do remontu · wózek duński CC na kwiaty · półki · transportery na palecie
+const WOOD = "#c08a45", TR_COL = { TR_CARL: "#6aa84f", TR_KP: "#7b1fa2", TR_ZYW: "#d32f2f" };
+const isoP = (x, y, z) => [(x - y) * 1.732, x + y - z * 2];
+function iconParts(kind, col) {
+  const out = [], pts = [];
+  const P = (x, y, z) => { const q = isoP(x, y, z); pts.push(q); return q[0].toFixed(2) + "," + q[1].toFixed(2); };
+  const face = (ps, f) => `<polygon points="${ps.join(" ")}" style="fill:${f}"/>`;
+  const sh = (c, k) => k === 0 ? `color-mix(in srgb, ${c} 62%, white)` : k === 1 ? c : `color-mix(in srgb, ${c} 58%, black)`;
+  const box = (x, y, z, w, d, h, c = col) => out.push(
+    face([P(x, y + d, z + h), P(x + w, y + d, z + h), P(x + w, y + d, z), P(x, y + d, z)], sh(c, 1)) +
+    face([P(x + w, y, z + h), P(x + w, y + d, z + h), P(x + w, y + d, z), P(x + w, y, z)], sh(c, 2)) +
+    face([P(x, y, z + h), P(x + w, y, z + h), P(x + w, y + d, z + h), P(x, y + d, z + h)], sh(c, 0)));
+  const dot = (x, y, z, r, f) => { const q = isoP(x, y, z); pts.push(q); out.push(`<ellipse cx="${q[0].toFixed(2)}" cy="${q[1].toFixed(2)}" rx="${r * 1.6}" ry="${r}" style="fill:${f}"/>`); };
+  const pallet = (L, W, c, o = {}) => {
+    const bx = [0, L / 2 - .72, L - 1.45], by = [0, W / 2 - .55, W - 1.1];
+    if (!o.noRun) by.forEach(y => box(0, y, 0, L, 1.1, .22, c));
+    by.forEach(y => bx.forEach(x => box(x, y, .22, 1.45, 1.1, .78, c)));
+    bx.forEach(x => box(x, 0, 1, 1.45, W, .22, c));
+    const n = o.boards || 5, bw = o.bw || 1.3;
+    for (let i = 0; i < n; i++) { if (o.miss === i) continue; const y = i * (W - bw) / (n - 1);
+      if (o.broken === i) { box(0, y, 1.22, L * .45, bw, .22, "#7a4a1c"); box(L * .58, y, 1.3, L * .42, bw, .22, "#7a4a1c"); }
+      else box(0, y, 1.22, L, bw, .22, c); }
+  };
+  if (kind === "eur") { pallet(12, 8, col); dot(11.3, 4, 1.44, .5, "rgba(0,0,0,.35)"); }
+  else if (kind === "rem") pallet(12, 8, col, { miss: 1, broken: 3 });
+  else if (kind === "dhp") pallet(8, 6, col, { boards: 4, bw: 1.2 });
+  else if (kind === "pl") { // plastikowa: pełny blat z otworami, nóżki i płozy
+    [0, 2.45, 4.9].forEach(y => box(0, y, 0, 8, 1.1, .25, col));
+    [0, 2.45, 4.9].forEach(y => [0, 3.2, 6.4].forEach(x => box(x, y, .25, 1.6, 1.1, .75, col)));
+    box(0, 0, 1, 8, 6, .4, col);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) dot(1.2 + i * 1.9, 1.1 + j * 1.9, 1.4, .55, `color-mix(in srgb, ${col} 50%, black)`);
+  }
+  else if (kind === "jed") { // jednorazowa: lekka, bez płóz, cienkie deski z przerwami
+    [0, 3.55, 7.1].forEach(y => [0, 5.5, 11].forEach(x => box(x, y, 0, 1, .9, .7, col)));
+    [0, 5.5, 11].forEach(x => box(x, 0, .7, 1, 8, .16, col));
+    [0, 2.35, 4.7, 7.05].forEach(y => box(0, y, .86, 12, .95, .16, col));
+  }
+  else if (kind === "ban") { // bananowa 1200×1000: trzy belki i poprzeczne cienkie deski
+    [0, 4.45, 8.9].forEach(y => box(0, y, 0, 12, 1.1, 1, col));
+    for (let i = 0; i < 8; i++) box(i * 1.6, 0, 1, .8, 10, .16, col);
+  }
+  else if (kind === "woz") { // wózek duński CC (1350×565): kółka, rama, 4 słupki, półki z kwiatami
+    const L = 13.5, W = 5.65, H = 12, g = "#9aa3ad";
+    [[.3, .3], [L - .9, .3], [.3, W - .9], [L - .9, W - .9]].forEach(([x, y]) => box(x, y, 0, .6, .6, .6, "#2b2b2b"));
+    box(0, 0, .6, L, W, .4, col);
+    box(0, 0, 1, .35, .35, H, g); box(L - .35, 0, 1, .35, .35, H, g);
+    [4.6, 8.4].forEach(z => box(.35, .35, z, L - .7, W - .7, .25, g));
+    [1.5, 4.5, 7.5, 10.5].forEach(x => { box(x, 2.2, 1.0, 1.4, 1.4, 1, "#b5653a"); box(x + .1, 2.3, 2.0, 1.2, 1.2, 1.1, "#4e9a3a"); });
+    [2.5, 6, 9.5].forEach(x => { box(x, 2.2, 4.85, 1.4, 1.4, 1, "#b5653a"); box(x + .1, 2.3, 5.85, 1.2, 1.2, 1.1, "#d9548f"); });
+    box(0, W - .35, 1, .35, .35, H, g); box(L - .35, W - .35, 1, .35, .35, H, g);
+  }
+  else if (kind === "pol") { // półki do wózków ułożone w stos
+    for (let i = 0; i < 4; i++) { const z = i * .7; if (i) [[0, 0], [13.15, 0], [0, 5.3], [13.15, 5.3]].forEach(([x, y]) => box(x, y, z - .4, .35, .35, .4, "#7d858f")); box(0, 0, z, 13.5, 5.65, .3, col); }
+  }
+  else if (kind === "tr") { // transportery (skrzynki) na palecie EUR: 3×2 skrzynki z kapslami
+    pallet(12, 8, WOOD);
+    for (let j = 0; j < 2; j++) for (let i = 0; i < 3; i++) { const x = i * 4 + .05, y = j * 4 + .05; box(x, y, 1.44, 3.9, 3.9, 2.6, col);
+      out.push(`<polygon points="${[P(x + 1.1, y + 3.95, 3.65), P(x + 2.8, y + 3.95, 3.65), P(x + 2.8, y + 3.95, 3.25), P(x + 1.1, y + 3.95, 3.25)].join(" ")}" style="fill:rgba(0,0,0,.45)"/>`);
+      for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) dot(x + .75 + a * 1.2, y + .75 + b * 1.2, 4.04, .42, "#e8c44a"); }
+  }
+  const xs = pts.map(q => q[0]), ys = pts.map(q => q[1]), x0 = Math.min(...xs) - .5, y0 = Math.min(...ys) - .5;
+  return { body: out.join(""), x0, y0, w: Math.max(...xs) + .5 - x0, h: Math.max(...ys) + .5 - y0 };
+}
+const ICO_CACHE = {};
+const icoKind = k => ({ EUR: "eur", EUR_REM: "rem", WOZ: "woz", POL: "pol", BAN: "ban", JED: "jed" })[k] || (/^TR_/.test(k) ? "tr" : /_D$/.test(k) ? "dhp" : /_P$/.test(k) ? "pl" : "eur");
+const icoCol = k => { const c = CAT[k]; return TR_COL[k] || (k === "JED" || k === "BAN" ? WOOD : c ? GCOL[c.g] : WOOD); };
+const icon = (kind, col) => ICO_CACHE[kind + col] || (ICO_CACHE[kind + col] = iconParts(kind, col));
+const icoSvg = (kind, col, cls = "ico") => { const i = icon(kind, col); return `<svg class="${cls}" viewBox="${i.x0.toFixed(1)} ${i.y0.toFixed(1)} ${i.w.toFixed(1)} ${i.h.toFixed(1)}" aria-hidden="true">${i.body}</svg>`; };
+const catIco = (k, cls) => icoSvg(icoKind(k), icoCol(k), cls);
 const YARD = [
   { id: "15", n: "CHEP", cats: ["CH_E", "CH_D", "CH_P"], x: 820, y: 12, w: 160, h: 86, dir: "up" },
   { id: "17", n: "EUR", cats: ["EUR"], x: 430, y: 110, w: 550, h: 192, dir: "up" },
@@ -2189,16 +2261,15 @@ function renderYard() {
   const over = totMax > 0 && tot > totMax;
   $("#yardTot").className = "yardtot" + (over ? " over" : "");
   $("#yardTot").innerHTML = totMax > 0 ? `<span>Plac razem</span><span class="tr"><i style="width:${Math.min(100, tot / totMax * 100)}%"></i></span><b class="${over ? "pos" : ""}">${fmt1(tot)} / ${fmt1(totMax)} aut${over ? ` · +${fmt1(tot - totMax)} ponad` : ""}</b>` : "";
-  // wzorki „minipalet” w kolorach grup (deski widziane z góry)
-  // stos palet w rzucie izometrycznym: jasny wierzch z deskami, dwie ścianki z warstwami palet
-  const pat = (id, col) => `<pattern id="pl-${id}" width="24" height="21" patternUnits="userSpaceOnUse">
-    <polygon points="12,1 23,6.5 12,12 1,6.5" style="fill:color-mix(in srgb, ${col} 55%, white)"/>
-    <polygon points="1,6.5 12,12 12,20 1,14.5" style="fill:${col}"/>
-    <polygon points="12,12 23,6.5 23,14.5 12,20" style="fill:color-mix(in srgb, ${col} 58%, black)"/>
-    <path d="M4.7 4.65L15.7 10.15M8.4 2.85L19.4 8.35" stroke="rgba(0,0,0,.22)" stroke-width=".9"/>
-    <path d="M1 9.2L12 14.7M1 11.9L12 17.4M12 14.7L23 9.2M12 17.4L23 11.9" stroke="rgba(0,0,0,.28)" stroke-width=".8"/>
-    <path d="M12 1L23 6.5" stroke="rgba(255,255,255,.55)" stroke-width=".8"/></pattern>`;
-  const defs = Object.entries(GCOL).map(([g, c]) => pat(g, c)).join("") + YARD.filter(a => a.col).map(a => pat(a.id, a.col)).join("") + pat("bad", "var(--bad)")
+  // wypełnienie obszaru: ikony 3D indeksów tego obszaru (np. DHP + plastik), w kolorze grupy; ponad limit — czerwone
+  const tile = (id, a, col) => {
+    const kinds = [...new Set(a.cats.map(icoKind))].slice(0, 2), horiz = a.dir === "right", maxH = horiz ? a.h - 6 : 40, T = a.w < 80 ? 22 : 28;
+    let x = 0, body = "", th = 0;
+    kinds.forEach(k => { const i = icon(k, col || icoCol(a.cats.find(c => icoKind(c) === k))), sc = Math.min(T / i.w, maxH / i.h);
+      body += `<g transform="translate(${x.toFixed(1)} 1) scale(${sc.toFixed(3)}) translate(${(-i.x0).toFixed(1)} ${(-i.y0).toFixed(1)})">${i.body}</g>`; x += i.w * sc + 2; th = Math.max(th, i.h * sc + 2); });
+    return `<pattern id="pl-${id}" width="${x.toFixed(1)}" height="${th.toFixed(1)}" patternUnits="userSpaceOnUse" x="${a.x + 2}" y="${a.y + 2}">${body}</pattern>`;
+  };
+  const defs = YARD.map(a => tile(a.id, a) + tile(a.id + "-bad", a, "var(--bad)")).join("")
     + `<pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" style="fill:var(--surface-2)"/><path d="M0 0v8" stroke="var(--line)" stroke-width="3"/></pattern>`;
   const area = a => {
     const cats = a.cats.map(k => CAT[k]).filter(Boolean), g = cats[0] ? cats[0].g : "inne";
@@ -2213,7 +2284,7 @@ function renderYard() {
     return `<g class="yarea ya-${st}" data-goto="stany"><title>${esc(a.n)}\n${esc(detail)}${lim ? `\nzapełnienie ${Math.round(r * 100)}%` : ""}</title>
       <rect class="ysh" x="${a.x + 5}" y="${a.y + 6}" width="${a.w}" height="${a.h}" rx="4"/>
       <rect class="yb" x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" rx="3" style="stroke:${a.col || GCOL[g]}"/>
-      <rect class="yf" x="${a.x + 2}" y="${a.y + 2}" width="${a.w - 4}" height="${a.h - 4}" rx="2" fill="url(#pl-${st === "over" ? "bad" : a.col ? a.id : g})" data-r="${Math.min(r, 1)}"
+      <rect class="yf" x="${a.x + 2}" y="${a.y + 2}" width="${a.w - 4}" height="${a.h - 4}" rx="2" fill="url(#pl-${a.id}${st === "over" ? "-bad" : ""})" data-r="${Math.min(r, 1)}"
         style="clip-path:${horiz ? `inset(0 ${(1 - prev) * 100}% 0 0)` : `inset(${(1 - prev) * 100}% 0 0 0)`}" data-h="${horiz ? 1 : 0}"/>
       ${label ? `<text x="${tx}" y="${ty}" text-anchor="${anchor}" class="yl">${esc(label)}</text>` : ""}
       ${narrow ? narrow.map((w2, i) => `<text x="${tx}" y="${a.y + 20 + i * 16}" text-anchor="middle" class="yl yn">${esc(w2)}</text>`).join("") : ""}
@@ -2221,7 +2292,7 @@ function renderYard() {
       ${st === "over" ? `<g class="ybadge"> <rect x="${horiz ? a.x + a.w - 148 : a.x + a.w / 2 - 40}" y="${horiz ? a.y + a.h / 2 - 11 : a.y + (a.w > 200 ? 36 : 58)}" width="${horiz ? 72 : 80}" height="22" rx="5"/> <text x="${horiz ? a.x + a.w - 112 : a.x + a.w / 2}" y="${horiz ? a.y + a.h / 2 + 5 : a.y + (a.w > 200 ? 52 : 74)}" text-anchor="middle">+${u(v - lim)}</text></g>` : ""}</g>`;
   };
   const names = YARD.map(a => { const cats = a.cats.map(k => CAT[k]).filter(Boolean), lim = a.cap || cats.reduce((s2, c) => s2 + limOf(c), 0), v = cats.reduce((s2, c) => s2 + (val(c.k) || 0), 0), r = lim ? v / lim : 0;
-    return `<div class="yleg ${r > 1 ? "over" : r >= .85 ? "near" : ""}" style="--gc:${a.col || GCOL[cats[0] ? cats[0].g : "inne"]}"><span>${esc(a.n)}</span><i><em style="width:${Math.min(100, r * 100)}%"></em></i><small>${lim ? Math.round(r * 100) + "%" : "bez maks."}</small></div>`; }).join("");
+    return `<div class="yleg ${r > 1 ? "over" : r >= .85 ? "near" : ""}" style="--gc:${a.col || GCOL[cats[0] ? cats[0].g : "inne"]}">${catIco(a.cats[0], "ico yi")}<span>${esc(a.n)}</span><i><em style="width:${Math.min(100, r * 100)}%"></em></i><small>${lim ? Math.round(r * 100) + "%" : "bez maks."}</small></div>`; }).join("");
   $("#yard").innerHTML = `<svg viewBox="0 0 1000 640" class="ysvg" role="img" aria-label="Mapa placu"><defs>${defs}</defs>
     <rect x="20" y="110" width="390" height="300" class="yhall" rx="6"/><rect x="40" y="410" width="350" height="44" class="yhall" rx="4"/><text x="215" y="268" text-anchor="middle" class="yhl">HALA</text>
     ${YARD.map(area).join("")}</svg><div class="ylegs">${names}</div>`;
