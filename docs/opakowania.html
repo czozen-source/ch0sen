@@ -1070,6 +1070,7 @@ const trucksQ = q => CATS.reduce((s, c) => s + (c.t > 0 ? qSum(q, c.k) / c.t : 0
 // naprawa zabiera palety do remontu i przywozi naprawione EUR — na placu EUR przybywa, więc liczy się ze znakiem minus
 const issued = (d, k) => itemsOf(d).filter(active).reduce((s, it) => s + (kindOf(it) === "napr" ? -1 : 1) * qSum(qOf(it), k), 0);
 const eurOut = d => itemsOf(d).filter(i => active(i) && kindOf(i) !== "napr").reduce((s, it) => s + qSum(qOf(it), "EUR"), 0);
+const repK = (d, k) => itemsOf(d).filter(i => active(i) && kindOf(i) === "napr").reduce((s, it) => s + qSum(qOf(it), k), 0); // palety po naprawie (przychód)
 const eurRep = d => itemsOf(d).filter(i => active(i) && kindOf(i) === "napr").reduce((s, it) => s + qSum(qOf(it), "EUR"), 0);
 const qText = q => CATS.filter(c => qSum(q, c.k)).map(c => fmt(q[c.k]) + " szt. " + c.n).join(", ");
 const qChips = q => CATS.filter(c => qSum(q, c.k)).map(c => `<span class="q ${gcls(c.k)}">${esc(c.n)} ${fmt(q[c.k])}</span>`).join("") || '<span class="mut" style="font-size:.72rem">bez ilości</span>';
@@ -1137,16 +1138,16 @@ function forecast(k, H) {
   const c = lastStanDate(), cat = CAT[k]; if (!c || !cat) return null;
   const s0 = DAYS[c].stan[k]; if (s0 == null) return null;
   const inf = inflow(k), T = today(), end = addDays(T, H), lim = cat.max * cat.t;
-  const series = []; let stock = s0, planned = 0, firstOver = null;
+  const series = []; let stock = s0, planned = 0, rep = 0, firstOver = null;
   for (let d = c; d < end; d = addDays(d, 1)) {
     if (d >= T) { series.push({ d, v: stock }); if (lim > 0 && stock > lim && !firstOver) firstOver = d; }
-    const x = issued(d, k); if (d >= T) planned += x;
+    const x = issued(d, k); if (d >= T) { planned += x; rep += repK(d, k); }
     stock = stock + inf.rate - x;
   }
   series.push({ d: end, v: stock });
   if (lim > 0 && stock > lim && !firstOver) firstOver = end;
   const need = cat.t > 0 && lim > 0 ? Math.max(0, stock - lim) : 0;
-  return { c, s0, rate: inf.rate, planned, proj: stock, need, needTrucks: cat.t > 0 ? Math.ceil(need / cat.t) : 0, series, firstOver, lim };
+  return { c, s0, rate: inf.rate, planned, rep, proj: stock, need, needTrucks: cat.t > 0 ? Math.ceil(need / cat.t) : 0, series, firstOver, lim };
 }
 function slotIdx(slot) {
   const i = CFG.slots.findIndex(s => s.t === slot); if (i >= 0) return i;
@@ -1209,7 +1210,7 @@ function actionsHtml(H, withData) {
     out.push(`<div class="act g-${c.g}"><span class="t">${GROUPS[c.g]} · ${esc(c.n)}</span><span class="big">umów ${n} <small>${plural(n, "auto", "auta", "aut")} w ${H} dni</small></span>
       <span class="s">${when}</span>
       <span class="s">teraz <b>${fmt1((st || 0) / c.t)}</b> → za ${H} dni <b class="up">${fmt1(f.proj / c.t)}</b> aut · maks. ${fmt1(c.max)}</span>
-      <span class="s">zjeżdża ok. <b>${fmt1(f.rate / c.t)}</b> auta dziennie · umówione ${fmt1(f.planned / c.t)}</span>
+      <span class="s">zjeżdża ok. <b>${fmt1(f.rate / c.t)}</b> auta dziennie · wyjedzie ${fmt1((f.planned + f.rep) / c.t)}${f.rep ? ` · naprawa przywiezie +${fmt1(f.rep / c.t)}` : ""}</span>
       <div class="row"><button class="btn xs primary" type="button" data-actcat="${c.k}">+ Awizacja ${esc(c.n)}</button><button class="btn xs" type="button" data-gocat="${c.k}">Wykres</button></div></div>`);
   });
   if (withData && SAL.date) { const fs = salCandidates(); if (fs.length) out.push(`<div class="act g-own"><span class="t">Saldo EUR bez odbioru</span><span class="big">${fs.length} <small>${plural(fs.length, "firma", "firmy", "firm")}</small></span><span class="s">saldo ≥ ${fmt(CFG.salMin)} szt. i brak awizacji · razem ${fmt(fs.reduce((s, r) => s + r.tot, 0))} szt. (${fmt1(fs.reduce((s, r) => s + r.tot, 0) / ((CAT.EUR && CAT.EUR.t) || 495))} aut)</span><span class="s">największe: ${fs.slice(0, 3).map(r => `<b>${esc(r.name.slice(0, 22))}</b> ${fmt(r.tot)}`).join(", ")}</span><div class="row"><button class="btn xs primary" type="button" data-salfree>Pokaż i awizuj →</button></div></div>`); }
@@ -1267,11 +1268,11 @@ function catTable(H, compact) {
     rows += `<tr class="cat click g-${c.g}" data-cat="${c.k}"><td class="nw"><b>${esc(c.n)}</b></td>
       <td class="n">${st == null ? "—" : fmt(st) + tr(c, st)}</td>
       <td class="n">${f ? fmt(f.rate) + tr(c, f.rate) : "—"}</td>
-      <td class="n">${f ? fmt(f.planned) + tr(c, f.planned) : "—"}</td>
+      <td class="n">${f ? fmt(f.planned + f.rep) + tr(c, f.planned + f.rep) : "—"}${f && f.rep ? `<br><small class="neg">naprawa +${fmt(f.rep)}</small>` : ""}</td>
       <td class="n ${f && f.need ? "pos" : ""}">${f ? fmt(f.proj) + tr(c, f.proj) : "—"}</td>
       <td class="nw">${need}</td></tr>`;
   });
-  return `<table><thead><tr><th>Kategoria</th><th class="n">Stan · aut</th><th class="n">Zjazd/dzień</th><th class="n">Umówione ${H} d</th><th class="n">Za ${H} dni</th><th>Do planu</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="mut">Brak danych — wpisz stan placu albo zaimportuj plik w Ustawieniach.</td></tr>'}</tbody></table>`;
+  return `<table><thead><tr><th>Kategoria</th><th class="n">Stan · aut</th><th class="n">Zjazd/dzień</th><th class="n">Wyjedzie ${H} d</th><th class="n">Za ${H} dni</th><th>Do planu</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="mut">Brak danych — wpisz stan placu albo zaimportuj plik w Ustawieniach.</td></tr>'}</tbody></table>`;
 }
 document.addEventListener("click", e => { const tr = e.target.closest("tr[data-cat]"); if (tr) { gCat = tr.dataset.cat; tab === "prog" ? renderProg() : showTab("prog"); } });
 const legend = gs => `<div class="legend">${gs.map(g => `<span class="g-${g}"><i class="dot"></i>${GROUPS[g]}</span>`).join("")}</div>`;
@@ -2320,8 +2321,8 @@ function renderProg() {
   const c = CAT[sel.value], f = forecast(c.k, Math.max(horizon, 7));
   $("#gChart").innerHTML = !f ? '<p class="sub">Brak stanu placu dla tej kategorii.</p>' :
     barChart(f.series.map(p => ({ v: p.v, g: c.g, lab: c.t ? fmt1(p.v / c.t) : fmt(p.v), x: DOW_S[dowOf(p.d)] + "<br>" + shortDate(p.d), cls: f.lim && p.v > f.lim ? "over" : "", go: p.d,
-      tip: `<b>${DOW[dowOf(p.d)]} ${plDate(p.d)}</b> rano<br>prognoza: ${fmt(p.v)} szt.${c.t ? " (" + fmt1(p.v / c.t) + " aut)" : ""}<br>wydania tego dnia: ${fmt(issued(p.d, c.k))} szt.` })), f.lim || null, 260, c.t ? `maks. ${fmt1(c.max)} ${plural(c.max, "auto", "auta", "aut")}` : "")
-    + `<p class="sub">Stan ${fmt(f.s0)} szt. z ${plDate(f.c)} · zjazd ${fmt(f.rate)} szt./dzień${c.t ? " (" + fmt1(f.rate / c.t) + " aut)" : ""} · etykiety w ${c.t ? "autach" : "sztukach"}.${f.needTrucks ? ` <b class="pos">Umów jeszcze ${f.needTrucks} ${plural(f.needTrucks, "auto", "auta", "aut")}${f.firstOver ? " — limit przekroczony od " + plDate(f.firstOver) : ""}.</b>` : ""}</p>`;
+      tip: `<b>${DOW[dowOf(p.d)]} ${plDate(p.d)}</b> rano<br>prognoza: ${fmt(p.v)} szt.${c.t ? " (" + fmt1(p.v / c.t) + " aut)" : ""}<br>wyjedzie tego dnia: ${fmt(issued(p.d, c.k) + repK(p.d, c.k))} szt.${repK(p.d, c.k) ? `<br>naprawa przywiezie: +${fmt(repK(p.d, c.k))} szt.` : ""}` })), f.lim || null, 260, c.t ? `maks. ${fmt1(c.max)} ${plural(c.max, "auto", "auta", "aut")}` : "")
+    + `<p class="sub">Stan ${fmt(f.s0)} szt. z ${plDate(f.c)} · zjazd ze sklepów ${fmt(f.rate)} szt./dzień${c.t ? " (" + fmt1(f.rate / c.t) + " aut)" : ""}${f.rep ? ` · naprawa przywiezie +${fmt(f.rep)} szt. (wliczone)` : ""} · etykiety w ${c.t ? "autach" : "sztukach"}.${f.needTrucks ? ` <b class="pos">Umów jeszcze ${f.needTrucks} ${plural(f.needTrucks, "auto", "auta", "aut")}${f.firstOver ? " — limit przekroczony od " + plDate(f.firstOver) : ""}.</b>` : ""}</p>`;
   const inf = inflow(c.k), wd = [1, 2, 3, 4, 5, 6, 0];
   $("#gWdSub").textContent = c.n + " · pon. obejmuje weekend";
   $("#gWd").innerHTML = inf.rows.length ? barChart(wd.map(d => { const [s, n] = inf.wd[d]; const v = n ? s / n : 0; return { v, g: c.g, lab: n ? fmt(v) : "", x: DOW_S[d], tip: `${DOW[d]}: śr. ${fmt(v)} szt. (${n} pomiarów)` }; }), null, 200)
