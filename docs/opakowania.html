@@ -1654,7 +1654,7 @@ function supGroup(code, name) {
   if (code) { const ds = Object.keys(DAYS).sort().reverse(); for (const d of ds) for (const it of itemsOf(d)) if (String(it.code) === String(code)) { const g = mainGroup(it.q); if (g) return g.slice(2); } }
   return "own";
 }
-let aGrp = "own", aGrpManual = false;
+let aGrp = "own", aGrpManual = false, aStManual = false;
 // pola ilości tylko dla jednej grupy (dostawca EUR — tylko EUR, CHEP — tylko CHEP itd.)
 function qInputs(q) {
   const keep = {}; $$("#aQty [data-q]").forEach(i => { if (i.value) keep[i.dataset.q] = i.value; });
@@ -1662,9 +1662,12 @@ function qInputs(q) {
   $("#aGrp").innerHTML = GORDER.filter(g => CATS.some(c => c.g === g)).map(g => `<button type="button" class="g-${g} ${g === aGrp ? "g-on" : ""}" data-grp="${g}" aria-pressed="${g === aGrp}">${GROUPS[g]}</button>`).join("");
   $("#aKindF").hidden = aGrp !== "own";
   $("#aDostF").hidden = !PUL_G.has("g-" + aGrp);
+  // PUL (CHEP · LPR · IPP · NDHP) nie czeka na mail — nowa awizacja PUL jest od razu umówiona
+  if (!editing && !aStManual && ["wait", "plan"].includes($("#aSt").value)) $("#aSt").value = PUL_G.has("g-" + aGrp) ? "plan" : "wait";
   const code = $("#aCode").value.trim(), name = $("#aName").value.trim();
   $("#aQty").innerHTML = CATS.filter(c => c.g === aGrp && catAllowed(c, code, name, q)).map(c => `<label class="field ${gcls(c.k)}">${esc(c.n)}${c.t ? ` <small>${fmt(c.t)}/auto</small>` : ""}<input type="number" min="0" data-q="${c.k}" value="${q && q[c.k] ? q[c.k] : ""}"></label>`).join("");
 }
+$("#aSt").addEventListener("change", () => { aStManual = true; });
 $("#aGrp").addEventListener("click", e => { const b = e.target.closest("[data-grp]"); if (!b || b.dataset.grp === aGrp) return; aGrp = b.dataset.grp; aGrpManual = true; qInputs({}); updSal(); const f = $("#aQty input"); if (f) f.focus(); });
 function autoGrp() { if (aGrpManual) return; const g = supGroup($("#aCode").value.trim(), $("#aName").value.trim()); if (g !== aGrp) { aGrp = g; qInputs({}); } }
 function openAw(it, pre = {}) {
@@ -1675,7 +1678,7 @@ function openAw(it, pre = {}) {
   ensureRange($("#aDate").value, $("#aDate").value);
   slotOptions($("#aDate").value, v.slot);
   $("#aSt").innerHTML = ["wait", "plan", "done", "cancel", "noshow"].map(k => `<option value="${k}">${ST[k]}</option>`).join(""); $("#aSt").value = v.st === "arr" || v.st === "load" ? "plan" : v.st || "wait";
-  $("#aOrd").value = v.ord || "";
+  $("#aOrd").value = v.ord || ""; aStManual = false;
   $("#aCode").value = v.code || ""; $("#aName").value = v.name || "";
   $("#aDrv").value = v.driver || ""; $("#aDost").value = v.dostChep || ""; $("#aDok").value = v.dok || ""; $("#aNote").value = v.note || "";
   aGrpManual = !!(it || (v.q && Object.keys(v.q).length));
@@ -1782,7 +1785,7 @@ $("#awForm").addEventListener("submit", async e => {
 });
 $("#aSaveMail").addEventListener("click", async () => {
   const it = readAw(); if (!it) return;
-  if (it.st === "plan") it.st = "wait";
+  if (it.st === "plan" && secOf(it) !== "pul") it.st = "wait"; // PUL nie czeka na potwierdzenie
   it.mailAt = Date.now();
   if (await saveItem(it)) { $("#dlgAw").close(); copyMail(it); }
 });
@@ -1802,7 +1805,7 @@ function mailText(it) {
 }
 // wysłanie (ponowne) prośby z listy: umówione wraca do „czeka na potwierdzenie”
 function sendMail(it) {
-  const n = clone(it); if (n.st === "plan") n.st = "wait";
+  const n = clone(it); if (n.st === "plan" && secOf(n) !== "pul") n.st = "wait";
   if (n.st === "wait") { n.mailAt = Date.now(); editing = null; saveItem(n); }
   copyMail(it);
 }
