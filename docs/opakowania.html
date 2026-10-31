@@ -2196,9 +2196,9 @@ function iconParts(kind, col) {
   if (kind === "eur") { pallet(12, 8, col); dot(11.3, 4, 1.44, .5, "rgba(0,0,0,.35)"); }
   else if (kind === "rem") pallet(12, 8, col, { miss: 1, broken: 3 });
   else if (kind === "dhp") { // półpaleta DHP 800×600 (pół EUR): 2 płozy wzdłuż, 6 klocków (2×3, boki niemalowane), 5 desek w poprzek
-    const blk = `color-mix(in srgb, ${col} 18%, #b9b1a2)`;
+    const blk = `color-mix(in srgb, ${col} 55%, #b9b1a2)`;
     [0, 4.9].forEach(y => box(0, y, 0, 8, 1.1, .22, col));
-    [0, 4.9].forEach(y => [0, 3.27, 6.55].forEach(x => box(x, y, .22, 1.45, 1.1, .78, blk)));
+    [0, 4.9].forEach(y => [0, 3.27, 6.55].forEach(x => { box(x - .05, y - .05, .22, 1.55, 1.2, .2, "#e3e7ec"); box(x, y, .42, 1.45, 1.1, .58, blk); })); // blaszka pod klockiem
     [0, 4.9].forEach(y => box(0, y, 1, 8, 1.1, .22, col));
     [0, 1.66, 3.32, 4.98, 6.65].forEach(x => box(x, 0, 1.22, 1.35, 6, .22, col));
   }
@@ -2243,7 +2243,9 @@ const ICO_CACHE = {};
 const icoKind = k => ({ EUR: "eur", EUR_REM: "rem", WOZ: "woz", POL: "pol", BAN: "ban", JED: "jed" })[k] || (/^TR_/.test(k) ? "tr" : /_D$/.test(k) ? "dhp" : /_P$/.test(k) ? "pl" : "eur");
 const icoCol = k => { const c = CAT[k]; return TR_COL[k] || (k === "JED" || k === "BAN" ? WOOD : c ? GCOL[c.g] : WOOD); };
 const icon = (kind, col) => ICO_CACHE[kind + col] || (ICO_CACHE[kind + col] = iconParts(kind, col));
-const icoSvg = (kind, col, cls = "ico") => { const i = icon(kind, col); return `<svg class="${cls}" viewBox="${i.x0.toFixed(1)} ${i.y0.toFixed(1)} ${i.w.toFixed(1)} ${i.h.toFixed(1)}" aria-hidden="true">${i.body}</svg>`; };
+const TRUE_SC = new Set(["eur", "rem", "dhp", "pl", "jed"]); // palety w jednej skali: DHP 800×600 i plastik to połowa EUR
+const icoSvg = (kind, col, cls = "ico") => { const i = icon(kind, col), E = TRUE_SC.has(kind) ? icon("eur", col) : i, w = Math.max(i.w, E.w), h = Math.max(i.h, E.h);
+  return `<svg class="${cls}" viewBox="${(i.x0 - (w - i.w) / 2).toFixed(1)} ${(i.y0 - (h - i.h)).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}" aria-hidden="true">${i.body}</svg>`; };
 const catIco = (k, cls) => icoSvg(icoKind(k), icoCol(k), cls);
 const YARD = [
   { id: "15", n: "CHEP", cats: ["CH_E", "CH_D", "CH_P"], x: 820, y: 12, w: 160, h: 86, dir: "up" },
@@ -2274,7 +2276,7 @@ function renderYard() {
   const tile = (id, a, col) => {
     const kinds = [...new Set(a.cats.map(icoKind))].slice(0, 2), horiz = a.dir === "right", maxH = horiz ? a.h - 6 : 40, T = a.w < 80 ? 22 : 28;
     let x = 0, body = "", th = 0;
-    kinds.forEach(k => { const i = icon(k, col || icoCol(a.cats.find(c => icoKind(c) === k))), sc = Math.min(T / i.w, maxH / i.h);
+    kinds.forEach(k => { const c0 = col || icoCol(a.cats.find(c => icoKind(c) === k)), i = icon(k, c0), E = TRUE_SC.has(k) ? icon("eur", c0) : i, sc = Math.min(T / E.w, maxH / E.h);
       body += `<g transform="translate(${x.toFixed(1)} 1) scale(${sc.toFixed(3)}) translate(${(-i.x0).toFixed(1)} ${(-i.y0).toFixed(1)})">${i.body}</g>`; x += i.w * sc + 2; th = Math.max(th, i.h * sc + 2); });
     return `<pattern id="pl-${id}" width="${x.toFixed(1)}" height="${th.toFixed(1)}" patternUnits="userSpaceOnUse" x="${a.x + 2}" y="${a.y + 2}">${body}</pattern>`;
   };
