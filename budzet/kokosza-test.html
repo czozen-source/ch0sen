@@ -1,0 +1,1047 @@
+<title>Kokosza (test)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: kurnik — jajo-skarbonka i "na dziś" na górze, pod spodem pas dni cyklu, niżej dwie kolumny (wydatki | stałe koszty + lista 48h) */
+:root{
+  --bg:#ECEFE8; --surface:#F8F9F5; --sunk:#E1E6DC; --line:#CDD5C8;
+  --ink:#1B2A25; --muted:#5C6C64; --yolk:#E3A11A; --yolk-ink:#7A5200; --shell:#FBF6EA;
+  --good:#2F8556; --warn:#C27C0E; --bad:#C0443A; --want:#8A5CC2;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --f-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111916; --surface:#18221E; --sunk:#0C1310; --line:#2A3832;
+  --ink:#E4EBE6; --muted:#93A39B; --yolk:#F0B43A; --yolk-ink:#F6CF7A; --shell:#26302B;
+  --good:#5BC28A; --warn:#E3A33C; --bad:#EE7368; --want:#B48DE6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111916; --surface:#18221E; --sunk:#0C1310; --line:#2A3832;
+  --ink:#E4EBE6; --muted:#93A39B; --yolk:#F0B43A; --yolk-ink:#F6CF7A; --shell:#26302B;
+  --good:#5BC28A; --warn:#E3A33C; --bad:#EE7368; --want:#B48DE6; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 48px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:1.15rem;font-weight:700}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--yolk);outline-offset:2px}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand h1{font-size:1.6rem;font-weight:800}
+.brand span{font-size:.85rem;color:var(--muted)}
+.top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.78rem;background:var(--sunk);color:var(--muted)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.chip.cloud i{background:var(--good)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:10px;font-weight:600}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.yolk{background:var(--yolk);color:#2A1C00;border-color:var(--yolk)}
+.btn.small{padding:4px 10px;font-size:.82rem;border-radius:8px}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--ink)}
+
+.demo{background:var(--shell);border:1px dashed var(--yolk);border-radius:var(--r);padding:12px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.demo b{color:var(--yolk-ink)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-areas:"today egg" "add add";gap:18px}
+.hero>.today{grid-area:today}.hero>.egg-card{grid-area:egg}.hero>.addp{grid-area:add}
+.today{background:var(--ink);color:var(--bg);border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.today .lbl{color:color-mix(in srgb,var(--bg) 65%,transparent)}
+.today .big{font-family:var(--f-display);font-weight:800;font-size:clamp(2.8rem,8vw,4.6rem);line-height:.95;letter-spacing:-.03em}
+.today .big small{font-size:.4em;font-weight:600;margin-left:6px}
+.today .big.over{color:var(--bad)}
+.today p{margin:0;max-width:40ch;color:color-mix(in srgb,var(--bg) 80%,transparent)}
+.tbar{height:8px;border-radius:99px;background:color-mix(in srgb,var(--bg) 18%,transparent);overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--yolk);border-radius:99px;transition:width .4s}
+.tbar i.over{background:var(--bad)}
+.quick{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.quick input{background:color-mix(in srgb,var(--bg) 12%,transparent);border:1px solid color-mix(in srgb,var(--bg) 25%,transparent);color:var(--bg);border-radius:10px;padding:10px 12px;min-width:0}
+.quick input::placeholder{color:color-mix(in srgb,var(--bg) 55%,transparent)}
+.quick .btn{background:var(--yolk);border-color:var(--yolk);color:#2A1C00}
+
+.egg-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
+.egg{width:118px;height:148px;display:block}
+.egg .shell{fill:var(--shell);stroke:var(--line);stroke-width:2}
+.egg .fill{fill:var(--yolk)}
+.egg .wave{animation:wave 4s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:translateX(0)}50%{transform:translateX(-30px)}}
+@media (prefers-reduced-motion:reduce){.egg .wave{animation:none}.tbar i{transition:none}}
+.egg-txt{display:flex;flex-direction:column;gap:6px;min-width:0}
+.egg-txt .val{font-family:var(--f-display);font-weight:800;font-size:2rem;line-height:1}
+.egg-txt .val.neg{color:var(--bad)}
+.kv{display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:2px 14px;font-size:.88rem;margin-top:6px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+
+/* stats strip */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .v{font-family:var(--f-num);font-size:1.2rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat .s{font-size:.8rem;color:var(--muted)}
+
+/* days strip */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ph{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* kalendarz miesiąca */
+.calnav{display:flex;align-items:center;gap:6px}
+.calnav h2{min-width:9.5em;text-align:center}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.cal .wd{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center;font-weight:600;padding-bottom:2px}
+.cal .wd.we{color:var(--bad)}
+.cd{border:0;border-radius:9px;background:var(--sunk);min-height:54px;padding:5px 4px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:2px;text-align:left;min-width:0;position:relative}
+.cd b{font-family:var(--f-num);font-size:.82rem;font-weight:600}
+.cd b small{font-weight:500;font-size:.62rem;color:var(--muted)}
+.cd .lim{color:var(--muted);opacity:1}
+.cd.fut.wkd{border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
+.cd span{font-family:var(--f-num);font-size:.68rem;color:var(--ink);opacity:.8;white-space:nowrap;overflow:hidden;max-width:100%}
+.cd.fut{background:transparent;border:1px dashed var(--line)}
+.cd.fut b{color:var(--muted)}
+.cd.ok{background:color-mix(in srgb,var(--good) 30%,var(--surface))}
+.cd.mid{background:color-mix(in srgb,var(--warn) 35%,var(--surface))}
+.cd.over{background:color-mix(in srgb,var(--bad) 45%,var(--surface))}
+.cd.zero{background:color-mix(in srgb,var(--good) 60%,var(--surface))}
+.cd.now{outline:2px solid var(--ink);outline-offset:1px}
+.cd.sel{box-shadow:inset 0 0 0 2px var(--yolk)}
+.cd .pay{position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--yolk)}
+.calsum{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+.calsum b{color:var(--ink);font-family:var(--f-num);font-weight:600}
+@media (max-width:460px){.cd{min-height:46px;padding:4px 3px}.cd span{font-size:.6rem}}
+
+.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:18px;min-width:0}
+
+/* add form */
+.addf{display:grid;grid-template-columns:120px minmax(0,1fr) auto;gap:8px;align-items:end}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:.78rem;color:var(--muted);font-weight:600}
+.in{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0;width:100%}
+.in:focus{border-color:var(--ink)}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cat{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 11px;font-size:.82rem;display:inline-flex;gap:6px;align-items:center}
+.cat i{width:8px;height:8px;border-radius:50%}
+.cat[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.kind{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.kind button{border:0;background:var(--bg);padding:7px 12px;font-size:.85rem}
+.kind button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.kind button.w[aria-pressed="true"]{background:var(--want);color:#fff}
+.addrow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.hint{font-size:.82rem;color:var(--muted)}
+.hint b{color:var(--ink);font-family:var(--f-num)}
+
+/* lists */
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row .dot{width:10px;height:10px;border-radius:50%}
+.row .t{min-width:0}
+.row .t div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t small{color:var(--muted);font-size:.78rem}
+.row .a{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+.row .a small{display:block;font-weight:500;color:var(--muted);font-size:.72rem}
+.tag-w{color:var(--want);font-weight:600}
+.x{border:0;background:transparent;color:var(--muted);width:28px;height:28px;border-radius:8px;font-size:1.1rem;line-height:1}
+.x:hover{background:var(--sunk);color:var(--bad)}
+.dayhead{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;padding:12px 0 2px;display:flex;justify-content:space-between}
+.empty{color:var(--muted);font-size:.9rem;padding:8px 0}
+
+/* category bars */
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:110px minmax(0,1fr) 82px;gap:10px;align-items:center;font-size:.86rem}
+.bar .track{height:10px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.bar .track i{display:block;height:100%;border-radius:99px}
+.bar .a{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.split{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--sunk)}
+.split i{display:block;height:100%}
+
+/* fixed costs */
+.fx{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.fx:first-child{border-top:0}
+.fx input[type=checkbox]{width:18px;height:18px;accent-color:var(--good)}
+.fx .t small{display:block;color:var(--muted);font-size:.75rem}
+.fx.paid .t div{text-decoration:line-through;color:var(--muted)}
+
+/* 48h list */
+
+.tips{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.tips li{padding:10px 12px;border-radius:10px;background:var(--sunk);font-size:.9rem}
+.tips li b{font-weight:700;font-variant-numeric:tabular-nums}
+
+.hist{width:100%;border-collapse:collapse;font-size:.86rem}
+.hist th{text-align:left;font-weight:600;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px 6px 0}
+.hist td{padding:7px 8px 7px 0;border-top:1px solid var(--line);font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.hist td:first-child{font-family:var(--f-body)}
+.tbl{overflow-x:auto}
+.pos{color:var(--good)} .negc{color:var(--bad)}
+
+/* sheet (settings) */
+.sheet{position:fixed;inset:0;background:color-mix(in srgb,#000 45%,transparent);display:flex;justify-content:flex-end;z-index:20}
+.sheet-in{background:var(--bg);width:min(560px,100%);height:100%;overflow-y:auto;padding:20px max(18px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) 18px;padding-top:calc(20px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:16px}
+.sheet-in h2{font-size:1.4rem}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fxedit{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,.8fr) minmax(0,1fr) auto;gap:6px;align-items:center}
+.sum{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.sum .kv{margin:0}
+.sum .kv dd.free{font-weight:700;color:var(--good)}
+.sum .kv dd.free.neg{color:var(--bad)}
+
+/* widget */
+.wg{max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.wg .today{border-radius:24px}
+.wg-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pin{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.pin ol{margin:0;padding-left:20px;font-size:.9rem;display:flex;flex-direction:column;gap:4px}
+.linkbox{display:flex;gap:8px;align-items:center}
+.linkbox input{flex:1;min-width:0;font-family:var(--f-num);font-size:.8rem}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.9rem;z-index:30;max-width:calc(100% - 32px)}
+
+@media (max-width:860px){
+  .hero,.cols{grid-template-columns:minmax(0,1fr)}
+  .hero{grid-template-areas:"today" "add" "egg"}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pin{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:460px){
+  .egg-card{grid-template-columns:auto minmax(0,1fr);gap:14px;padding:16px}
+  .egg-card .egg{width:76px;height:auto}
+  .egg-txt .val{font-size:1.6rem}
+  .addf{grid-template-columns:110px minmax(0,1fr)}
+  .addf .btn{grid-column:1/-1}
+  .bar{grid-template-columns:84px minmax(0,1fr) 70px}
+  .fxedit{grid-template-columns:minmax(0,1fr) minmax(0,.7fr) auto}
+  .fxedit select{grid-column:1/3}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ---------- telefon: szybkie dodawanie ---------- */
+.ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:1.05rem;line-height:1;background:color-mix(in srgb,var(--c) 22%,var(--surface));flex:none}
+.row{grid-template-columns:auto minmax(0,1fr) auto auto}
+.row[data-edit]{cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent}
+@media (hover:hover){.row[data-edit]:hover{background:color-mix(in srgb,var(--sunk) 60%,transparent)}}
+.row[data-edit]:active{background:var(--sunk)}
+.x{width:36px;height:36px}
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:15;width:64px;height:64px;border-radius:22px;border:0;background:var(--yolk);color:#2A1C00;font:800 2.2rem/1 var(--f-display);box-shadow:0 10px 24px -8px color-mix(in srgb,var(--yolk) 70%,#000),0 2px 6px rgba(0,0,0,.18);display:grid;place-items:center;transition:transform .15s}
+.fab:active{transform:scale(.92)}
+.fab span{margin-top:-4px}
+.bs{position:fixed;inset:0;z-index:20;background:color-mix(in srgb,#000 45%,transparent);display:flex;align-items:flex-end;justify-content:center;animation:fadein .18s ease-out}
+.bs-in{background:var(--bg);width:min(520px,100%);max-height:100%;overflow-y:auto;border-radius:24px 24px 0 0;padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;animation:slideup .24s cubic-bezier(.2,.9,.3,1);overscroll-behavior:contain}
+.bs-grab{width:42px;height:5px;border-radius:9px;background:var(--line);align-self:center}
+@keyframes slideup{from{transform:translateY(40%);opacity:.4}to{transform:none;opacity:1}}
+@keyframes fadein{from{background:transparent}}
+@media (prefers-reduced-motion:reduce){.bs,.bs-in{animation:none}.fab{transition:none}}
+.amt{display:flex;align-items:baseline;justify-content:center;gap:6px;font-family:var(--f-display);font-weight:800;font-size:clamp(2.6rem,13vw,3.4rem);line-height:1.05;letter-spacing:-.03em;padding:2px 0}
+.amt small{font-size:.42em;font-weight:600;color:var(--muted)}
+.amt.empty{color:var(--muted)}
+.amt-hint{text-align:center;font-size:.85rem;color:var(--muted);min-height:1.3em;margin-top:-6px}
+.amt-hint b{color:var(--ink)} .amt-hint .negc{font-weight:700}
+.seg{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:.85rem;font-weight:600;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg button.w[aria-pressed="true"]{background:var(--want);border-color:var(--want);color:#fff}
+.seg .sp{flex:1}
+.cgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.cgrid button{border:1px solid transparent;background:var(--surface);border-radius:14px;padding:7px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.68rem;font-weight:600;color:var(--muted);min-width:0}
+.cgrid button .ic{width:36px;height:36px;font-size:1.2rem}
+.cgrid button span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cgrid button[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface));color:var(--ink)}
+.cgrid button[aria-pressed="true"] .ic{background:var(--c)}
+.recent button{font-weight:500}
+.note{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center}
+.note .seg button{padding:7px 10px;font-size:.8rem}
+.keys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.keys button{border:0;background:var(--surface);border-radius:14px;height:52px;font:600 1.45rem/1 var(--f-num);box-shadow:0 1px 0 var(--line);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.keys button:active{background:var(--sunk);transform:scale(.97)}
+.keys button.fn{background:transparent;box-shadow:none;color:var(--muted);font-size:1.25rem}
+.go{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px}
+.go .btn{height:54px;border-radius:16px;font-size:1.05rem}
+.go .btn.del{color:var(--bad)}
+.toast{display:flex;align-items:center;gap:12px}
+.toast button{border:0;background:transparent;color:var(--yolk);font-weight:700;padding:0}
+.chip.off i{background:var(--warn)}
+@media (max-width:860px){
+  body{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+  .hero>.addp{display:none}
+  .hero{grid-template-areas:"today" "egg"}
+  .top{flex-wrap:nowrap}
+  .brand span{display:none}
+  .top-actions{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:-16px;padding-right:16px}
+  .top-actions::-webkit-scrollbar{display:none}
+  .top-actions .btn{flex:none}
+  .chip{max-width:9.5em;white-space:nowrap}
+  .chip span{overflow:hidden;text-overflow:ellipsis}
+  .toast{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .wg .quick{display:none}
+}
+@media (max-width:460px){
+  .today{padding:18px 18px;border-radius:22px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats .stat:last-child{grid-column:1/-1}
+  .panel{padding:14px 14px}
+}
+@media (max-height:700px){ .keys button{height:44px} .cgrid button .ic{width:30px;height:30px;font-size:1rem} }
+</style>
+
+<div class="wrap" id="app">
+  <div class="top">
+    <div class="brand"><h1>Kokosza</h1><span>grosz do grosza</span></div>
+    <div class="top-actions">
+      <span class="chip" id="store-chip"><i></i><span>Ładuję…</span></span>
+      <button class="btn small" id="btn-view" type="button">Widżet</button>
+      <button class="btn small" id="btn-paid" type="button">Opłaty</button>
+      <button class="btn small" id="btn-settings" type="button">Dochód i koszty stałe</button>
+      <button class="btn small ghost" id="btn-logout" type="button" hidden>Wyloguj</button>
+    </div>
+  </div>
+  <div id="main"><p class="muted">Ładuję twój budżet…</p></div>
+</div>
+<div id="sheet-host"></div>
+
+<script>
+(function(){
+"use strict";
+// ---------- constants ----------
+const CATS = [
+  {id:"jedzenie",  n:"Zakupy spożywcze", sn:"Spożywcze", e:"🛒", c:"#3E9A62"},
+  {id:"miasto",    n:"Na mieście",       sn:"Na mieście", e:"🍕", c:"#D9822B"},
+  {id:"transport", n:"Transport",        sn:"Transport", e:"⛽", c:"#3F7FBF"},
+  {id:"dom",       n:"Dom",              sn:"Dom", e:"🏠", c:"#8C6E4A"},
+  {id:"zdrowie",   n:"Zdrowie",          sn:"Zdrowie", e:"💊", c:"#C4505E"},
+  {id:"dzieci",    n:"Dzieci",           sn:"Dzieci", e:"🧸", c:"#C9A227"},
+  {id:"rozrywka",  n:"Rozrywka",         sn:"Rozrywka", e:"🎬", c:"#8A5CC2"},
+  {id:"ubrania",   n:"Ubrania",          sn:"Ubrania", e:"👕", c:"#2F9C9C"},
+  {id:"prezenty",  n:"Prezenty",         sn:"Prezenty", e:"🎁", c:"#D46AA6"},
+  {id:"inne",      n:"Inne",             sn:"Inne", e:"📦", c:"#7D8A84"}
+];
+const FCATS = ["Raty","Media","Mieszkanie","Abonamenty","Ubezpieczenia","Inne"];
+const CAT = Object.fromEntries(CATS.map(c=>[c.id,c]));
+const LS_KEY = "kokosza.v1";
+const OWNER = "czozen@gmail.com";
+const BUDGET_USERS = [OWNER, "annakurnik90@gmail.com"]; // tylko te konta mają dostęp do budżetu (to samo w firestore.rules); każde ma osobne dane
+
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"']/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const nf0 = new Intl.NumberFormat("pl-PL",{maximumFractionDigits:0});
+const nf2 = new Intl.NumberFormat("pl-PL",{minimumFractionDigits:2,maximumFractionDigits:2});
+const zl = (v,dec) => (dec?nf2:nf0).format(Math.round((v||0)*(dec?100:1))/(dec?100:1)) + " zł";
+const zls = v => (Number.isInteger(Math.round(v*100)/100) ? nf0.format(v) : nf2.format(v)) + " zł";
+const parseAmt = s => { const v = parseFloat(String(s).replace(/\s/g,"").replace(",", ".")); return isFinite(v) ? Math.round(v*100)/100 : NaN; };
+const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const dayStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const DAYMS = 86400000;
+const daysBetween = (a,b) => Math.round((dayStart(b)-dayStart(a))/DAYMS);
+const addDays = (d,i) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+i); // odporne na zmianę czasu
+const isWeekend = d => d.getDay()===0 || d.getDay()===6;
+// weekend dostaje większy limit niż dzień roboczy (mnożnik z ustawień)
+const wkW = () => { const v=S.settings&&S.settings.wkend; return v>0 ? v : 1.5; };
+const dayW = d => isWeekend(d) ? wkW() : 1;
+function weightSum(start, n){ let t=0; for(let i=0;i<n;i++) t+=dayW(addDays(start,i)); return t; }
+const MONTHS = ["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
+const WD = ["nd","pn","wt","śr","cz","pt","sb"];
+const fmtD = d => d.getDate()+" "+MONTHS[d.getMonth()];
+function hoursTxt(h){ if(!isFinite(h)||h<=0) return ""; if(h<1) return Math.max(1,Math.round(h*60))+" min pracy"; return (Math.round(h*10)/10).toString().replace(".",",")+" h pracy"; }
+
+function cycleFor(date, payday){
+  const p = Math.min(28, Math.max(1, payday|0 || 1));
+  const d = dayStart(date);
+  let start = d.getDate() >= p ? new Date(d.getFullYear(), d.getMonth(), p) : new Date(d.getFullYear(), d.getMonth()-1, p);
+  const end = new Date(start.getFullYear(), start.getMonth()+1, p-1);
+  return {start, end, key:"c-"+ymd(start), days: daysBetween(start,end)+1};
+}
+
+// ---------- state ----------
+const S = { settings:null, cycles:{}, demo:false, mode:"local", col:null, view: location.hash==="#widget" ? "widget" : "main",
+  draft:{cat:"jedzenie", kind:"need"}, cycOff:0, calSel:null, wantAdd: location.hash==="#dodaj" };
+
+function demoData(){
+  const now = new Date();
+  const settings = {setup:true, income:7200, payday:10, goal:1200, hours:168, wkend:1.5, fixed:[
+    {id:"f1",name:"Rata kredytu hipotecznego",amt:2150,cat:"Raty"},
+    {id:"f2",name:"Prąd i gaz",amt:310,cat:"Media"},
+    {id:"f3",name:"Czynsz do wspólnoty",amt:480,cat:"Mieszkanie"},
+    {id:"f4",name:"Internet + telefon",amt:120,cat:"Abonamenty"},
+    {id:"f5",name:"Ubezpieczenie auta (1/12)",amt:95,cat:"Ubezpieczenia"},
+    {id:"f6",name:"Rata za lodówkę 0%",amt:180,cat:"Raty"}
+  ]};
+  const cy = cycleFor(now, settings.payday);
+  const elapsed = daysBetween(cy.start, now);
+  const sample = [["jedzenie",142.3,"Biedronka","need"],["transport",230,"Paliwo","need"],["miasto",38,"Kawa i drożdżówka","want"],["jedzenie",86.5,"Lidl","need"],["rozrywka",49,"Kino","want"],["zdrowie",64.2,"Apteka","need"],["jedzenie",61,"Warzywniak","need"],["miasto",92,"Pizza","want"],["dom",45,"Chemia","need"],["ubrania",159,"Buty","want"],["jedzenie",118,"Zakupy tygodniowe","need"],["transport",15,"Parking","need"]];
+  const exp = [];
+  sample.forEach((s,i)=>{ const off = Math.min(elapsed, Math.floor(i*(elapsed+1)/sample.length)); const t = new Date(cy.start.getTime()+off*DAYMS+ (10+i%8)*3600000);
+    if(t<=now) exp.push({id:"d"+i,a:s[1],c:s[0],n:s[2],k:s[3],t:t.getTime()}); });
+  const cycles = {[cy.key]:{exp, paid:{f1:true,f2:true,f3:true}}};
+  return {settings, cycles};
+}
+
+function blankCycle(){ const s=S.settings; return {exp:[],paid:{}, inc:s.income, fix:fixedTotal(), goal:s.goal}; }
+function fixedTotal(){ return (S.settings?.fixed||[]).reduce((a,f)=>a+(+f.amt||0),0); }
+function curCycle(){ return cycleFor(new Date(), S.settings.payday); }
+function cycleDoc(key){ if(!S.cycles[key]) S.cycles[key]=blankCycle(); return S.cycles[key]; }
+
+// ---------- persistence ----------
+function lsRead(key){ try{ const raw=localStorage.getItem(key||S.lsKey||LS_KEY); return raw?JSON.parse(raw):null; }catch(e){ return null; } }
+function lsWrite(){ if(S.demo) return; try{ localStorage.setItem(S.lsKey||LS_KEY, JSON.stringify({settings:S.settings,cycles:S.cycles})); }catch(e){} }
+const pending = new Set(); let saveT=null;
+function save(which){ // which: "settings" or a cycle key
+  if(S.demo) return;
+  lsWrite();
+  if(S.mode!=="cloud") return;
+  pending.add(which); clearTimeout(saveT); saveT=setTimeout(flush, 500);
+}
+let flushing=false;
+async function flush(){
+  if(flushing){ saveT=setTimeout(flush,300); return; }
+  flushing=true;
+  const items=[...pending]; pending.clear();
+  const fail=()=>toast("Nie udało się zapisać w chmurze. Dane są zapisane w tej przeglądarce.");
+  for(const k of items){
+    try{
+      const body = k==="settings" ? S.settings : S.cycles[k];
+      // bez await: bez zasięgu zapis czeka w kolejce Firestore i wyśle się sam po powrocie sieci
+      if(body) S.col.doc(k).set(JSON.parse(JSON.stringify(body))).catch(fail);
+    }catch(e){ fail(); }
+  }
+  flushing=false;
+}
+
+async function connectCloud(){
+  try{
+    const c = window.claude; if(!c || !c.use) return false;
+    const [db, user] = await Promise.all([c.use("db"), c.use("user")]);
+    if(!db || !user) return false;
+    const id = await user.id(); if(!id) return false;
+    const col = db.collection("data/users/"+id);
+    const snap = await col.get();
+    const cloud = {settings:null, cycles:{}};
+    snap.docs.forEach(d=>{ if(!d.exists) return; const v=JSON.parse(JSON.stringify(d.data())); if(d.id==="settings") cloud.settings=v; else if(d.id.startsWith("c-")) cloud.cycles[d.id]=v; });
+    S.col=col; S.mode="cloud";
+    if(cloud.settings && cloud.settings.setup){
+      S.settings=cloud.settings; S.cycles=cloud.cycles; S.demo=false; lsWrite();
+    } else if(S.settings && !S.demo){ // przenieś dane z przeglądarki do chmury
+      save("settings"); Object.keys(S.cycles).forEach(k=>save(k));
+    }
+    return true;
+  }catch(e){ return false; }
+}
+
+// ---------- calculations ----------
+function calc(){
+  const s=S.settings, cy=curCycle(), doc=cycleDoc(cy.key), now=new Date();
+  const fixed=fixedTotal();
+  const free = s.income - fixed - s.goal;               // pula na wydatki zmienne
+  const idx = daysBetween(cy.start, now);               // 0-based
+  const daysLeft = cy.days - idx;
+  const todayKey = ymd(now);
+  let spent=0, spentToday=0, wants=0; const perDay={}, perCat={};
+  doc.exp.forEach(e=>{ const d=ymd(new Date(e.t)); spent+=e.a; perDay[d]=(perDay[d]||0)+e.a; perCat[e.c]=(perCat[e.c]||0)+e.a; if(e.k==="want") wants+=e.a; if(d===todayKey) spentToday+=e.a; });
+  const before = spent - spentToday;
+  const W = weightSum(cy.start, cy.days), Wrem = weightSum(dayStart(now), daysLeft);
+  const perW = Math.max(0, free - before)/Wrem;          // pula od dziś do końca cyklu na jednostkę dnia (weekend = mnożnik)
+  const todayLimit = perW*dayW(now);
+  const leftToday = todayLimit - spentToday;
+  const base = free*dayW(now)/W;
+  const baseWd = free/W, baseWe = free*wkW()/W;
+  const elapsedDays = idx+1;
+  const pace = spent/elapsedDays;
+  const projSpent = Math.max(spent, pace*cy.days);
+  const projSaved = s.goal + (free - projSpent);
+  const nowSaved = s.income - fixed - spent;            // co zostaje, jeśli od dziś zero wydatków
+  const hourly = s.income/(s.hours||168);
+  const unpaid = (s.fixed||[]).filter(f=>!doc.paid[f.id]).reduce((a,f)=>a+(+f.amt||0),0);
+  let streak=0; for(let i=idx-1;i>=0;i--){ const dd=addDays(cy.start,i); if((perDay[ymd(dd)]||0)<=free*dayW(dd)/W) streak++; else break; }
+  return {s,cy,doc,fixed,free,idx,daysLeft,spent,spentToday,todayLimit,leftToday,base,baseWd,baseWe,perW,projSaved,nowSaved,hourly,perDay,perCat,wants,unpaid,streak,todayKey};
+}
+
+// ---------- render: egg ----------
+function eggSVG(frac, w=118){
+  const f = Math.max(0, Math.min(1, frac));
+  const top = 146 - f*140;
+  return `<svg class="egg" viewBox="0 0 120 150" width="${w}" height="${w*150/118}" role="img" aria-label="Jajo oszczędności wypełnione w ${Math.round(f*100)}%">
+    <defs><clipPath id="eggclip${w}"><path d="M60 6C92 6 112 62 112 96C112 128 88 146 60 146C32 146 8 128 8 96C8 62 28 6 60 6Z"/></clipPath></defs>
+    <path class="shell" d="M60 6C92 6 112 62 112 96C112 128 88 146 60 146C32 146 8 128 8 96C8 62 28 6 60 6Z"/>
+    <g clip-path="url(#eggclip${w})">
+      <path class="fill wave" d="M-20 ${top} Q 0 ${top-6} 20 ${top} T 60 ${top} T 100 ${top} T 140 ${top} T 180 ${top} V 160 H -20 Z"/>
+    </g>
+    <path d="M60 6C92 6 112 62 112 96C112 128 88 146 60 146C32 146 8 128 8 96C8 62 28 6 60 6Z" fill="none" stroke="var(--line)" stroke-width="2"/>
+    <path d="M34 50 C 38 36 46 26 52 22" stroke="var(--surface)" stroke-width="5" stroke-linecap="round" fill="none" opacity=".7"/>
+  </svg>`;
+}
+
+// ---------- render: main ----------
+function render(){
+  const chip=$("#store-chip");
+  const gated = S.mode==="login" || S.mode==="pending";
+  $("#btn-view").hidden = $("#btn-settings").hidden = $("#btn-paid").hidden = gated;
+  if(!gated && S.settings){ const f=S.settings.fixed||[], pd=cycleDoc(curCycle().key).paid||{}; $("#btn-paid").textContent=`Opłaty ${f.filter(x=>pd[x.id]).length}/${f.length}`; }
+  $("#btn-logout").hidden = !S.user;
+  updChip();
+  let fab=$("#fab");
+  if(!gated && !fab){ fab=document.createElement("button"); fab.id="fab"; fab.className="fab"; fab.type="button"; fab.setAttribute("aria-label","Dodaj wydatek"); fab.innerHTML="<span>+</span>"; document.body.appendChild(fab); }
+  if(fab) fab.hidden=gated;
+  if(gated) return renderLogin();
+  if(S.wantAdd && S.settings && !S.demo){ S.wantAdd=false; try{ history.replaceState(null,"",location.pathname+location.search); }catch(_){} setTimeout(()=>openAdd(),0); }
+  $("#btn-view").textContent = S.view==="widget" ? "Pełny widok" : "Widżet";
+  if(S.view==="widget") return renderWidget();
+  const k=calc(), s=k.s;
+  const over = k.leftToday < 0;
+  const usedPct = k.todayLimit>0 ? Math.min(100, k.spentToday/k.todayLimit*100) : (k.spentToday>0?100:0);
+  const eggFrac = s.goal>0 ? k.projSaved/s.goal : 0;
+
+  let html = "";
+  if(S.demo) html += `<div class="demo"><div><b>To przykładowy budżet.</b> Wpisz swój dochód netto i koszty stałe, a Kokosza policzy, ile możesz wydać każdego dnia.</div><button class="btn yolk" type="button" data-act="setup">Wpisz swoje dane</button></div>`;
+
+  // HERO
+  html += `<section class="hero">
+    <div class="today">
+      <div class="lbl">Na dziś możesz wydać · ${WD[new Date().getDay()]} ${fmtD(new Date())}</div>
+      <div class="big num ${over?"over":""}">${over?"−":""}${nf0.format(Math.abs(Math.round(k.leftToday)))}<small>zł</small></div>
+      <div class="tbar"><i class="${over?"over":""}" style="width:${usedPct}%"></i></div>
+      <p>${over ? `Dzisiejszy limit przekroczony o <b>${zl(-k.leftToday)}</b>. Jutrzejszy limit sam się zmniejszy, żeby cel oszczędności przetrwał.`
+               : k.spentToday>0 ? `Wydane dziś ${zl(k.spentToday)} z ${zl(k.todayLimit)}. Co zostanie, przejdzie na kolejne dni.`
+               : `Limit dzienny: ${zl(k.todayLimit)}. Każdy dzień poniżej limitu podnosi limit na kolejne dni.`}</p>
+    </div>
+    <div class="egg-card">
+      ${eggSVG(eggFrac)}
+      <div class="egg-txt">
+        <div class="lbl">Prognoza oszczędności w tym cyklu</div>
+        <div class="val num ${k.projSaved<0?"neg":""}">${zl(k.projSaved)}</div>
+        <div class="muted" style="font-size:.88rem">${k.projSaved>=s.goal ? `Cel ${zl(s.goal)} będzie osiągnięty${k.projSaved>s.goal?`, z nadwyżką ${zl(k.projSaved-s.goal)}`:""}.` : `Cel to ${zl(s.goal)}. Przy obecnym tempie zabraknie ${zl(s.goal-k.projSaved)}.`}</div>
+        <dl class="kv">
+          <dt>Dochód netto</dt><dd>${zl(s.income)}</dd>
+          <dt>Koszty stałe</dt><dd>−${zl(k.fixed)}</dd>
+          <dt>Odkładam (cel)</dt><dd>−${zl(s.goal)}</dd>
+          <dt>Pula na życie</dt><dd>${zl(k.free)}</dd>
+        </dl>
+      </div>
+    </div>
+    ${addPanel(k)}
+  </section>`;
+
+  // STATS
+  const spentPct = k.free>0 ? Math.round(k.spent/k.free*100) : 0;
+  html += `<section class="stats">
+    <div class="stat"><span class="lbl">Wydane z puli</span><span class="v">${zl(k.spent)}</span><span class="s">${spentPct}% puli</span></div>
+    <div class="stat"><span class="lbl">Zostało w puli</span><span class="v ${k.free-k.spent<0?"negc":""}">${zl(k.free-k.spent)}</span><span class="s">na ${k.daysLeft} ${k.daysLeft===1?"dzień":"dni"}, do ${fmtD(k.cy.end)}</span></div>
+    <div class="stat"><span class="lbl">Zachcianki</span><span class="v" style="color:var(--want)">${zl(k.wants)}</span><span class="s">${k.spent>0?Math.round(k.wants/k.spent*100):0}% wydatków</span></div>
+  </section>`;
+
+  html += calendarPanel(k);
+
+  // COLUMNS
+  html += `<div class="cols"><div class="stack">${expensesPanel(k)}${catsPanel(k)}</div>
+    <div class="stack">${tipsPanel(k)}${historyPanel(k)}</div></div>`;
+  $("#main").innerHTML = html;
+  updateHint();
+}
+
+function updChip(){
+  const chip=$("#store-chip"); if(!chip) return;
+  const gated = S.mode==="login" || S.mode==="pending";
+  const off = !gated && !S.demo && S.mode==="cloud" && navigator.onLine===false;
+  chip.className="chip"+(off?" off":S.mode==="cloud"&&!S.demo?" cloud":"");
+  chip.querySelector("span").textContent = gated ? "Niezalogowano" : off ? "Bez sieci · wyśle się później" : S.user ? S.user : S.demo ? "Przykładowe dane" : S.mode==="cloud" ? "Zapis w chmurze" : "Zapis w tej przeglądarce";
+}
+window.addEventListener("online", updChip); window.addEventListener("offline", updChip);
+
+// planowany limit dnia: z cyklu, do którego ten dzień należy (weekend × mnożnik)
+function baseFor(d){
+  const s=S.settings, cy=cycleFor(d, s.payday), c=S.cycles[cy.key];
+  const inc=c&&c.inc!=null?c.inc:s.income, fix=c&&c.fix!=null?c.fix:fixedTotal(), goal=c&&c.goal!=null?c.goal:s.goal;
+  return (inc-fix-goal)*dayW(d)/weightSum(cy.start, cy.days);
+}
+function allByDay(){
+  const m={};
+  Object.values(S.cycles).forEach(c=>(c.exp||[]).forEach(e=>{ const d=ymd(new Date(e.t)); (m[d]=m[d]||[]).push(e); }));
+  return m;
+}
+// cykl od wypłaty do wypłaty ułożony jak kalendarz (pn–nd), żeby było widać weekendy
+function calendarPanel(k){
+  const pay=Math.min(28,Math.max(1,S.settings.payday|0||1));
+  const cy = S.cycOff ? cycleFor(new Date(k.cy.start.getFullYear(), k.cy.start.getMonth()+S.cycOff, pay), pay) : k.cy;
+  const isCur = cy.key===k.cy.key, tracked = !!S.cycles[cy.key];
+  const byDay=allByDay(), todayKey=k.todayKey;
+  let cells=["pn","wt","śr","cz","pt","sb","nd"].map((w,i)=>`<div class="wd ${i>4?"we":""}">${w}</div>`).join("");
+  for(let i=0,lead=(cy.start.getDay()+6)%7;i<lead;i++) cells+=`<div></div>`;
+  let spent=0, weSum=0, weN=0, wdSum=0, wdN=0;
+  for(let i=0;i<cy.days;i++){
+    const date=addDays(cy.start,i), key=ymd(date), list=byDay[key]||[], v=list.reduce((a,e)=>a+e.a,0), we=isWeekend(date);
+    const past = key<todayKey || (key===todayKey && v>0);
+    let cls="cd"+(we?" wkd":""), sub="";
+    if(key>todayKey){ cls+=" fut"; if(isCur) sub=`<span class="lim">${nf0.format(Math.round(k.perW*dayW(date)))} zł</span>`; }
+    else if(past && tracked){ const base=baseFor(date); cls+= v===0?" zero": v<=base*0.8?" ok": v<=base*1.15?" mid":" over";
+      if(we){weSum+=v;weN++;}else{wdSum+=v;wdN++;} }
+    if(v>0) sub=`<span>${nf0.format(Math.round(v))} zł</span>`;
+    if(key===todayKey) cls+=" now";
+    if(key===S.calSel) cls+=" sel";
+    spent+=v;
+    const lbl = (i===0||date.getDate()===1) ? `${date.getDate()} <small>${MONTHS[date.getMonth()]}</small>` : date.getDate();
+    cells+=`<button type="button" class="${cls}" data-calday="${key}" aria-label="${fmtD(date)}: wydane ${zl(v,1)}"><b>${lbl}</b>${sub}${date.getDate()===pay?`<i class="pay" title="Wypłata"></i>`:""}</button>`;
+  }
+  let detail="";
+  if(S.calSel && S.calSel>=ymd(cy.start) && S.calSel<=ymd(cy.end)){
+    const sd=new Date(S.calSel+"T12:00:00"), list=(byDay[S.calSel]||[]).slice().sort((a,b)=>b.t-a.t), tot=list.reduce((a,e)=>a+e.a,0);
+    const lim = S.calSel===todayKey ? k.todayLimit : isCur && S.calSel>todayKey ? k.perW*dayW(sd) : baseFor(sd);
+    detail=`<div class="dayhead"><span>${WD[sd.getDay()]} ${fmtD(sd)} · limit ${zl(lim)}</span><span class="num">${zl(tot,1)}</span></div>`+
+      (list.length?`<div class="list">${list.map(e=>{const c=CAT[e.c]||CAT.inne; return `<div class="row" data-edit="${e.id}"><span class="ic" style="--c:${c.c}" aria-hidden="true">${c.e}</span><div class="t"><div>${esc(e.n||c.n)}</div><small>${c.n}${e.k==="want"?` · <span class="tag-w">zachcianka</span>`:""}</small></div><div class="a">${zls(e.a)}</div><button class="x" type="button" data-del="${e.id}" aria-label="Usuń wydatek">×</button></div>`;}).join("")}</div>`
+       :`<p class="empty">${S.calSel>todayKey?"Ten dzień jeszcze przed tobą.":"Tego dnia nic nie wydano."}</p>`);
+  }
+  const avg=(a,n)=>n?zl(a/n):"—";
+  return `<section class="panel"><div class="ph">
+      <div class="calnav"><button class="btn small" type="button" data-cycnav="-1" aria-label="Poprzedni cykl">‹</button><h2>${fmtD(cy.start)} – ${fmtD(cy.end)}</h2><button class="btn small" type="button" data-cycnav="1" aria-label="Następny cykl">›</button></div>
+      ${S.cycOff?`<button class="btn small ghost" type="button" data-cycnav="0">Wróć do bieżącego</button>`:`<span class="muted" style="font-size:.85rem">od wypłaty do wypłaty</span>`}
+    </div>
+    <div class="cal">${cells}</div>
+    <div class="calsum"><span>Wydane: <b>${zl(spent)}</b></span><span>Średnio: tydzień <b>${avg(wdSum,wdN)}</b>, weekend <b>${avg(weSum,weN)}</b> dziennie</span></div>
+    <div class="legend"><span><i style="background:color-mix(in srgb,var(--good) 45%,var(--surface))"></i>w limicie</span><span><i style="background:color-mix(in srgb,var(--warn) 35%,var(--surface))"></i>na granicy</span><span><i style="background:color-mix(in srgb,var(--bad) 45%,var(--surface))"></i>ponad limit</span><span><i style="background:var(--yolk);border-radius:50%"></i>wypłata</span></div>
+    ${detail?`<div>${detail}</div>`:""}
+  </section>`;
+}
+
+function addPanel(k){
+  return `<section class="panel addp"><form id="addf" autocomplete="off" style="display:flex;flex-direction:column;gap:10px">
+    <div class="addf">
+      <div class="field"><label for="a-amt">Kwota (zł)</label><input class="in num" id="a-amt" inputmode="decimal" placeholder="0,00" required></div>
+      <div class="field"><label for="a-note">Na co</label><input class="in" id="a-note" placeholder="np. Biedronka, paliwo, kino"></div>
+      <button class="btn primary" type="submit">Dodaj wydatek</button>
+    </div>
+    <div class="cats" role="group" aria-label="Kategoria">${CATS.map(c=>`<button type="button" class="cat" data-cat="${c.id}" aria-pressed="${S.draft.cat===c.id}"><i style="background:${c.c}"></i>${c.n}</button>`).join("")}</div>
+    <div class="addrow">
+      <div class="kind" role="group" aria-label="Rodzaj wydatku"><button type="button" data-kind="need" aria-pressed="${S.draft.kind==="need"}">Potrzeba</button><button type="button" class="w" data-kind="want" aria-pressed="${S.draft.kind==="want"}">Zachcianka</button></div>
+      <span class="hint" id="hint"></span>
+    </div>
+  </form></section>`;
+}
+
+function expensesPanel(k){
+  const ex=[...k.doc.exp].sort((a,b)=>b.t-a.t);
+  if(!ex.length) return `<section class="panel"><h2>Wydatki w tym cyklu</h2><p class="empty">Jeszcze nic. Stuknij <b>+</b> w rogu ekranu, żeby dodać pierwszy wydatek.</p></section>`;
+  let html="", last=null;
+  const shown = S.showAllExp ? ex : ex.slice(0,6);
+  shown.forEach(e=>{
+    const d=new Date(e.t), key=ymd(d);
+    if(key!==last){ last=key; html+=`<div class="dayhead"><span>${key===k.todayKey?"Dziś":WD[d.getDay()]+" "+fmtD(d)}</span><span class="num">${zl(k.perDay[key],1)}</span></div>`; }
+    const c=CAT[e.c]||CAT.inne;
+    html+=`<div class="row" data-edit="${e.id}"><span class="ic" style="--c:${c.c}" aria-hidden="true">${c.e}</span>
+      <div class="t"><div>${esc(e.n||c.n)}</div><small>${c.n}${e.k==="want"?` · <span class="tag-w">zachcianka</span>`:""}</small></div>
+      <div class="a">${zls(e.a)}</div>
+      <button class="x" type="button" data-del="${e.id}" aria-label="Usuń wydatek ${esc(e.n||c.n)}">×</button></div>`;
+  });
+  return `<section class="panel"><div class="ph"><h2>Wydatki w tym cyklu</h2><span class="muted" style="font-size:.85rem"><span class="num">${ex.length}</span> pozycji · stuknij, żeby poprawić</span></div><div class="list">${html}</div>${ex.length>6?`<button class="btn small" type="button" data-act="allexp" style="align-self:flex-start">${S.showAllExp?"Pokaż mniej":`Pokaż wszystkie (${ex.length})`}</button>`:""}</section>`;
+}
+
+function catsPanel(k){
+  const arr=Object.entries(k.perCat).sort((a,b)=>b[1]-a[1]);
+  if(!arr.length) return "";
+  const max=arr[0][1];
+  const needs=k.spent-k.wants;
+  return `<section class="panel"><h2>Gdzie uciekają pieniądze</h2>
+    <div class="bars">${arr.map(([c,v])=>{const o=CAT[c]||CAT.inne; return `<div class="bar"><span>${o.n}</span><div class="track"><i style="width:${v/max*100}%;background:${o.c}"></i></div><span class="a">${zl(v)}</span></div>`;}).join("")}</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+      <div class="lbl">Potrzeby a zachcianki</div>
+      <div class="split"><i style="width:${k.spent?needs/k.spent*100:0}%;background:var(--ink)"></i><i style="width:${k.spent?k.wants/k.spent*100:0}%;background:var(--want)"></i></div>
+      <div class="legend"><span><i style="background:var(--ink)"></i>potrzeby ${zl(needs)}</span><span><i style="background:var(--want)"></i>zachcianki ${zl(k.wants)}</span></div>
+    </div></section>`;
+}
+
+function tipsPanel(k){
+  const tips=[];
+  const s=k.s;
+  if(k.free<=0) tips.push(`Koszty stałe i cel oszczędności zjadają cały dochód. Zmniejsz cel albo przejrzyj koszty stałe, bo pula na życie wynosi <b>${zl(k.free)}</b>.`);
+  if(k.projSaved<s.goal && k.daysLeft>0){ const need=(s.goal-k.projSaved)/k.daysLeft; tips.push(`Żeby dowieźć cel, wydawaj średnio o <b>${zl(need)}</b> mniej dziennie do końca cyklu.`); }
+  else if(k.projSaved>s.goal) tips.push(`Idziesz lepiej niż plan. Nadwyżkę <b>${zl(k.projSaved-s.goal)}</b> przelej na oszczędności zaraz po wypłacie, zanim się rozejdzie.`);
+  const top=Object.entries(k.perCat).sort((a,b)=>b[1]-a[1])[0];
+  if(top && k.spent>0){ const o=CAT[top[0]]||CAT.inne; const cut=top[1]*0.15; tips.push(`Najwięcej idzie na <b>${o.n.toLowerCase()}</b> (${Math.round(top[1]/k.spent*100)}%). Ścięcie tej kategorii o 15% to <b>${zl(cut*12)}</b> rocznie.`); }
+  if(k.wants>0) tips.push(`Zachcianki w tym cyklu kosztowały cię <b>${hoursTxt(k.wants/k.hourly)}</b>. Zanim kupisz następną, daj sobie dzień do namysłu.`);
+  const fixShare=s.income?k.fixed/s.income:0;
+  if(fixShare>0.5) tips.push(`Koszty stałe to <b>${Math.round(fixShare*100)}%</b> dochodu. Powyżej 50% budżet robi się sztywny: sprawdź, czy któryś abonament albo ubezpieczenie da się renegocjować.`);
+  if(!tips.length) tips.push("Wszystko w normie. Trzymaj dzienny limit, a cel oszczędności zrobi się sam.");
+  return `<section class="panel"><h2>Podpowiedzi</h2><ul class="tips">${tips.slice(0,2).map(t=>`<li>${t}</li>`).join("")}</ul></section>`;
+}
+
+function openPaid(){
+  const k=calc(), f=k.s.fixed||[];
+  const paidSum=f.filter(x=>k.doc.paid[x.id]).reduce((a,x)=>a+(+x.amt||0),0);
+  $("#sheet-host").innerHTML=`<div class="sheet" id="sheet"><div class="sheet-in">
+    <div class="ph"><h2>Opłaty w tym cyklu</h2><button class="x" type="button" data-act="close" aria-label="Zamknij">×</button></div>
+    <div class="muted num">opłacone ${zl(paidSum)} z ${zl(k.fixed)} · do ${fmtD(k.cy.end)}</div>
+    ${f.length?`<div class="list">${f.map(x=>`<label class="fx ${k.doc.paid[x.id]?"paid":""}"><input type="checkbox" data-paid="${x.id}" ${k.doc.paid[x.id]?"checked":""}><div class="t"><div>${esc(x.name)}</div><small>${esc(x.cat)}</small></div><span class="num">${zls(+x.amt||0)}</span></label>`).join("")}</div>`
+     :`<p class="empty">Brak kosztów stałych. Dodaj raty, media i opłaty za dom.</p>`}
+    <button class="btn small" type="button" data-act="setup" style="align-self:flex-start">Edytuj koszty stałe</button>
+  </div></div>`;
+}
+
+function historyPanel(k){
+  const keys=Object.keys(S.cycles).filter(x=>x!==k.cy.key && (S.cycles[x].exp||[]).length).sort().reverse();
+  if(!keys.length) return "";
+  let total=0;
+  const rows=keys.slice(0,12).map(key=>{ const c=S.cycles[key]; const inc=c.inc??k.s.income, fix=c.fix??k.fixed, goal=c.goal??k.s.goal;
+    const sp=c.exp.reduce((a,e)=>a+e.a,0); const saved=inc-fix-sp; total+=saved; const st=new Date(key.slice(2));
+    return `<tr><td>od ${fmtD(st)} ${st.getFullYear()}</td><td>${zl(sp)}</td><td class="${saved>=goal?"pos":"negc"}">${zl(saved)}</td></tr>`; }).join("");
+  return `<section class="panel"><div class="ph"><h2>Poprzednie cykle</h2><span class="muted num" style="font-size:.85rem">razem odłożone ${zl(total)}</span></div>
+    <div class="tbl"><table class="hist"><thead><tr><th>Cykl</th><th>Wydane</th><th>Zostało</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+}
+
+// ---------- widget view ----------
+function renderWidget(){
+  const k=calc(); const over=k.leftToday<0;
+  const usedPct = k.todayLimit>0 ? Math.min(100,k.spentToday/k.todayLimit*100) : 0;
+  const link = location.href.split("#")[0]+"#widget";
+  $("#main").innerHTML = `<div class="wg">
+    ${S.demo?`<div class="demo"><div><b>Przykładowe dane.</b> Uzupełnij swój budżet w pełnym widoku.</div></div>`:""}
+    <div class="today">
+      <div class="lbl">Na dziś · ${WD[new Date().getDay()]} ${fmtD(new Date())}</div>
+      <div class="big num ${over?"over":""}">${over?"−":""}${nf0.format(Math.abs(Math.round(k.leftToday)))}<small>zł</small></div>
+      <div class="tbar"><i class="${over?"over":""}" style="width:${usedPct}%"></i></div>
+      <form class="quick" id="quick" autocomplete="off"><input id="q-amt" inputmode="decimal" placeholder="np. 24,90 kawa" aria-label="Kwota i opis wydatku"><button class="btn" type="submit">Dodaj</button></form>
+    </div>
+    <div class="egg-card">${eggSVG(k.s.goal>0?k.projSaved/k.s.goal:0, 90)}
+      <div class="egg-txt"><div class="lbl">Odłożysz w tym cyklu</div><div class="val num ${k.projSaved<0?"neg":""}">${zl(k.projSaved)}</div><div class="muted" style="font-size:.85rem">cel ${zl(k.s.goal)}</div></div></div>
+    <div class="wg-meta">
+      <div class="stat"><span class="lbl">Zostało w puli</span><span class="v">${zl(k.free-k.spent)}</span><span class="s">${k.daysLeft} dni do wypłaty</span></div>
+      <div class="stat"><span class="lbl">Do opłacenia</span><span class="v">${zl(k.unpaid)}</span><span class="s">koszty stałe</span></div>
+    </div>
+    <section class="panel"><h2>Przypnij na ekran główny</h2>
+      <div class="pin">
+        <div><div class="lbl" style="margin-bottom:4px">iPhone (Safari)</div><ol><li>Otwórz link poniżej w Safari.</li><li>Stuknij „Udostępnij”.</li><li>Wybierz „Do ekranu początkowego”.</li></ol></div>
+        <div><div class="lbl" style="margin-bottom:4px">Android (Chrome)</div><ol><li>Otwórz link poniżej w Chrome.</li><li>Stuknij menu ⋮.</li><li>Wybierz „Dodaj do ekranu głównego”.</li></ol></div>
+      </div>
+      <div class="linkbox"><input class="in" id="wlink" readonly value="${esc(link)}" aria-label="Link do widżetu"><button class="btn small" type="button" data-act="copy">Kopiuj</button></div>
+      <p class="hint" style="margin:0">Ten link otwiera od razu ten widżet. Na komputerze przeciągnij go na pasek zakładek.</p>
+    </section></div>`;
+}
+
+// ---------- settings sheet ----------
+let sheetFixed=[];
+function openSettings(){
+  const s = (S.demo||!S.settings) ? {income:"",payday:10,goal:"",hours:168,fixed:[]} : S.settings;
+  sheetFixed = (s.fixed||[]).map(f=>({...f}));
+  if(!sheetFixed.length) sheetFixed=[{id:uid(),name:"",amt:"",cat:"Raty"},{id:uid(),name:"",amt:"",cat:"Media"},{id:uid(),name:"",amt:"",cat:"Mieszkanie"}];
+  $("#sheet-host").innerHTML = `<div class="sheet" id="sheet"><form class="sheet-in" id="setf" autocomplete="off">
+    <div class="ph"><h2>Dochód i koszty stałe</h2><button class="x" type="button" data-act="close" aria-label="Zamknij">×</button></div>
+    <div class="grid2">
+      <div class="field"><label for="s-inc">Dochód netto na miesiąc (zł)</label><input class="in num" id="s-inc" inputmode="decimal" required value="${esc(s.income)}" placeholder="np. 6800"></div>
+      <div class="field"><label for="s-pay">Dzień wypłaty (1–28)</label><input class="in num" id="s-pay" type="number" min="1" max="28" required value="${esc(s.payday)}"></div>
+      <div class="field"><label for="s-goal">Ile chcesz odłożyć w miesiącu (zł)</label><input class="in num" id="s-goal" inputmode="decimal" value="${esc(s.goal)}" placeholder="np. 1000"></div>
+      <div class="field"><label for="s-hrs">Godzin pracy w miesiącu</label><input class="in num" id="s-hrs" type="number" min="1" value="${esc(s.hours||168)}"></div>
+      <div class="field"><label for="s-wk">Limit w sobotę i niedzielę</label><select class="in" id="s-wk">${[[1,"taki sam jak w tygodniu"],[1.25,"o 25% większy"],[1.5,"o 50% większy"],[2,"2 razy większy"],[2.5,"2,5 razy większy"],[3,"3 razy większy"]].map(([v,t])=>`<option value="${v}" ${v===(s.wkend||1.5)?"selected":""}>${t}</option>`).join("")}</select></div>
+    </div>
+    <p class="hint" style="margin:0">Godziny pracy służą do przeliczania wydatków na czas, który musisz na nie przepracować.</p>
+    <div class="ph"><h3>Koszty stałe</h3><span class="hint">raty, media, czynsz, abonamenty</span></div>
+    <div id="fxlist" style="display:flex;flex-direction:column;gap:8px"></div>
+    <button class="btn small" type="button" data-act="addfx" style="align-self:flex-start">+ Dodaj koszt stały</button>
+    <div class="sum" id="setsum"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+      ${S.demo?"":`<button class="btn ghost" type="button" data-act="reset">Wyczyść wszystkie dane</button>`}
+      <button class="btn primary" type="submit">Zapisz</button>
+    </div>
+    <div id="reset-confirm" hidden class="demo"><div>Na pewno usunąć wszystkie wydatki i ustawienia?</div><div style="display:flex;gap:8px"><button class="btn small" type="button" data-act="reset-no">Nie</button><button class="btn small" type="button" data-act="reset-yes" style="color:var(--bad)">Tak, usuń</button></div></div>
+  </form></div>`;
+  drawFx(); updateSum();
+  setTimeout(()=>$("#s-inc")?.focus(),30);
+}
+function drawFx(){
+  $("#fxlist").innerHTML = sheetFixed.map((f,i)=>`<div class="fxedit">
+    <input class="in" data-fx="${i}" data-k="name" value="${esc(f.name)}" placeholder="Nazwa, np. rata kredytu" aria-label="Nazwa kosztu">
+    <input class="in num" data-fx="${i}" data-k="amt" inputmode="decimal" value="${esc(f.amt)}" placeholder="zł" aria-label="Kwota">
+    <select class="in" data-fx="${i}" data-k="cat" aria-label="Rodzaj">${FCATS.map(c=>`<option ${c===f.cat?"selected":""}>${c}</option>`).join("")}</select>
+    <button class="x" type="button" data-rmfx="${i}" aria-label="Usuń koszt">×</button></div>`).join("");
+}
+function updateSum(){
+  const inc=parseAmt($("#s-inc").value)||0, goal=parseAmt($("#s-goal").value)||0;
+  const fx=sheetFixed.reduce((a,f)=>a+(parseAmt(f.amt)||0),0);
+  const free=inc-fx-goal, wk=parseFloat($("#s-wk").value)||1.5;
+  $("#setsum").innerHTML=`<dl class="kv"><dt>Dochód</dt><dd>${zl(inc)}</dd><dt>Koszty stałe</dt><dd>−${zl(fx)}</dd><dt>Odkładasz</dt><dd>−${zl(goal)}</dd><dt><b>Pula na życie</b></dt><dd class="free ${free<0?"neg":""}">${zl(free)}</dd><dt>Dzień w tygodniu</dt><dd>ok. ${zl(free/(21.7+8.7*wk))}</dd><dt>Sobota, niedziela</dt><dd>ok. ${zl(free*wk/(21.7+8.7*wk))}</dd></dl>`;
+}
+function saveSettings(){
+  const inc=parseAmt($("#s-inc").value);
+  if(!(inc>0)){ toast("Wpisz dochód netto większy od zera."); $("#s-inc").focus(); return; }
+  const fixed=sheetFixed.filter(f=>String(f.name).trim()||parseAmt(f.amt)>0).map(f=>({id:f.id||uid(),name:String(f.name).trim()||f.cat,amt:parseAmt(f.amt)||0,cat:f.cat}));
+  const wasDemo=S.demo;
+  if(wasDemo){ S.demo=false; S.cycles={}; }
+  S.settings={setup:true,income:inc,payday:Math.min(28,Math.max(1,parseInt($("#s-pay").value)||1)),goal:Math.max(0,parseAmt($("#s-goal").value)||0),hours:Math.max(1,parseInt($("#s-hrs").value)||168),wkend:parseFloat($("#s-wk").value)||1.5,fixed};
+  const key=curCycle().key; const d=cycleDoc(key); d.inc=S.settings.income; d.fix=fixedTotal(); d.goal=S.settings.goal;
+  save("settings"); save(key);
+  closeSheet(); render(); toast("Zapisano. Limit na dziś przeliczony.");
+}
+function closeSheet(){ $("#sheet-host").innerHTML=""; AD=null; }
+
+// ---------- actions ----------
+function addExpense(amt, note, cat, kind, t){
+  if(!(amt>0)){ toast("Wpisz kwotę większą od zera, np. 24,90."); return false; }
+  if(S.demo){ toast("To przykładowe dane. Najpierw wpisz swój dochód i koszty stałe."); openSettings(); return false; }
+  t = t || Date.now();
+  const key=cycleFor(new Date(t), S.settings.payday).key, id=uid();
+  cycleDoc(key).exp.push({id,a:amt,c:cat,n:note,k:kind,t});
+  save(key); render(); buzz(15);
+  const undo={label:"Cofnij", fn:()=>delExp(id,true)};
+  if(ymd(new Date(t))!==ymd(new Date())){ toast(`Dodano ${zls(amt)} do dnia ${fmtD(new Date(t))}.`, undo); return true; }
+  const k=calc(); toast(k.leftToday>=0?`Dodano ${zls(amt)}. Na dziś zostaje ${zl(k.leftToday)}.`:`Dodano ${zls(amt)}. Limit przekroczony o ${zl(-k.leftToday)}.`, undo);
+  return true;
+}
+const buzz = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(_){} };
+function findExp(id){ for(const ck of Object.keys(S.cycles)){ const d=S.cycles[ck], i=(d.exp||[]).findIndex(x=>x.id===id); if(i>=0) return {ck,d,i,e:d.exp[i]}; } return null; }
+function delExp(id, silent){
+  if(S.demo) return toast("To przykładowe dane.");
+  const f=findExp(id); if(!f) return;
+  f.d.exp.splice(f.i,1); save(f.ck); render();
+  if(silent) return toast("Cofnięto.");
+  toast("Usunięto wydatek.", {label:"Cofnij", fn:()=>{ cycleDoc(f.ck).exp.push(f.e); save(f.ck); render(); toast("Przywrócono."); }});
+}
+
+// ---------- szybkie dodawanie: arkusz z klawiaturą (telefon) ----------
+const WANT_CATS=["miasto","rozrywka"];
+let AD=null;
+function recentPicks(){
+  const since=Date.now()-90*DAYMS, m=new Map();
+  Object.values(S.cycles).forEach(c=>(c.exp||[]).forEach(e=>{ const n=String(e.n||"").trim(); if(!n||e.t<since) return;
+    const key=n.toLowerCase(), o=m.get(key)||{n,c:e.c,k:e.k,cnt:0,t:0}; o.cnt++; if(e.t>o.t){o.t=e.t;o.c=e.c;o.k=e.k;o.n=n;} m.set(key,o); }));
+  return [...m.values()].sort((a,b)=>b.cnt-a.cnt||b.t-a.t).slice(0,10);
+}
+function adOffset(t){ return t==null ? 0 : daysBetween(new Date(t), new Date()); }
+function openAdd(editId){
+  if(S.demo){ toast("To przykładowe dane. Najpierw wpisz swój dochód i koszty stałe."); return openSettings(); }
+  const f = editId ? findExp(editId) : null;
+  AD = f ? {id:editId, amt:String(f.e.a).replace(".",","), cat:f.e.c||"inne", kind:f.e.k||"need", t:f.e.t, orig:f.e.t, origA:f.e.a, kindTouched:true}
+         : {id:null, amt:"", cat:S.draft.cat, kind:S.draft.kind, t:null, orig:null, origA:0, kindTouched:false};
+  AD.recent = f ? [] : recentPicks();
+  const off=adOffset(AD.t), days=[[0,"Dziś"],[1,"Wczoraj"],[2,"Przedwczoraj"]];
+  if(f && off>2) days.unshift(["orig", fmtD(new Date(f.e.t))]);
+  $("#sheet-host").innerHTML = `<div class="bs" id="sheet"><form class="bs-in" id="addsheet" autocomplete="off" aria-label="${f?"Popraw wydatek":"Nowy wydatek"}">
+    <div class="bs-grab" aria-hidden="true"></div>
+    <div class="ph"><h2>${f?"Popraw wydatek":"Nowy wydatek"}</h2><button class="x" type="button" data-act="close" aria-label="Zamknij">×</button></div>
+    <div class="amt num" id="ad-amt" aria-live="polite"></div>
+    <div class="amt-hint" id="ad-hint"></div>
+    <div class="seg" role="group" aria-label="Kiedy">${days.map(([v,l])=>`<button type="button" data-adday="${v}" aria-pressed="${v==="orig"||(v===off&&!(f&&off>2))}">${l}</button>`).join("")}</div>
+    <div class="cgrid" role="group" aria-label="Kategoria">${CATS.map(c=>`<button type="button" data-adcat="${c.id}" style="--c:${c.c}" aria-pressed="${AD.cat===c.id}" aria-label="${c.n}"><span class="ic" aria-hidden="true">${c.e}</span><span>${c.sn}</span></button>`).join("")}</div>
+    <div class="note"><input class="in" id="ad-note" placeholder="Na co? (opcjonalnie)" value="${esc(f?f.e.n:"")}" enterkeyhint="done" aria-label="Na co">
+      <div class="seg" role="group" aria-label="Rodzaj"><button type="button" data-adkind="need" aria-pressed="${AD.kind==="need"}">Potrzeba</button><button type="button" class="w" data-adkind="want" aria-pressed="${AD.kind==="want"}">Zachcianka</button></div></div>
+    ${AD.recent.length?`<div class="seg recent" aria-label="Ostatnio">${AD.recent.map((r,i)=>`<button type="button" data-recent="${i}">${(CAT[r.c]||CAT.inne).e} ${esc(r.n)}</button>`).join("")}</div>`:""}
+    <div class="keys">${["1","2","3","4","5","6","7","8","9",",","0","back"].map(x=>`<button type="button" data-key="${x}" class="${x==="back"||x===","?"fn":""}" aria-label="${x==="back"?"Usuń cyfrę":x}">${x==="back"?"⌫":x}</button>`).join("")}</div>
+    <div class="go">${f?`<button class="btn del" type="button" data-act="ad-del">Usuń</button>`:`<span></span>`}<button class="btn primary" type="submit" id="ad-go">Dodaj</button></div>
+  </form></div>`;
+  updAmt(); const t=$(".toast"); if(t) t.hidden=true;
+}
+function adSync(){
+  document.querySelectorAll("[data-adcat]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.adcat===AD.cat));
+  document.querySelectorAll("[data-adkind]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.adkind===AD.kind));
+}
+function updAmt(){
+  const el=$("#ad-amt"); if(!el) return;
+  const [i,d]=AD.amt.split(",");
+  const shown = AD.amt ? (i?nf0.format(+i):"0")+(d!==undefined?","+d:"") : "0";
+  el.className="amt num"+(AD.amt?"":" empty"); el.innerHTML=`${shown}<small>zł</small>`;
+  const v=parseAmt(AD.amt), h=$("#ad-hint"), go=$("#ad-go");
+  go.textContent = AD.id ? "Zapisz" : v>0 ? `Dodaj ${zls(v)}` : "Dodaj";
+  if(!(v>0)){ h.textContent = AD.id ? "" : "Wpisz kwotę z paragonu"; return; }
+  const k=calc(), when=AD.t==null?new Date():new Date(AD.t), isToday=ymd(when)===k.todayKey;
+  let left=k.leftToday; if(AD.id && AD.orig!=null && ymd(new Date(AD.orig))===k.todayKey) left+=AD.origA;
+  h.innerHTML = `${hoursTxt(v/k.hourly)}` + (isToday ? ` · ${v<=left?`na dziś zostanie <b>${zl(left-v)}</b>`:`<span class="negc">przekroczy limit o ${zl(v-Math.max(0,left))}</span>`}` : ` · ${WD[when.getDay()]} ${fmtD(when)}`);
+}
+function adKey(x){
+  let a=AD.amt;
+  if(x==="back") a=a.slice(0,-1);
+  else if(x===","){ if(a.includes(",")) return; a=(a||"0")+","; }
+  else { const [i,d]=a.split(","); if(d!==undefined){ if(d.length>=2) return; } else if(i.length>=6) return; a = a==="0" ? x : a+x; }
+  AD.amt=a; updAmt(); buzz(6);
+}
+function adSetCat(c){ AD.cat=c; if(!AD.kindTouched) AD.kind=WANT_CATS.includes(c)?"want":"need"; adSync(); }
+function saveAdd(){
+  const v=parseAmt(AD.amt), note=($("#ad-note")?.value||"").trim();
+  if(!(v>0)){ toast("Wpisz kwotę, np. 24,90."); buzz([20,40,20]); return; }
+  if(AD.id){
+    const f=findExp(AD.id), t=AD.t ?? Date.now(), key=cycleFor(new Date(t), S.settings.payday).key;
+    if(f){ f.d.exp.splice(f.i,1); if(f.ck!==key) save(f.ck); }
+    cycleDoc(key).exp.push({id:AD.id,a:v,c:AD.cat,n:note,k:AD.kind,t}); save(key);
+    closeSheet(); render(); buzz(15); toast("Zapisano zmiany."); return;
+  }
+  const a=AD; closeSheet(); addExpense(v, note, a.cat, a.kind, a.t);
+}
+function guessCat(t){ t=t.toLowerCase();
+  const m=[["jedzenie",/biedr|lidl|żabk|zabk|auchan|kaufl|carref|dino|netto|spoż|spoz|zakup|warzyw|piekar|mięs|mies/],["miasto",/kaw|pizz|kebab|resta|obiad|lunch|mcd|bar |sushi|burger|lody|piwo/],["transport",/paliw|benz|orlen|bp |shell|bilet|uber|bolt|parking|autobus|pkp|tank/],["zdrowie",/apte|lekarz|lek |dentyst|leki/],["rozrywka",/kino|netflix|spotify|gra |gry|koncert|książ|ksiaz/],["ubrania",/but|koszul|spodn|kurtk|zara|h&m|ubran/],["dom",/chemi|ikea|castor|leroy|obi|narzęd|narzed/],["dzieci",/dzieck|przedszk|zabawk|pielusz/],["prezenty",/prezent|urodzin|kwiat/]];
+  for(const [c,r] of m) if(r.test(t)) return c; return null; }
+
+function updateHint(){
+  const el=$("#hint"); if(!el) return; const v=parseAmt($("#a-amt")?.value||"");
+  if(!(v>0)||!S.settings){ el.textContent=""; return; }
+  const k=calc(); el.innerHTML=`to <b>${hoursTxt(v/k.hourly)}</b> · ${v<=k.leftToday?`zostanie ${zl(k.leftToday-v)} na dziś`:`przekroczy limit o ${zl(v-Math.max(0,k.leftToday))}`}`;
+}
+
+document.addEventListener("submit", e=>{
+  e.preventDefault();
+  const f=e.target;
+  if(f.id==="quick"){ const raw=$("#q-amt").value.trim(); const m=raw.match(/^([\d\s]+(?:[.,]\d{1,2})?)\s*(.*)$/);
+    if(!m){ toast("Zacznij od kwoty, np. „24,90 kawa”."); return; }
+    const note=m[2].trim(); const cat=guessCat(note)||"inne";
+    addExpense(parseAmt(m[1]), note, cat, cat==="miasto"||cat==="rozrywka"?"want":"need"); }
+  else if(f.id==="addf"){ addExpense(parseAmt($("#a-amt").value), $("#a-note").value.trim(), S.draft.cat, S.draft.kind); }
+  else if(f.id==="setf"){ saveSettings(); }
+  else if(f.id==="addsheet"){ saveAdd(); }
+});
+document.addEventListener("input", e=>{
+  const t=e.target;
+  if(t.id==="a-amt") updateHint();
+  if(t.id==="ad-note" && AD){ const g=guessCat(t.value); if(g && g!==AD.cat) adSetCat(g); }
+  if(t.id==="a-note"){ const g=guessCat(t.value); if(g&&g!==S.draft.cat){ S.draft.cat=g; document.querySelectorAll("[data-cat]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cat===g)); } }
+  if(t.dataset.fx!==undefined){ sheetFixed[+t.dataset.fx][t.dataset.k]=t.value; updateSum(); }
+  if(t.id==="s-inc"||t.id==="s-goal"||t.id==="s-wk") updateSum();
+});
+document.addEventListener("change", e=>{
+  const t=e.target;
+  if(t.dataset.fx!==undefined){ sheetFixed[+t.dataset.fx][t.dataset.k]=t.value; updateSum(); }
+  if(t.dataset.paid){ if(S.demo){ t.checked=!t.checked; toast("To przykładowe dane."); return; }
+    const key=curCycle().key; const d=cycleDoc(key); if(t.checked) d.paid[t.dataset.paid]=true; else delete d.paid[t.dataset.paid]; save(key); render(); openPaid(); }
+});
+document.addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.id==="btn-settings"||b.dataset.act==="setup") return openSettings();
+  if(b.id==="btn-paid") return openPaid();
+  if(b.id==="fab") return openAdd();
+  if(b.dataset.key && AD){ adKey(b.dataset.key); return; }
+  if(b.dataset.adcat){ adSetCat(b.dataset.adcat); return; }
+  if(b.dataset.adkind){ AD.kind=b.dataset.adkind; AD.kindTouched=true; adSync(); return; }
+  if(b.dataset.adday!==undefined){ const v=b.dataset.adday, n=new Date();
+    AD.t = v==="orig" ? AD.orig : (+v===0 && !AD.id) ? null : (AD.orig!=null && adOffset(AD.orig)===+v) ? AD.orig : new Date(n.getFullYear(),n.getMonth(),n.getDate()-(+v),n.getHours(),n.getMinutes()).getTime();
+    document.querySelectorAll("[data-adday]").forEach(x=>x.setAttribute("aria-pressed", x===b)); updAmt(); return; }
+  if(b.dataset.recent!==undefined && AD){ const r=AD.recent[+b.dataset.recent]; $("#ad-note").value=r.n; AD.cat=r.c||"inne"; AD.kind=r.k||"need"; AD.kindTouched=true; adSync(); return; }
+  if(b.dataset.act==="ad-del"){ const id=AD.id; closeSheet(); delExp(id); return; }
+  if(b.id==="btn-view"){ S.view=S.view==="widget"?"main":"widget"; try{ history.replaceState(null,"",S.view==="widget"?"#widget":location.pathname+location.search); }catch(_){ location.hash=S.view==="widget"?"widget":""; } render(); window.scrollTo(0,0); return; }
+  if(b.dataset.cat){ S.draft.cat=b.dataset.cat; document.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed",x===b)); return; }
+  if(b.dataset.kind){ S.draft.kind=b.dataset.kind; document.querySelectorAll("[data-kind]").forEach(x=>x.setAttribute("aria-pressed",x===b)); return; }
+  const key = S.settings ? curCycle().key : null;
+  if(b.dataset.act==="allexp"){ S.showAllExp=!S.showAllExp; render(); return; }
+  if(b.dataset.cycnav!==undefined){ const v=+b.dataset.cycnav; S.cycOff = v===0 ? 0 : S.cycOff+v; render(); return; }
+  if(b.dataset.calday){ S.calSel = S.calSel===b.dataset.calday ? null : b.dataset.calday; render(); return; }
+  if(b.dataset.del){ delExp(b.dataset.del); return; }
+  if(b.dataset.act==="close") return closeSheet();
+  if(b.dataset.act==="addfx"){ sheetFixed.push({id:uid(),name:"",amt:"",cat:"Inne"}); drawFx(); updateSum(); return; }
+  if(b.dataset.rmfx!==undefined){ sheetFixed.splice(+b.dataset.rmfx,1); drawFx(); updateSum(); return; }
+  if(b.dataset.act==="reset"){ $("#reset-confirm").hidden=false; return; }
+  if(b.dataset.act==="reset-no"){ $("#reset-confirm").hidden=true; return; }
+  if(b.dataset.act==="reset-yes"){ resetAll(); return; }
+  if(b.dataset.act==="copy"){ const inp=$("#wlink"); const done=()=>toast("Skopiowano link.");
+    try{ navigator.clipboard.writeText(inp.value).then(done,()=>{inp.select();toast("Zaznaczono link, skopiuj go ręcznie.");}); }catch(_){ inp.select(); toast("Zaznaczono link, skopiuj go ręcznie."); } return; }
+});
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape" && $("#sheet")) return closeSheet();
+  if(AD && $("#addsheet") && e.target.tagName!=="INPUT" && !e.ctrlKey && !e.metaKey && !e.altKey){
+    if(/^[0-9]$/.test(e.key)){ e.preventDefault(); adKey(e.key); }
+    else if(e.key===","||e.key==="."){ e.preventDefault(); adKey(","); }
+    else if(e.key==="Backspace"){ e.preventDefault(); adKey("back"); }
+  }
+});
+// stuknięcie w wydatek na liście otwiera go do poprawki
+document.addEventListener("click", e=>{ if(e.target.closest("button")) return; const r=e.target.closest("[data-edit]"); if(r) openAdd(r.dataset.edit); });
+document.addEventListener("click", e=>{ if(e.target.id==="sheet") closeSheet(); });
+window.addEventListener("hashchange", ()=>{ S.view=location.hash==="#widget"?"widget":"main"; if(location.hash==="#dodaj") S.wantAdd=true; render(); });
+
+async function resetAll(){
+  const keys=["settings",...Object.keys(S.cycles)];
+  try{ localStorage.removeItem(S.lsKey||LS_KEY); }catch(_){}
+  if(S.mode==="cloud"&&S.col){ for(const k of keys){ try{ await S.col.doc(k).delete(); }catch(_){} } }
+  closeSheet(); const d=demoData(); S.settings=d.settings; S.cycles=d.cycles; S.demo=true; render(); toast("Usunięto dane.");
+}
+
+let toastT=null;
+function toast(msg, act){ let el=$(".toast"); if(!el){ el=document.createElement("div"); el.className="toast"; el.setAttribute("role","status"); document.body.appendChild(el); }
+  el.textContent=""; const sp=document.createElement("span"); sp.textContent=msg; el.appendChild(sp);
+  if(act){ const b=document.createElement("button"); b.type="button"; b.textContent=act.label; b.addEventListener("click",()=>{ el.hidden=true; act.fn(); }); el.appendChild(b); }
+  el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{el.hidden=true;}, act?5500:3200); }
+
+// odśwież o północy (nowy dzień = nowy limit)
+setInterval(()=>{ if(S.settings && S.mode!=="login" && !$("#sheet") && document.activeElement?.tagName!=="INPUT") render(); }, 60000);
+
+// ---------- logowanie e-mailem (wersja na GitHub Pages, Firebase) ----------
+function renderLogin(){
+  if(S.mode==="pending"){ $("#main").innerHTML=`<p class="muted">Sprawdzam logowanie…</p>`; return; }
+  if($("#loginf")){ $("#login-err").textContent=S.loginErr||""; $("#login-err").hidden=!S.loginErr; return; }
+  $("#main").innerHTML = `<div class="wg"><div class="egg-card">${eggSVG(.55,90)}
+    <div class="egg-txt"><h2>Zaloguj się</h2><div class="muted" style="font-size:.9rem">Budżet zapisuje się na koncie, więc zobaczysz go na telefonie i na komputerze.</div></div></div>
+    <form class="panel" id="loginf" autocomplete="on">
+      <div class="field"><label for="l-email">E-mail</label><input class="in" id="l-email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="l-pass">Hasło</label><input class="in" id="l-pass" type="password" autocomplete="current-password" required></div>
+      <p class="hint" id="login-err" role="alert" style="margin:0;color:var(--bad)" ${S.loginErr?"":"hidden"}>${esc(S.loginErr||"")}</p>
+      <div class="addrow"><button class="btn ghost" type="button" data-act="forgot">Nie pamiętam hasła</button><button class="btn primary" type="submit">Zaloguj</button></div>
+    </form>
+    <p class="hint" style="margin:0">Strona prywatna.</p></div>`;
+}
+function fbError(e){
+  const c=e&&e.code||"";
+  if(/invalid-credential|wrong-password|user-not-found|invalid-email|invalid-login/.test(c)) return "Nieprawidłowy e-mail lub hasło.";
+  if(/too-many-requests/.test(c)) return "Za dużo prób. Odczekaj chwilę i spróbuj ponownie.";
+  if(/network/.test(c)) return "Brak połączenia z internetem.";
+  if(/permission-denied/.test(c)) return "Baza nie pozwala jeszcze zapisywać budżetu. Administrator musi opublikować nowe reguły z pliku firestore.rules w konsoli Firebase.";
+  return "Coś poszło nie tak ("+(c||"błąd")+"). Spróbuj ponownie.";
+}
+function fbBoot(){
+  firebase.initializeApp(window.FIREBASE_CONFIG);
+  const auth=firebase.auth(), fdb=firebase.firestore();
+  // pamięć offline: w sklepie bez zasięgu wydatek zapisze się w telefonie i wyśle sam po powrocie sieci
+  try{ fdb.enablePersistence({synchronizeTabs:true}).catch(()=>{}); }catch(_){}
+  S.fbAuth=auth; S.mode="pending"; render();
+  auth.onAuthStateChanged(async u=>{
+    if(!u){ S.user=null; S.col=null; S.lsKey=null; S.settings=null; S.cycles={}; S.mode="login"; render(); return; }
+    if(!BUDGET_USERS.includes(String(u.email||"").toLowerCase())){ S.loginErr="To konto nie ma dostępu do tej strony."; S.mode="login"; auth.signOut(); return; }
+    S.user=u.email; S.lsKey=LS_KEY+"."+u.uid; S.loginErr="";
+    const col=fdb.collection("budgets").doc(u.uid).collection("docs");
+    let cloud={settings:null,cycles:{}};
+    try{
+      const snap=await col.get();
+      snap.docs.forEach(d=>{ const v=d.data(); if(d.id==="settings") cloud.settings=v; else if(d.id.startsWith("c-")) cloud.cycles[d.id]=v; });
+      S.col=col; S.mode="cloud";
+    }catch(e){
+      if(e && e.code==="permission-denied"){ S.loginErr="To konto nie ma dostępu do tej strony."; S.mode="login"; auth.signOut(); return; }
+      S.mode="local"; toast(fbError(e)); }
+    // LS_KEY: dane zapisane na telefonie przed wprowadzeniem logowania; należą do właściciela, więc tylko on je przejmuje
+    const local = lsRead(S.lsKey) || (String(u.email).toLowerCase()===OWNER ? lsRead(LS_KEY) : null);
+    if(cloud.settings && cloud.settings.setup){ S.settings=cloud.settings; S.cycles=cloud.cycles; S.demo=false; lsWrite(); }
+    else if(local && local.settings && local.settings.setup){ S.settings=local.settings; S.cycles=local.cycles||{}; S.demo=false; save("settings"); Object.keys(S.cycles).forEach(k=>save(k)); }
+    else { const d=demoData(); S.settings=d.settings; S.cycles=d.cycles; S.demo=true; }
+    render();
+  });
+}
+document.addEventListener("submit", async e=>{
+  if(e.target.id!=="loginf") return;
+  const btn=e.target.querySelector("button[type=submit]"); btn.disabled=true; S.loginErr="";
+  try{ await S.fbAuth.signInWithEmailAndPassword($("#l-email").value.trim(), $("#l-pass").value); }
+  catch(err){ S.loginErr=fbError(err); renderLogin(); }
+  btn.disabled=false;
+});
+document.addEventListener("click", async e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.id==="btn-logout"){ await flush(); S.fbAuth&&S.fbAuth.signOut(); return; }
+  if(b.dataset.act==="forgot"){ const email=$("#l-email").value.trim();
+    if(!email){ S.loginErr="Wpisz najpierw swój e-mail, a wyślę link do zmiany hasła."; return renderLogin(); }
+    try{ await S.fbAuth.sendPasswordResetEmail(email); }catch(_){}
+    S.loginErr=""; renderLogin(); toast("Jeśli to konto istnieje, link do zmiany hasła jest już w skrzynce."); }
+});
+
+// ---------- boot ----------
+(function boot(){
+  if(window.firebase && window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey) return fbBoot();
+  const local=lsRead();
+  if(local&&local.settings&&local.settings.setup){ S.settings=local.settings; S.cycles=local.cycles||{}; }
+  else { const d=demoData(); S.settings=d.settings; S.cycles=d.cycles; S.demo=true; }
+  render();
+  connectCloud().then(ok=>{ if(ok) render(); });
+})();
+})();
+</script>
