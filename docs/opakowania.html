@@ -2195,7 +2195,13 @@ function iconParts(kind, col) {
   };
   if (kind === "eur") { pallet(12, 8, col); dot(11.3, 4, 1.44, .5, "rgba(0,0,0,.35)"); }
   else if (kind === "rem") pallet(12, 8, col, { miss: 1, broken: 3 });
-  else if (kind === "dhp") pallet(8, 6, col, { boards: 4, bw: 1.2 });
+  else if (kind === "dhp") { // półpaleta DHP 800×600 (pół EUR): 2 płozy wzdłuż, 6 klocków (2×3, boki niemalowane), 5 desek w poprzek
+    const blk = `color-mix(in srgb, ${col} 18%, #b9b1a2)`;
+    [0, 4.9].forEach(y => box(0, y, 0, 8, 1.1, .22, col));
+    [0, 4.9].forEach(y => [0, 3.27, 6.55].forEach(x => box(x, y, .22, 1.45, 1.1, .78, blk)));
+    [0, 4.9].forEach(y => box(0, y, 1, 8, 1.1, .22, col));
+    [0, 1.66, 3.32, 4.98, 6.65].forEach(x => box(x, 0, 1.22, 1.35, 6, .22, col));
+  }
   else if (kind === "pl") { // plastikowa: pełny blat z otworami, nóżki i płozy
     [0, 2.45, 4.9].forEach(y => box(0, y, 0, 8, 1.1, .25, col));
     [0, 2.45, 4.9].forEach(y => [0, 3.2, 6.4].forEach(x => box(x, y, .25, 1.6, 1.1, .75, col)));
