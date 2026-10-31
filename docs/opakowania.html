@@ -454,6 +454,23 @@ th.sort { cursor: pointer; } th.sort:hover { color: var(--fg); } th.sort.on::aft
 .harm .cell.past { opacity: .65; }
 .chip { font-size: .7rem; line-height: 1.3; padding: 1px 4px; border-radius: 2px; background: var(--gb, var(--surface-2)); color: var(--fg); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-left: 3px solid var(--gc, var(--muted)); }
 .chip.st-done { opacity: .6; }
+.chip { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 4px; padding: 2px 5px 3px; }
+.chip .cn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.chip .cq { font: 600 .68rem var(--f-mono); }
+.chip .cs { grid-column: 1 / -1; font: 600 .62rem var(--f-mono); letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip.st-wait { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--warn) 22%, var(--surface)) 0 6px, color-mix(in srgb, var(--warn) 10%, var(--surface)) 6px 12px); border-left: 3px dashed var(--warn); font-style: normal; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 55%, transparent); }
+.chip.st-wait .cs { color: #8a5a00; } .chip.st-wait.late .cs { color: var(--bad); }
+.chip.st-plan .cs { color: var(--ok); } .chip.st-done .cs { color: var(--muted); }
+.chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--warn); margin-right: 3px; vertical-align: 0; }
+.chip.late .dot { background: var(--bad); }
+@media (prefers-reduced-motion: no-preference) { .chip.st-wait .dot { animation: waitDot 1.2s ease-in-out infinite; } @keyframes waitDot { 50% { opacity: .2; transform: scale(.7); } } }
+.harm .band { grid-column: 1 / -1; display: flex; gap: 10px; align-items: baseline; padding: 6px 10px; margin-top: 8px; border-radius: 4px; color: #fff; font: 700 .95rem var(--f-cond); letter-spacing: .06em; text-transform: uppercase; background: var(--bc); }
+.harm .band small { font: 500 .74rem var(--f-mono); text-transform: none; letter-spacing: 0; opacity: .9; }
+.harm .band.b-eur { --bc: color-mix(in srgb, var(--g-own) 85%, #000); } .harm .band.b-pul { --bc: var(--g-chep); margin-top: 14px; }
+.harm .cell.pul { background: color-mix(in srgb, var(--g-chep) 6%, var(--surface)); border-color: color-mix(in srgb, var(--g-chep) 30%, var(--line-2)); }
+.harm .sl.pul { color: var(--g-chep); }
+.harm .empty-sec { grid-column: 2 / -1; font-size: .78rem; color: var(--muted); padding: 6px 4px; }
+.wait-list table td { vertical-align: middle; } .wait-list tr.late td:first-child { box-shadow: inset 3px 0 0 var(--bad); } .wait-list tr.soon td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
 .chip.st-cancel, .chip.st-noshow { text-decoration: line-through; opacity: .45; }
 .chip b { font-family: var(--f-mono); font-weight: 600; }
 .free { font-size: .64rem; color: var(--muted); padding: 0 2px; }
@@ -613,6 +630,10 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
         <header><h3>Tydzień w liczbach</h3></header>
         <div class="tbl-wrap" id="hWeek"></div>
       </div>
+    </div>
+    <div class="panel wait-list" id="hWaitP" style="border-top:4px solid var(--warn)">
+      <header><h3>✉ Czeka na potwierdzenie</h3><span class="sub" id="hWaitSub"></span></header>
+      <div class="tbl-wrap" id="hWait"></div>
     </div>
     <div class="panel" id="hGridP">
       <div class="harm-wrap"><div class="harm" id="harm"></div></div>
@@ -1343,7 +1364,7 @@ function awRow(it) {
   const s = secOf(it) === "pul" ? null : salOf(it.code), q = qOf(it); // przy CHEP/LPR/IPP/NDHP saldo EUR nic nie mówi
   const meta = [it.code, it.driver, it.dostChep && "dost. " + it.dostChep, it.dok && "dok. " + it.dok, it.note].filter(Boolean).join(" · ");
   let acts = "";
-  if (it.st === "wait") acts = `<span class="tag warn" title="wysłano prośbę, dostawca jeszcze nie potwierdził">czeka</span><button class="btn xs" data-act="conf" title="Dostawca potwierdził termin">Potwierdź</button><button class="btn xs ok" data-act="iss">Wydaj</button>`;
+  if (it.st === "wait") acts = `<span class="tag warn" title="wysłano prośbę, dostawca jeszcze nie potwierdził">czeka · ${esc(waitAge(it))}</span><button class="btn xs" data-act="conf" title="Dostawca potwierdził termin">Potwierdź</button><button class="btn xs ok" data-act="iss">Wydaj</button>`;
   else if (it.st === "plan" || it.st === "arr" || it.st === "load") acts = `<button class="btn xs ok" data-act="iss">Wydaj</button>`;
   else if (it.st === "done") acts = docBtn(it) + `<button class="btn xs" data-act="undo" title="Cofnij wydanie">↶</button>`;
   else acts = `<span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span><button class="btn xs" data-act="undo" title="Cofnij status">↶</button>`;
@@ -1470,6 +1491,7 @@ function renderHarm() {
     <tr><td class="mut nw">Domówić aut</td>${days.map(d => { const x = ep.days[d]; return `<td class="n">${x && x.deficit ? `<b class="pos">+${x.deficit}</b>` : x && !x.past && x.work ? '<span class="neg">✓</span>' : ""}</td>`; }).join("")}<td class="n"><b class="${ep.need ? "pos" : "neg"}">${ep.need ? "+" + ep.need : "✓"}</b></td><td colspan="2"></td></tr>` : ""}
   </tbody></table>`;
 
+  renderWait(days);
   if (hView === "list") return renderHList(days);
   $("#hLeg").innerHTML = legend(GORDER).replace(/^<div class="legend">|<\/div>$/g, "");
   const per = days.map(d => {
@@ -1511,20 +1533,65 @@ function renderHarm() {
         <div class="f-out">${x.past ? "" : trucks || (x.work ? "<span class='mut'>brak aut</span>" : "")}</div></div>`;
     });
   }
-  const chip = it => `<div class="chip st-${it.st} ${itCls(it.q, it.name)}" data-hedit="${esc(it.id)}" data-date="${it.date}" title="${esc((it.name || "") + " · " + it.slot + " · " + ST[it.st] + " · " + qText(it.q) + (it.note ? " · " + it.note : ""))}">${it.ord ? `<b>${it.ord}</b> ` : ""}${esc((it.name || it.code || "").slice(0, 20))} <b>${fmt(CATS.reduce((s, c) => s + qSum(it.q, c.k), 0))}</b></div>`;
-  CFG.slots.forEach((s, i) => {
-    h += `<div class="sl">${esc(s.t)}</div>`;
-    per.forEach(p => {
-      const its = p.rows[i], n = its.filter(active).length, cap = +s.cap || 0, vis = its.filter(inHSec);
-      h += `<div class="cell ${n >= cap ? "full" : ""} ${n > cap ? "over" : ""} ${p.d < T ? "past" : ""}" data-hnew="${p.d}|${esc(s.t)}">${vis.map(chip).join("")}${n < cap ? `<span class="free">wolne ${cap - n}</span>` : ""}</div>`;
+  const chip = it => { const w = it.st === "wait", late = w && it.date <= addDays(T, 1), tot = CATS.reduce((a, c) => a + qSum(it.q, c.k), 0);
+    const cs = w ? `<span class="dot"></span>czeka · ${esc(waitAge(it))}` : it.st === "plan" ? "✓ potwierdzone" : it.st === "done" ? "✔ wydane" + (it.tDone ? " " + it.tDone : "") : ST[it.st];
+    return `<div class="chip st-${it.st} ${late ? "late" : ""} ${itCls(it.q, it.name)}" data-hedit="${esc(it.id)}" data-date="${it.date}" title="${esc((it.name || "") + " · " + it.slot + " · " + ST[it.st] + (w ? " · " + waitAge(it) : "") + " · " + qText(it.q) + (it.note ? " · " + it.note : ""))}"><span class="cn">${it.ord ? it.ord + ". " : ""}${esc(it.name || it.code || "")}</span><span class="cq">${fmt(tot)}</span><span class="cs">${cs}</span></div>`; };
+  // dwie sekcje: EUR i reszta (wszystkie okna) oraz PUL (tylko okna, w których są awizacje PUL)
+  const isPul = it => secOf(it) === "pul";
+  const section = (pul, label, sub) => {
+    if (hSec === (pul ? "eur" : "pul")) return;
+    const its = per.flatMap(p => p.its.filter(i => isPul(i) === pul));
+    h += `<div class="band ${pul ? "b-pul" : "b-eur"}">${label} <small>${sub} · ${its.filter(active).length} aw. · ${its.filter(i => i.st === "wait").length} czeka na potwierdzenie</small></div>`;
+    const rowsUsed = CFG.slots.map((s, i) => !pul || per.some(p => p.rows[i].some(isPul)));
+    if (pul && !rowsUsed.some(Boolean) && !per.some(p => p.other.some(isPul))) { h += `<div></div><div class="empty-sec">brak awizacji PUL w tym tygodniu</div>`; return; }
+    CFG.slots.forEach((s, i) => {
+      if (!rowsUsed[i]) return;
+      h += `<div class="sl ${pul ? "pul" : ""}">${esc(s.t)}</div>`;
+      per.forEach(p => {
+        const all = p.rows[i], n = all.filter(active).length, cap = +s.cap || 0, vis = all.filter(x => isPul(x) === pul);
+        h += `<div class="cell ${pul ? "pul" : ""} ${n >= cap ? "full" : ""} ${n > cap ? "over" : ""} ${p.d < T ? "past" : ""}" data-hnew="${p.d}|${esc(s.t)}">${vis.map(chip).join("")}${!pul && n < cap ? `<span class="free">wolne ${cap - n}</span>` : ""}</div>`;
+      });
     });
-  });
-  if (per.some(p => p.other.length)) {
-    h += `<div class="sl">inne</div>`;
-    per.forEach(p => { h += `<div class="cell" data-hnew="${p.d}|">${p.other.filter(inHSec).map(chip).join("")}</div>`; });
-  }
+    if (per.some(p => p.other.some(x => isPul(x) === pul))) {
+      h += `<div class="sl ${pul ? "pul" : ""}">inne</div>`;
+      per.forEach(p => { h += `<div class="cell ${pul ? "pul" : ""}" data-hnew="${p.d}|">${p.other.filter(x => isPul(x) === pul).map(chip).join("")}</div>`; });
+    }
+  };
+  section(false, "Palety EUR i reszta", "EUR · naprawa · sprzedaż · wózki · transportery");
+  section(true, "Palety PUL", "CHEP · LPR · IPP · NDHP");
   $("#harm").innerHTML = h;
 }
+// ile czasu dostawca nie odpowiada na prośbę o potwierdzenie
+function waitAge(it) {
+  const t = it.mailAt || it.createdAt || it.at; if (!t) return "bez daty maila";
+  const d0 = new Date(t), days = Math.round((new Date(today()) - new Date(d0.toISOString().slice(0, 10))) / 864e5);
+  const hm = pad(d0.getHours()) + ":" + pad(d0.getMinutes());
+  return (it.mailAt ? "mail " : "dodano ") + (days <= 0 ? "dziś " + hm : days === 1 ? "wczoraj" : days + " dni temu");
+}
+// panel: awizacje czekające na odpowiedź dostawcy (od dziś, w tym i następnych tygodniach)
+function renderWait(days) {
+  const T = today(), its = Object.keys(DAYS).filter(d => d >= T).sort().flatMap(itemsOf).filter(i => i.st === "wait" && inHSec(i));
+  const pulN = its.filter(i => secOf(i) === "pul").length;
+  $("#hWaitSub").textContent = its.length ? `${its.length} ${plural(its.length, "awizacja", "awizacje", "awizacji")} bez odpowiedzi · EUR i reszta ${its.length - pulN} · PUL ${pulN}` : "";
+  if (!its.length) { $("#hWait").innerHTML = '<div class="notice ok">Wszyscy dostawcy potwierdzili terminy — nic nie czeka na odpowiedź.</div>'; return; }
+  const row = it => { const late = it.date <= addDays(T, 1), sec = secOf(it);
+    return `<tr class="${late ? "late" : "soon"} ${mainGroup(it.q, it.name) || ""} cat" data-wid="${esc(it.id)}" data-date="${it.date}">
+      <td class="nw"><b>${DOW_S[dowOf(it.date)]} ${shortDate(it.date)}</b> <span class="num mut" style="font-size:.74rem">${esc(it.slot || "")}</span></td>
+      <td><span class="q g-${SECS[sec][2]}">${sec === "pul" ? "PUL" : SECS[sec][0]}</span></td>
+      <td class="cut" style="max-width:260px"><b>${esc(it.name || it.code)}</b> <span class="mut">${esc(it.code || "")}</span></td>
+      <td class="nw">${qChips(it.q)}</td>
+      <td class="nw ${late ? "pos" : ""}">${late ? "⚠ " : ""}${esc(waitAge(it))}${late ? " · termin blisko" : ""}</td>
+      <td class="nw"><button class="btn xs ok" type="button" data-wact="conf" title="Dostawca potwierdził termin">✓ Potwierdź</button> <button class="btn xs" type="button" data-wact="mail" title="Wyślij prośbę ponownie">✉ Ponów</button> <button class="btn xs" type="button" data-wact="edit">✎</button></td></tr>`; };
+  $("#hWait").innerHTML = `<table><thead><tr><th>Termin</th><th>Rodzaj</th><th>Dostawca</th><th>Ilość</th><th>Mail / odpowiedź</th><th></th></tr></thead><tbody>${its.map(row).join("")}</tbody></table>`;
+}
+$("#hWait").addEventListener("click", e => {
+  const b = e.target.closest("[data-wact]"); if (!b) return;
+  const r = b.closest("[data-wid]"), it = DAYS[r.dataset.date] && DAYS[r.dataset.date].items[r.dataset.wid]; if (!it) return;
+  if (b.dataset.wact === "edit") return openAw(it);
+  if (b.dataset.wact === "mail") return sendMail(it);
+  const n = clone(it); n.st = "plan"; n.tConf = nowHM(); editing = null;
+  saveItem(n).then(ok => ok && toast("Potwierdzone · " + (it.name || it.code) + " · " + plDate(it.date) + " " + it.slot));
+});
 // lista tygodnia z sortowaniem po kliknięciu w nagłówek
 const H_COLS = [
   ["date", "Data", it => it.date + " " + pad(slotStart(it.slot)), it => `${DOW_S[dowOf(it.date)]} ${shortDate(it.date)}`],
@@ -1535,7 +1602,7 @@ const H_COLS = [
   ["qty", "Ilości", it => CATS.reduce((s, c) => s + qSum(it.q, c.k), 0), it => qChips(it.q)],
   ["tr", "Aut", it => trucksQ(it.q), it => fmt1(trucksQ(it.q)), "n"],
   ["sal", "Saldo", it => (salOf(it.code) || { tot: -1e9 }).tot, it => { const s = salOf(it.code); return s ? fmt(s.tot) : ""; }, "n"],
-  ["st", "Status", it => it.st, it => `<span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span>`],
+  ["st", "Status", it => it.st, it => `<span class="tag ${ST_TAG[it.st]}">${ST[it.st]}</span>${it.st === "wait" ? ` <small class="mut">${esc(waitAge(it))}</small>` : ""}`],
 ];
 function renderHList(days) {
   const q = norm($("#hQ").value).trim();
@@ -1714,6 +1781,7 @@ $("#awForm").addEventListener("submit", async e => {
 $("#aSaveMail").addEventListener("click", async () => {
   const it = readAw(); if (!it) return;
   if (it.st === "plan") it.st = "wait";
+  it.mailAt = Date.now();
   if (await saveItem(it)) { $("#dlgAw").close(); copyMail(it); }
 });
 $("#aDel").addEventListener("click", async () => {
@@ -1732,7 +1800,8 @@ function mailText(it) {
 }
 // wysłanie (ponowne) prośby z listy: umówione wraca do „czeka na potwierdzenie”
 function sendMail(it) {
-  if (it.st === "plan") { const n = clone(it); n.st = "wait"; editing = null; saveItem(n); }
+  const n = clone(it); if (n.st === "plan") n.st = "wait";
+  if (n.st === "wait") { n.mailAt = Date.now(); editing = null; saveItem(n); }
   copyMail(it);
 }
 async function copyMail(it) {
