@@ -6,5 +6,26 @@
   "display": "standalone",
   "background_color": "#ECEFE8",
   "theme_color": "#1B2A25",
-  "icons": [{"src": "budzet-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}]
+  "icons": [
+    {
+      "src": "budzet-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dodaj wydatek",
+      "short_name": "Dodaj",
+      "url": "budzet.html#dodaj",
+      "icons": [
+        {
+          "src": "budzet-icon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
 }
