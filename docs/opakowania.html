@@ -7,6 +7,7 @@
 <title>Awizacja opakowań</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Saira+Condensed:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<script>try { var k = localStorage.getItem("pk-skin"); if (k) document.documentElement.dataset.skin = k; } catch (e) {}</script>
 <style>
 /* Motyw „paleta”: nagłówek z desek, papier pakowy w tle, stemple w szablonie (stencil).
    Kolory grup opakowań: własne EUR – sosna, CHEP – niebieski, LPR – czerwony, NDHP – zielony, IPP – brązowy, wózki – szary. */
@@ -597,6 +598,83 @@ details.more[open] > .tbl-wrap { margin-top: 8px; }
 #gTbl table { font-size: .78rem; } #gTbl td, #gTbl th { padding-inline: 5px; }
 .spark i em { background: var(--g-chep-bg); padding: 0 1px; border-radius: 2px; z-index: 1; }
 @media (max-width: 640px) { .hb { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 48px; } .hb .tr { display: none; } .kpis4 .k { padding-left: 54px; } }
+
+/* ===== przełącznik wyglądu ===== */
+.skins { display: inline-flex; gap: 4px; align-items: center; }
+.skins button { width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 2px solid transparent; background: none; cursor: pointer; display: grid; place-items: center; }
+.skins button i { width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, var(--a) 50%, var(--b) 50%); box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
+.skins button[aria-pressed="true"] { border-color: var(--pine); }
+
+/* ===== motyw: CZERŃ + CZERWIEŃ — mocny, minimalistyczny ===== */
+:root[data-skin="red"] {
+  --bg: #0a0a0b; --surface: #131315; --surface-2: #1a1a1d; --line: #2c2c31; --line-2: #222226;
+  --fg: #f4f4f5; --muted: #9b9ba3;
+  --wood-1: #000; --wood-2: #000; --wood-gap: #000; --wood-fg: #f4f4f5; --wood-mut: #8e8e96;
+  --pine: #ff1f1f; --pine-ink: #fff; --btn: #e10600; --btn-fg: #fff;
+  --ok: #4ade80; --ok-bg: #11251a; --warn: #fbbf24; --warn-bg: #2a2110; --bad: #ff4d4d; --bad-bg: #2d0f10; --info: #e5e5e5; --info-bg: #222226;
+  --g-own: #ff2a2a; --g-own-bg: #2a0e0f; --g-chep: #60a5fa; --g-chep-bg: #111d2e; --g-lpr: #fb923c; --g-lpr-bg: #2b1a0e;
+  --g-ndhp: #4ade80; --g-ndhp-bg: #11251a; --g-ipp: #c8946a; --g-ipp-bg: #241a13; --g-woz: #a1a1aa; --g-woz-bg: #1f1f23;
+  --g-inne: #c4b5fd; --g-inne-bg: #1e1a2e; --g-tr: #2dd4bf; --g-tr-bg: #0f2522;
+  --f-stamp: "Saira Condensed", "Arial Narrow", sans-serif; --r: 2px; color-scheme: dark;
+}
+:root[data-skin="red"] body { letter-spacing: .005em; }
+:root[data-skin="red"] header.top { background: #000; border-bottom: 3px solid var(--btn); }
+:root[data-skin="red"] .brand svg g:first-child { fill: var(--pine); } :root[data-skin="red"] .brand svg g:last-child { fill: #fff; }
+:root[data-skin="red"] .brand h1, :root[data-skin="red"] .kpis4 .k .v, :root[data-skin="red"] .act .big, :root[data-skin="red"] .harm .hd .eur { font-weight: 700; letter-spacing: .02em; }
+:root[data-skin="red"] .brand h1 { color: #fff; } :root[data-skin="red"] .brand h1::first-letter { color: var(--pine); }
+:root[data-skin="red"] nav.tabs button[aria-selected="true"] { background: var(--btn); color: #fff; border-radius: 0; }
+:root[data-skin="red"] .panel { border-radius: 2px; box-shadow: none; border-color: var(--line); }
+:root[data-skin="red"] .panel > header { border-bottom: 1px solid var(--line); }
+:root[data-skin="red"] .hi { border-radius: 2px; background: transparent; box-shadow: inset 0 0 0 1px var(--gc, var(--pine)); }
+:root[data-skin="red"] .sp-head, :root[data-skin="red"] .sec-h, :root[data-skin="red"] .harm .hd { background: #000; }
+:root[data-skin="red"] .sp-head { border-bottom: 2px solid var(--btn); }
+:root[data-skin="red"] .harm .hd.today { background: var(--btn); color: #fff; } :root[data-skin="red"] .harm .hd.today .eur, :root[data-skin="red"] .harm .hd.today .cmp, :root[data-skin="red"] .harm .hd.today .cmp b { color: #fff; }
+:root[data-skin="red"] .kpis4 .k { background: var(--surface); border-radius: 2px; }
+:root[data-skin="red"] .kpis4 .k .ki { border-radius: 2px; background: transparent; box-shadow: inset 0 0 0 1px var(--gc, var(--muted)); }
+:root[data-skin="red"] .who button { border-color: #3a3a40; }
+:root[data-skin="red"] .seg button[aria-pressed="true"] { background: var(--btn); color: #fff; }
+:root[data-skin="red"] .btn { border-radius: 2px; }
+:root[data-skin="red"] .td.bad { animation: none; }
+:root[data-skin="red"] .harm .hd.today .ov { background: #fff; color: var(--btn); animation: none; }
+:root[data-skin="red"] .aw.st-done { background: #0f1f15; border-color: #1f3d29; }
+:root[data-skin="red"] dialog { border-top-color: var(--btn); }
+
+/* ===== motyw: ZIELEŃ + GRAFIT — nowoczesny, spokojny ===== */
+:root[data-skin="green"] {
+  --bg: #eef1f0; --surface: #ffffff; --surface-2: #f4f6f5; --line: #d6dcda; --line-2: #e5e9e7;
+  --fg: #1d2327; --muted: #5d6a70;
+  --wood-1: #2a2f34; --wood-2: #2a2f34; --wood-gap: #2a2f34; --wood-fg: #e8eef0; --wood-mut: #a3afb5;
+  --pine: #3ccf91; --pine-ink: #0b2a1d; --btn: #1d7f58; --btn-fg: #fff;
+  --ok: #1d7f58; --ok-bg: #e2f3eb; --warn: #a35f00; --warn-bg: #fbefdc; --bad: #c2362f; --bad-bg: #fae5e3; --info: #2f6db3; --info-bg: #e4edf7;
+  --g-own: #1f9d6c; --g-own-bg: #e1f3ea; --g-ndhp: #6b8e23; --g-ndhp-bg: #eef3e0;
+  --f-stamp: "Manrope", system-ui, sans-serif; --r: 8px; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root[data-skin="green"]:not([data-theme="light"]) {
+  --bg: #15191c; --surface: #1d2226; --surface-2: #191d21; --line: #313a40; --line-2: #262d32; --fg: #e6ecef; --muted: #98a6ad;
+  --wood-1: #0f1316; --wood-2: #0f1316; --wood-gap: #0f1316;
+  --ok: #4fd69c; --ok-bg: #12291f; --warn: #f0a63a; --warn-bg: #33270f; --bad: #f07067; --bad-bg: #3a1a18; --info: #6ea6f0; --info-bg: #172a44;
+  --g-own: #3ccf91; --g-own-bg: #11291f; --g-ndhp: #a3c45a; --g-ndhp-bg: #222b14; color-scheme: dark;
+} }
+:root[data-skin="green"] header.top { background: var(--wood-1); box-shadow: 0 6px 18px -10px rgba(0,0,0,.5); }
+:root[data-skin="green"] .top .wrap { padding-bottom: 7px; }
+:root[data-skin="green"] .brand svg g:first-child { fill: var(--pine); } :root[data-skin="green"] .brand svg g:last-child { fill: #8a969c; }
+:root[data-skin="green"] .brand h1 { font-weight: 800; text-transform: none; letter-spacing: -.01em; color: #fff; }
+:root[data-skin="green"] .brand h1, :root[data-skin="green"] .kpis4 .k .v, :root[data-skin="green"] .act .big, :root[data-skin="green"] .harm .hd .eur { font-weight: 800; letter-spacing: -.02em; }
+:root[data-skin="green"] h2, :root[data-skin="green"] h3, :root[data-skin="green"] nav.tabs button { font-family: var(--f-body); text-transform: none; letter-spacing: 0; font-weight: 700; }
+:root[data-skin="green"] nav.tabs { gap: 4px; }
+:root[data-skin="green"] nav.tabs button { border-radius: 999px; padding: 5px 14px; font-size: .88rem; }
+:root[data-skin="green"] nav.tabs button[aria-selected="true"] { background: var(--pine); color: var(--pine-ink); }
+:root[data-skin="green"] .panel { border-radius: 14px; border-color: var(--line-2); box-shadow: 0 1px 2px rgba(20,30,30,.05), 0 12px 28px -20px rgba(20,40,40,.35); }
+:root[data-skin="green"] .panel > header { border-bottom-style: solid; border-color: var(--line-2); }
+:root[data-skin="green"] .hi { border-radius: 10px; box-shadow: none; }
+:root[data-skin="green"] .sp-head, :root[data-skin="green"] .sec-h, :root[data-skin="green"] .harm .hd { background: var(--wood-1); }
+:root[data-skin="green"] .sec-h, :root[data-skin="green"] .harm .hd { border-radius: 10px; }
+:root[data-skin="green"] .harm .hd.today { background: var(--pine); }
+:root[data-skin="green"] .kpis4 .k { border-radius: 14px; } :root[data-skin="green"] .kpis4 .k::before { display: none; }
+:root[data-skin="green"] .btn, :root[data-skin="green"] input, :root[data-skin="green"] select { border-radius: 8px; }
+:root[data-skin="green"] .seg { border-radius: 999px; } :root[data-skin="green"] .seg button[aria-pressed="true"] { background: var(--wood-1); color: #fff; }
+:root[data-skin="green"] .who button { border-color: #4a535a; border-radius: 999px; }
+:root[data-skin="green"] dialog { border-top-color: var(--pine); border-radius: 14px; }
 </style>
 </head>
 <body>
@@ -606,6 +684,11 @@ details.more[open] > .tbl-wrap { margin-top: 8px; }
       <svg viewBox="0 0 34 22" aria-hidden="true"><g fill="#e6c28c"><rect x="0" y="0" width="34" height="4" rx="1"/><rect x="0" y="6" width="34" height="4" rx="1"/><rect x="0" y="16" width="34" height="3" rx="1"/></g><g fill="#a77a45"><rect x="1" y="10" width="6" height="6"/><rect x="14" y="10" width="6" height="6"/><rect x="27" y="10" width="6" height="6"/></g></svg>
       <h1>Awizacja opakowań</h1>
       <span class="mode" id="modeTag" hidden>LOKALNIE</span>
+    </div>
+    <div class="skins" id="skins" role="group" aria-label="Wygląd">
+      <button type="button" data-skin="" title="Paleta — drewno"><i style="--a:#e6c28c;--b:#3a2b1d"></i></button>
+      <button type="button" data-skin="red" title="Czerń + czerwień — mocna i minimalistyczna"><i style="--a:#e10600;--b:#0b0b0c"></i></button>
+      <button type="button" data-skin="green" title="Zieleń + grafit — nowoczesna i spokojna"><i style="--a:#1f9d6c;--b:#2b3035"></i></button>
     </div>
     <div class="who" id="who" hidden><span id="whoEmail"></span><button id="logout" type="button">Wyloguj</button></div>
     <nav class="tabs" id="tabs" role="tablist" hidden>
@@ -1212,6 +1295,16 @@ function bookedCodes() {
   const s = new Set(); for (let i = 0; i <= 30; i++) itemsOf(addDays(today(), i)).forEach(it => { if (active(it) && it.st !== "done") s.add(String(it.code)); }); return s;
 }
 const salCandidates = () => { const b = bookedCodes(); return [...SAL.eur.values()].filter(r => r.tot >= CFG.salMin && !b.has(r.code)).sort((a, b2) => b2.tot - a.tot); };
+
+/* ---------- wygląd: Paleta / Czerń + czerwień / Zieleń + grafit ---------- */
+function setSkin(k) {
+  if (k) document.documentElement.dataset.skin = k; else delete document.documentElement.dataset.skin;
+  try { k ? localStorage.setItem("pk-skin", k) : localStorage.removeItem("pk-skin"); } catch (e) {}
+  $$("#skins [data-skin]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.skin === (k || ""))));
+  if (typeof renderYard === "function" && tab === "stany") schedule();
+}
+$("#skins").addEventListener("click", e => { const b = e.target.closest("[data-skin]"); if (b) setSkin(b.dataset.skin); });
+setSkin(document.documentElement.dataset.skin || "");
 
 /* ---------- ikony nagłówków i kafelków ---------- */
 const ICO = {
