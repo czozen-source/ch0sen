@@ -675,6 +675,43 @@ details.more[open] > .tbl-wrap { margin-top: 8px; }
 :root[data-skin="green"] .seg { border-radius: 999px; } :root[data-skin="green"] .seg button[aria-pressed="true"] { background: var(--wood-1); color: #fff; }
 :root[data-skin="green"] .who button { border-color: #4a535a; border-radius: 999px; }
 :root[data-skin="green"] dialog { border-top-color: var(--pine); border-radius: 14px; }
+
+/* ===== motyw: GRANAT + BŁĘKIT + BIEL — profesjonalny ===== */
+:root[data-skin="blue"] {
+  --bg: #f2f5fa; --surface: #ffffff; --surface-2: #f5f8fc; --line: #d5deea; --line-2: #e6ecf4;
+  --fg: #0f1d33; --muted: #5a6b82;
+  --wood-1: #0b2545; --wood-2: #0b2545; --wood-gap: #0b2545; --wood-fg: #eaf2fb; --wood-mut: #9fb4cf;
+  --pine: #38bdf8; --pine-ink: #06223f; --btn: #13427a; --btn-fg: #fff;
+  --ok: #157a4a; --ok-bg: #e3f3ea; --warn: #a35f00; --warn-bg: #fcefdb; --bad: #c62828; --bad-bg: #fbe6e5; --info: #1d6fd1; --info-bg: #e5effb;
+  --g-own: #1d4ed8; --g-own-bg: #e6edfd; --g-chep: #0ea5e9; --g-chep-bg: #e2f4fc;
+  --f-stamp: "Manrope", system-ui, sans-serif; --r: 6px; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root[data-skin="blue"]:not([data-theme="light"]) {
+  --bg: #08131f; --surface: #0f1d2e; --surface-2: #0c1826; --line: #233650; --line-2: #1a2b40; --fg: #e8f0fa; --muted: #93a7c0;
+  --wood-1: #06101c; --wood-2: #06101c; --wood-gap: #06101c; --btn: #38bdf8; --btn-fg: #06223f;
+  --ok: #4ade80; --ok-bg: #0f2a1d; --warn: #f0a63a; --warn-bg: #33270f; --bad: #f87171; --bad-bg: #3a1618; --info: #7cc4fa; --info-bg: #0f2740;
+  --g-own: #7aa2ff; --g-own-bg: #14244a; --g-chep: #38bdf8; --g-chep-bg: #0c2a3d; color-scheme: dark;
+} }
+:root[data-skin="blue"] header.top { background: linear-gradient(90deg, var(--wood-1), #123a6b); border-bottom: 3px solid var(--pine); }
+:root[data-skin="blue"] .top .wrap { padding-bottom: 0; }
+:root[data-skin="blue"] .brand svg g:first-child { fill: #fff; } :root[data-skin="blue"] .brand svg g:last-child { fill: var(--pine); }
+:root[data-skin="blue"] .brand h1 { font-weight: 800; letter-spacing: .01em; color: #fff; text-transform: none; }
+:root[data-skin="blue"] .brand h1, :root[data-skin="blue"] .kpis4 .k .v, :root[data-skin="blue"] .act .big, :root[data-skin="blue"] .harm .hd .eur { font-weight: 800; letter-spacing: -.01em; }
+:root[data-skin="blue"] h2, :root[data-skin="blue"] h3 { font-family: var(--f-body); font-weight: 700; text-transform: none; letter-spacing: 0; }
+:root[data-skin="blue"] nav.tabs button { font: 600 .86rem var(--f-body); text-transform: none; letter-spacing: .01em; border-radius: 0; padding: 7px 14px 8px; border-bottom: 3px solid transparent; margin-bottom: -3px; }
+:root[data-skin="blue"] nav.tabs button[aria-selected="true"] { background: transparent; color: #fff; border-bottom-color: #fff; }
+:root[data-skin="blue"] .panel { border-radius: 8px; border-color: var(--line-2); box-shadow: 0 1px 2px rgba(11,37,69,.06), 0 10px 24px -18px rgba(11,37,69,.35); border-top: 3px solid var(--pine); }
+:root[data-skin="blue"] .panel.side { border-top: 0; }
+:root[data-skin="blue"] .panel > header { border-bottom-style: solid; border-color: var(--line-2); }
+:root[data-skin="blue"] .hi { border-radius: 8px; box-shadow: none; }
+:root[data-skin="blue"] .sp-head, :root[data-skin="blue"] .sec-h, :root[data-skin="blue"] .harm .hd { background: var(--wood-1); }
+:root[data-skin="blue"] .sp-head h3, :root[data-skin="blue"] .sec-h h3 { color: #fff; }
+:root[data-skin="blue"] .harm .hd.today { background: #1d6fd1; color: #fff; box-shadow: inset 0 -3px 0 var(--pine); }
+:root[data-skin="blue"] .harm .hd.today .eur, :root[data-skin="blue"] .harm .hd.today .cmp, :root[data-skin="blue"] .harm .hd.today .cmp b, :root[data-skin="blue"] .harm .hd.today .rst { color: #fff; }
+:root[data-skin="blue"] .kpis4 .k { border-radius: 8px; background: var(--surface); }
+:root[data-skin="blue"] .seg button[aria-pressed="true"] { background: var(--wood-1); color: #fff; }
+:root[data-skin="blue"] .who button { border-color: #3b5a85; }
+:root[data-skin="blue"] dialog { border-top-color: var(--pine); border-radius: 10px; }
 </style>
 </head>
 <body>
@@ -689,6 +726,7 @@ details.more[open] > .tbl-wrap { margin-top: 8px; }
       <button type="button" data-skin="" title="Paleta — drewno"><i style="--a:#e6c28c;--b:#3a2b1d"></i></button>
       <button type="button" data-skin="red" title="Czerń + czerwień — mocna i minimalistyczna"><i style="--a:#e10600;--b:#0b0b0c"></i></button>
       <button type="button" data-skin="green" title="Zieleń + grafit — nowoczesna i spokojna"><i style="--a:#1f9d6c;--b:#2b3035"></i></button>
+      <button type="button" data-skin="blue" title="Granat + błękit + biel — profesjonalna"><i style="--a:#38bdf8;--b:#0b2545"></i></button>
     </div>
     <div class="who" id="who" hidden><span id="whoEmail"></span><button id="logout" type="button">Wyloguj</button></div>
     <nav class="tabs" id="tabs" role="tablist" hidden>
@@ -793,19 +831,6 @@ details.more[open] > .tbl-wrap { margin-top: 8px; }
       </div>
       <div id="salPrev"></div>
       <div class="kpis4" id="salSum"></div>
-      <div class="row">
-        <input id="salQ" type="search" placeholder="Szukaj: kod SAP lub nazwa…" style="max-width:300px">
-        <select id="salOpak" style="width:auto"></select>
-        <div class="seg" id="salF">
-          <button type="button" data-f="pos" aria-pressed="true">Saldo &gt; 0</button>
-          <button type="button" data-f="free" aria-pressed="false">Bez awizacji</button>
-          <button type="button" data-f="neg" aria-pressed="false">Ujemne</button>
-          <button type="button" data-f="all" aria-pressed="false">Wszystkie</button>
-        </div>
-        <span class="spacer"></span>
-        <button class="btn xl" type="button" data-xls="salda">⤓ Excel</button>
-      </div>
-      <div class="tbl-wrap" id="salTbl" style="max-height:calc(100vh - 260px)"></div>
     </div>
     <div class="cols big" id="salViz">
       <div class="panel">
@@ -820,6 +845,22 @@ details.more[open] > .tbl-wrap { margin-top: 8px; }
     <div class="panel">
       <header><span class="hi" data-ico="archive"></span><h3>Archiwum sald</h3><span class="sub">każdy wczytany plik zostaje w bazie · kliknij dzień, aby go otworzyć</span></header>
       <div class="tbl-wrap" id="salHist"></div>
+    </div>
+    <div class="panel">
+      <header><span class="hi" data-ico="stack"></span><h3>Salda dostawców</h3><span class="sub">klik „Awizuj” = nowa awizacja</span></header>
+      <div class="row">
+        <input id="salQ" type="search" placeholder="Szukaj: kod SAP lub nazwa…" style="max-width:300px">
+        <select id="salOpak" style="width:auto"></select>
+        <div class="seg" id="salF">
+          <button type="button" data-f="pos" aria-pressed="true">Saldo &gt; 0</button>
+          <button type="button" data-f="free" aria-pressed="false">Bez awizacji</button>
+          <button type="button" data-f="neg" aria-pressed="false">Ujemne</button>
+          <button type="button" data-f="all" aria-pressed="false">Wszystkie</button>
+        </div>
+        <span class="spacer"></span>
+        <button class="btn xl" type="button" data-xls="salda">⤓ Excel</button>
+      </div>
+      <div class="tbl-wrap" id="salTbl" style="max-height:calc(100vh - 260px)"></div>
     </div>
   </section>
 
