@@ -536,6 +536,60 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
   .aw { break-inside: avoid; }
   main { padding: 0; }
 }
+
+/* ===== przejrzystsze okna: miękki cień, nagłówek z ikoną, oddech ===== */
+.panel { border-radius: 10px; padding: 12px 14px; gap: 10px; border-color: var(--line-2);
+  box-shadow: 0 1px 0 rgba(60,40,20,.04), 0 10px 24px -18px rgba(60,40,20,.45); }
+.panel > header { align-items: center; padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
+.panel > header h3 { font-size: 1.02rem; }
+.hi { width: 30px; height: 30px; flex: none; display: inline-grid; place-items: center; border-radius: 9px; color: var(--gc, var(--g-own));
+  background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--gc, var(--g-own)) 26%, var(--surface)), color-mix(in srgb, var(--gc, var(--g-own)) 12%, var(--surface)));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gc, var(--g-own)) 30%, transparent); }
+.hi .si2 { width: 18px; height: 18px; }
+.panel > .row > .hi { margin-right: -2px; }
+#hWaitP .hi { --gc: var(--warn); } #p-stany .panel:has(#yard) .hi { --gc: var(--g-ndhp); } #p-stany .panel:has(#sHist) .hi { --gc: var(--g-chep); }
+#salViz .panel:last-child .hi, .panel:has(#hWeek) .hi { --gc: var(--g-chep); } #p-salda .panel:has(#salHist) .hi { --gc: var(--g-woz); }
+/* kafelki KPI z ikoną i paskiem */
+.kpis4 { gap: 10px; }
+.kpis4 .k { position: relative; border-radius: 10px; border: 1px solid var(--line-2); border-top: 0; padding: 10px 12px 10px 58px; min-height: 76px; align-content: center; overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--gc, var(--muted)) 9%, var(--surface)) 0%, var(--surface) 70%); }
+.kpis4 .k::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--gc, var(--line)); }
+.kpis4 .k .ki { position: absolute; left: 13px; top: 50%; translate: 0 -50%; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--gc, var(--muted)); background: color-mix(in srgb, var(--gc, var(--muted)) 15%, var(--surface)); }
+.kpis4 .k .ki .si2 { width: 19px; height: 19px; }
+.kpis4 .k:not(:has(.ki)) { padding-left: 14px; }
+.kpis4 .k .kb { height: 5px; border-radius: 3px; margin-top: 5px; background: color-mix(in srgb, var(--gc) 15%, transparent); overflow: hidden; }
+.kpis4 .k .kb i { display: block; height: 100%; background: var(--gc); border-radius: 3px; }
+/* salda: poziome słupki największych sald */
+.hbars { display: grid; gap: 5px; }
+.hb { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr) 52px 58px; gap: 8px; align-items: center; font-size: .8rem; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
+.hb:hover { background: var(--surface-2); }
+.hb .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.hb .bar { position: relative; height: 14px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.hb .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 7px; background: linear-gradient(90deg, color-mix(in srgb, var(--g-own) 60%, var(--surface)), var(--g-own)); }
+.hb .bar b { position: absolute; inset: 3px auto 3px 0; border-radius: 4px; background: repeating-linear-gradient(45deg, var(--info) 0 4px, color-mix(in srgb, var(--info) 60%, transparent) 4px 8px); }
+.hb .num { font: 600 .78rem var(--f-mono); text-align: right; }
+.hb .tr { font-size: .62rem; letter-spacing: -1px; color: var(--g-own); white-space: nowrap; overflow: hidden; }
+.legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gc); margin-right: 4px; vertical-align: middle; }
+.bars .b.cur i { background: linear-gradient(180deg, var(--g-own), color-mix(in srgb, var(--g-own) 55%, #000)); }
+/* panel boczny: mini wykres EUR i saldo */
+.td.info { border-left-color: var(--g-own); background: var(--g-own-bg); } .td.info > b { color: var(--g-own); }
+.td.mini { border-left-color: var(--g-chep); background: var(--g-chep-bg); cursor: pointer; } .td.mini > b { color: var(--g-chep); }
+.spark { position: relative; height: 64px; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; align-items: end; margin-top: 12px; border-bottom: 1px solid color-mix(in srgb, var(--g-chep) 40%, transparent); }
+.spark i { position: relative; display: block; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--g-chep), color-mix(in srgb, var(--g-chep) 55%, var(--surface))); }
+.spark i.over { background: linear-gradient(180deg, var(--bad), color-mix(in srgb, var(--bad) 55%, var(--surface))); }
+.spark i em { position: absolute; left: 50%; bottom: 100%; translate: -50% -1px; font: 600 .58rem var(--f-mono); font-style: normal; color: var(--muted); }
+.spark u { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--bad); text-decoration: none; }
+.spark-x { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; text-align: center; font: 500 .6rem var(--f-mono); color: var(--muted); }
+/* sekcje i wykresy: łagodniejsze krawędzie */
+.bars .b i { border-radius: 4px 4px 0 0; }
+.sgroup { border-radius: 8px; }
+.tbl-wrap table tbody tr:hover td { background: color-mix(in srgb, var(--g-own) 6%, transparent); }
+.panel.side { padding: 0; gap: 0; overflow: hidden; }
+#sProgWrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+@media (max-width: 980px) { #sProgWrap { grid-template-columns: 1fr; } }
+#gTbl table { font-size: .78rem; } #gTbl td, #gTbl th { padding-inline: 5px; }
+.spark i em { background: var(--g-chep-bg); padding: 0 1px; border-radius: 2px; z-index: 1; }
+@media (max-width: 640px) { .hb { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 48px; } .hb .tr { display: none; } .kpis4 .k { padding-left: 54px; } }
 </style>
 </head>
 <body>
@@ -552,7 +606,6 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       <button role="tab" data-tab="harm">Harmonogram</button>
       <button role="tab" data-tab="stany">Stany placu</button>
       <button role="tab" data-tab="salda">Salda</button>
-      <button role="tab" data-tab="prog">Prognoza</button>
       <button role="tab" data-tab="set" id="tab-set">Ustawienia</button>
     </nav>
   </div>
@@ -624,16 +677,16 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
     </div>
     <div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)">
       <div class="panel" style="border-top:4px solid var(--g-own)">
-        <header><h3>EUR · limit i co zrobić</h3><span class="sub" id="hSugSub"></span></header>
+        <header><span class="hi" data-ico="truck"></span><h3>EUR · limit i co zrobić</h3><span class="sub" id="hSugSub"></span></header>
         <div id="hSug"></div>
       </div>
       <div class="panel">
-        <header><h3>Tydzień w liczbach</h3></header>
+        <header><span class="hi" data-ico="calendar"></span><h3>Tydzień w liczbach</h3></header>
         <div class="tbl-wrap" id="hWeek"></div>
       </div>
     </div>
     <div class="panel wait-list" id="hWaitP" style="border-top:4px solid var(--warn)">
-      <header><h3>✉ Czeka na potwierdzenie</h3><span class="sub" id="hWaitSub"></span></header>
+      <header><span class="hi" data-ico="mail"></span><h3>Czeka na potwierdzenie</h3><span class="sub" id="hWaitSub"></span></header>
       <div class="tbl-wrap" id="hWait"></div>
     </div>
     <div class="panel" id="hGridP">
@@ -669,8 +722,18 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       </div>
       <div class="tbl-wrap" id="salTbl" style="max-height:calc(100vh - 260px)"></div>
     </div>
+    <div class="cols big" id="salViz">
+      <div class="panel">
+        <header><span class="hi" data-ico="stack"></span><h3>Najwięcej do oddania</h3><span class="sub">saldo EUR · klik = awizacja</span></header>
+        <div id="salTop"></div>
+      </div>
+      <div class="panel">
+        <header><span class="hi" data-ico="trend"></span><h3>Trend sald</h3><span class="sub">do oddania (saldo &gt; 0) w kolejnych plikach</span></header>
+        <div id="salTrend"></div>
+      </div>
+    </div>
     <div class="panel">
-      <header><h3>Archiwum sald</h3><span class="sub">każdy wczytany plik zostaje w bazie · kliknij dzień, aby go otworzyć</span></header>
+      <header><span class="hi" data-ico="archive"></span><h3>Archiwum sald</h3><span class="sub">każdy wczytany plik zostaje w bazie · kliknij dzień, aby go otworzyć</span></header>
       <div class="tbl-wrap" id="salHist"></div>
     </div>
   </section>
@@ -679,7 +742,7 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
   <section id="p-stany" role="tabpanel" hidden>
     <div class="panel">
       <div class="row">
-        <h3>Stan placu</h3>
+        <span class="hi" data-ico="pallet"></span><h3>Stan placu</h3>
         <input type="date" id="sDate">
         <span class="sub" id="sInfo"></span>
         <span class="spacer"></span>
@@ -688,46 +751,24 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       </div>
       <form id="sForm" class="sgroups"></form>
     </div>
+    <div class="cols big" id="sProgWrap">
+      <div class="panel">
+        <header><span class="hi" data-ico="chart"></span><h3>Prognoza · 7 dni</h3><span class="sub">stan rano, dzień po dniu</span><select id="gCat" style="width:auto" class="spacer"></select></header>
+        <div id="gChart"></div>
+      </div>
+      <div class="panel">
+        <header><span class="hi" data-ico="truck"></span><h3>Co zaplanować</h3><span class="sub">za 7 dni = stan + zjazd − wyjazdy · klik = wykres</span></header>
+        <div class="tbl-wrap" id="gTbl"></div>
+      </div>
+    </div>
     <div class="panel">
-      <header><h3>Mapa placu — zapełnienie</h3><span class="sub">na żywo z wpisanych liczb · pojemność obszaru = suma „Maks.” jego kategorii (Ustawienia → Kategorie) · najedź na obszar, aby zobaczyć szczegóły</span></header>
+      <header><span class="hi" data-ico="map"></span><h3>Mapa placu — zapełnienie</h3><span class="sub">na żywo z wpisanych liczb · pojemność obszaru = suma „Maks.” jego kategorii (Ustawienia → Kategorie) · najedź na obszar, aby zobaczyć szczegóły</span></header>
       <div class="yardtot" id="yardTot"></div>
       <div class="ymap" id="yard"></div>
     </div>
     <div class="panel">
-      <header><h3>Historia · stan i zjazd</h3><span class="sub">zjazd = stan dziś − stan poprzedni + wydane w międzyczasie</span><button class="btn xl spacer" type="button" data-xls="stany">⤓ Excel</button></header>
+      <header><span class="hi" data-ico="history"></span><h3>Historia · stan i zjazd</h3><span class="sub">zjazd = stan dziś − stan poprzedni + wydane w międzyczasie</span><button class="btn xl spacer" type="button" data-xls="stany">⤓ Excel</button></header>
       <div class="tbl-wrap h" id="sHist" style="max-height:480px"></div>
-    </div>
-  </section>
-
-  <!-- PROGNOZA -->
-  <section id="p-prog" role="tabpanel" hidden>
-    <div class="panel" style="border-top:4px solid var(--wood-1)">
-      <div class="row">
-        <h2>Co trzeba zrobić</h2><span class="sub" id="gActSub"></span>
-        <span class="spacer"></span>
-        <div class="seg" id="gH">
-          <button type="button" data-h="3" aria-pressed="false">3 dni</button>
-          <button type="button" data-h="5" aria-pressed="false">5 dni</button>
-          <button type="button" data-h="7" aria-pressed="true">7 dni</button>
-          <button type="button" data-h="14" aria-pressed="false">14 dni</button>
-        </div>
-        <button class="btn xl" type="button" data-xls="prog">⤓ Excel</button>
-      </div>
-      <div id="gAct"></div>
-    </div>
-    <div class="cols big">
-      <div class="panel">
-        <header><h3>Stan dzień po dniu</h3><select id="gCat" style="width:auto" class="spacer"></select></header>
-        <div id="gChart"></div>
-      </div>
-      <div class="panel">
-        <header><h3>Zjazd wg dnia tygodnia</h3><span class="sub" id="gWdSub"></span></header>
-        <div id="gWd"></div>
-      </div>
-    </div>
-    <div class="panel">
-      <header><h3>Szczegóły prognozy · wszystkie grupy</h3><span class="sub">zjazd: średnia z 28 dni · stan za N dni = stan + zjazd × dni − awizacje</span></header>
-      <div class="tbl-wrap" id="gTbl"></div>
     </div>
   </section>
 
@@ -1170,12 +1211,32 @@ function bookedCodes() {
 }
 const salCandidates = () => { const b = bookedCodes(); return [...SAL.eur.values()].filter(r => r.tot >= CFG.salMin && !b.has(r.code)).sort((a, b2) => b2.tot - a.tot); };
 
+/* ---------- ikony nagłówków i kafelków ---------- */
+const ICO = {
+  truck: '<path d="M2 6h11v9H2zM13 9h4l3 3v3h-7z"/><circle cx="6" cy="17" r="1.8"/><circle cx="16.5" cy="17" r="1.8"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h3M14 14h3M7 17.5h3"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  map: '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>',
+  history: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4M12 7v5l3 2"/>',
+  archive: '<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10h14V9M10 13h4"/>',
+  pallet: '<path d="M2 7h20M2 11h20M2 18h20"/><rect x="3" y="11" width="3" height="7"/><rect x="10.5" y="11" width="3" height="7"/><rect x="18" y="11" width="3" height="7"/>',
+  chart: '<path d="M3 3v18h18"/><rect x="6" y="11" width="3" height="7"/><rect x="11" y="7" width="3" height="11"/><rect x="16" y="13" width="3" height="5"/>',
+  stack: '<path d="M4 18h16M4 14h16M4 10h16"/><path d="M6 10V6h12v4"/>',
+  trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  up: '<path d="M12 19V5M5 12l7-7 7 7"/>', down: '<path d="M12 5v14M5 12l7 7 7-7"/>',
+  hand: '<path d="M7 11V6a1.5 1.5 0 0 1 3 0v5M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9a1.5 1.5 0 0 1 3 0v4a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-3l-2.5-4a1.5 1.5 0 0 1 2.5-1.6L7 13"/>',
+  scale: '<path d="M12 3v18M5 21h14M6 7h12M6 7l-3 7a3 3 0 0 0 6 0zM18 7l-3 7a3 3 0 0 0 6 0z"/>',
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+};
+const ico = (n, cls = "si2") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n] || ""}</svg>`;
+document.querySelectorAll("[data-ico]").forEach(el => { el.innerHTML = ico(el.dataset.ico); });
+
 /* ---------- render ---------- */
 let rafP = false;
 function schedule() { if (rafP) return; rafP = true; requestAnimationFrame(() => { rafP = false; render(); }); }
 function render() {
   if (!S || $("#tabs").hidden) return;
-  ({ dzien: renderDay, harm: renderHarm, salda: renderSalda, stany: renderStany, prog: renderProg, set: renderSet })[tab]();
+  ({ dzien: renderDay, harm: renderHarm, salda: renderSalda, stany: renderStany, set: renderSet })[tab]();
 }
 function showTab(t) {
   if (t === "pulpit" || (t === "set" && $("#tab-set").hidden)) t = "dzien";
@@ -1200,30 +1261,9 @@ document.addEventListener("click", e => {
   const n = e.target.closest("[data-new]"); if (n) openAw(null, { date: tab === "dzien" ? dayView : today() });
 });
 
-// karty działań: braki danych + kategorie, w których trzeba umówić auta (najpilniejsze pierwsze)
 const POOL = { chep: "616973", lpr: "637962" };
-function actionsHtml(H, withData) {
-  const T = today(), sd = lastStanDate(), out = [];
-  if (withData && sd !== T) out.push(`<div class="act data"><span class="t">Stan placu</span><span class="big">wpisz dzisiejszy</span><span class="s">${sd ? "ostatnie liczenie " + plDate(sd) + " — prognoza liczy się na starych danych" : "brak liczenia — bez tego nie ma prognozy"}</span><div class="row"><button class="btn xs primary" type="button" data-goto="stany">Stany placu →</button></div></div>`);
-  if (withData && (!SAL.date || SAL.date < addDays(T, -1))) out.push(`<div class="act data"><span class="t">Salda</span><span class="big">wczytaj plik</span><span class="s">${SAL.date ? "ostatni plik z " + plDate(SAL.date) : "brak pliku z saldami"}</span><div class="row"><button class="btn xs primary" type="button" data-goto="salda">Salda →</button></div></div>`);
-  const data = catData(H).filter(x => x.c.g === "own"); // planujemy tylko własne EUR
-  data.filter(x => x.f && x.f.needTrucks > 0).sort((a, b) => (a.f.firstOver || "9").localeCompare(b.f.firstOver || "9") || b.f.needTrucks - a.f.needTrucks).forEach(({ c, f, st }) => {
-    const n = f.needTrucks, when = !f.firstOver ? "" : f.firstOver <= T ? '<b class="pos">limit już przekroczony</b>' : `limit przekroczony od <b>${DOW[dowOf(f.firstOver)]} ${shortDate(f.firstOver)}</b>`;
-    out.push(`<div class="act g-${c.g}"><span class="t">${GROUPS[c.g]} · ${esc(c.n)}</span><span class="big">umów ${n} <small>${plural(n, "auto", "auta", "aut")} w ${H} dni</small></span>
-      <span class="s">${when}</span>
-      <span class="s">teraz <b>${fmt1((st || 0) / c.t)}</b> → za ${H} dni <b class="up">${fmt1(f.proj / c.t)}</b> aut · maks. ${fmt1(c.max)}</span>
-      <span class="s">zjeżdża ok. <b>${fmt1(f.rate / c.t)}</b> auta dziennie · wyjedzie ${fmt1((f.planned + f.rep) / c.t)}${f.rep ? ` · naprawa przywiezie +${fmt1(f.rep / c.t)}` : ""}</span>
-      <div class="row"><button class="btn xs primary" type="button" data-actcat="${c.k}">+ Awizacja ${esc(c.n)}</button><button class="btn xs" type="button" data-gocat="${c.k}">Wykres</button></div></div>`);
-  });
-  if (withData && SAL.date) { const fs = salCandidates(); if (fs.length) out.push(`<div class="act g-own"><span class="t">Saldo EUR bez odbioru</span><span class="big">${fs.length} <small>${plural(fs.length, "firma", "firmy", "firm")}</small></span><span class="s">saldo ≥ ${fmt(CFG.salMin)} szt. i brak awizacji · razem ${fmt(fs.reduce((s, r) => s + r.tot, 0))} szt. (${fmt1(fs.reduce((s, r) => s + r.tot, 0) / ((CAT.EUR && CAT.EUR.t) || 495))} aut)</span><span class="s">największe: ${fs.slice(0, 3).map(r => `<b>${esc(r.name.slice(0, 22))}</b> ${fmt(r.tot)}`).join(", ")}</span><div class="row"><button class="btn xs primary" type="button" data-salfree>Pokaż i awizuj →</button></div></div>`); }
-  const ok = data.filter(x => x.c.t > 0 && x.c.max && x.f && !x.f.needTrucks).map(x => x.c);
-  const need = data.some(x => x.f && x.f.needTrucks > 0);
-  return (out.length ? `<div class="acts-grid">${out.join("")}</div>` : "") +
-    (!need ? `<div class="notice ok">EUR w normie — w ciągu ${H} dni stan nie przekroczy maksimum.</div>` : "") +
-    (ok.length ? `<p class="okline">W normie: ${ok.map(c => `<span class="q g-${c.g}">${esc(c.n)}</span>`).join("")}</p>` : "");
-}
 document.addEventListener("click", e => {
-  const g = e.target.closest("[data-gocat]"); if (g) { gCat = g.dataset.gocat; showTab("prog"); return; }
+  const g = e.target.closest("[data-gocat]"); if (g) { gCat = g.dataset.gocat; goProg(); return; }
   const f = e.target.closest("[data-salfree]");
   if (f) { salFilter = "free"; $$("#salF button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.f === "free"))); showTab("salda"); return; }
   const a = e.target.closest("[data-actcat]"); if (!a) return;
@@ -1276,7 +1316,9 @@ function catTable(H, compact) {
   });
   return `<table><thead><tr><th>Kategoria</th><th class="n">Stan · aut</th><th class="n">Zjazd/dzień</th><th class="n">Wyjedzie ${H} d</th><th class="n">Za ${H} dni</th><th>Do planu</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="mut">Brak danych — wpisz stan placu albo zaimportuj plik w Ustawieniach.</td></tr>'}</tbody></table>`;
 }
-document.addEventListener("click", e => { const tr = e.target.closest("tr[data-cat]"); if (tr) { gCat = tr.dataset.cat; tab === "prog" ? renderProg() : showTab("prog"); } });
+// prognoza mieszka w Stanach placu: przejście do wykresu wybranej kategorii
+function goProg() { if (tab !== "stany") showTab("stany"); else renderProg(); requestAnimationFrame(() => { const el = $("#sProgWrap"); if (el) scrollTo({ top: el.getBoundingClientRect().top + scrollY - 80, behavior: "smooth" }); }); }
+document.addEventListener("click", e => { const tr = e.target.closest("tr[data-cat]"); if (tr && !tr.closest("#cfgCats")) { gCat = tr.dataset.cat; goProg(); } });
 const legend = gs => `<div class="legend">${gs.map(g => `<span class="g-${g}"><i class="dot"></i>${GROUPS[g]}</span>`).join("")}</div>`;
 
 /* wykres słupkowy CSS (opcjonalnie słupki dzielone na grupy) z dymkiem */
@@ -1338,6 +1380,14 @@ function sideTodo() {
       return `<div class="fl ${gcls(x.k)} ${r > 1 ? "over" : ""}" data-goto="stany"><span>${esc(x.n)}</span><i><em style="width:${Math.min(100, r * 100)}%"></em></i><span class="num">${u(st[x.k])}/${u(limOf(x))}</span></div>`; }).join("")}</div>`
       : `<div class="td ok"><b>Plac w normie</b><span>liczenie ${plDate(sd)}</span></div>`);
   }
+  // saldo EUR bez umówionego odbioru
+  if (SAL.date) { const fs = salCandidates(); if (fs.length) out.push(`<div class="td info"><b>Saldo EUR bez odbioru</b><span>${fs.length} ${plural(fs.length, "firma", "firmy", "firm")} · ${fmt(fs.reduce((s, r) => s + r.tot, 0))} szt. (saldo ≥ ${fmt(CFG.salMin)})</span>
+    ${fs.slice(0, 3).map(r => `<div class="fl g-own" data-aw="${esc(r.code)}" title="Awizuj"><span>${esc(r.name)}</span><i><em style="width:${Math.min(100, r.tot / fs[0].tot * 100)}%"></em></i><span class="num">${fmt(r.tot)}</span></div>`).join("")}
+    <div class="row"><button class="btn xs" type="button" data-salfree>Wszystkie →</button></div></div>`); }
+  // prognoza EUR na 7 dni (mini wykres)
+  const fe = CAT.EUR && forecast("EUR", 7);
+  if (fe && CAT.EUR.t) { const t = CAT.EUR.t, mx = Math.max(fe.lim || 0, ...fe.series.map(p => p.v), 1) * 1.08;
+    out.push(`<div class="td mini" data-gocat="EUR"><b>EUR na placu · 7 dni</b><div class="spark">${fe.series.map(p => `<i class="${fe.lim && p.v > fe.lim ? "over" : ""}" style="height:${Math.max(2, p.v / mx * 100)}%" title="${DOW_S[dowOf(p.d)]} ${shortDate(p.d)}: ${fmt1(p.v / t)} aut"><em>${fmt1(Math.max(0, p.v) / t)}</em></i>`).join("")}${fe.lim ? `<u style="bottom:${fe.lim / mx * 100}%"></u>` : ""}</div><div class="spark-x">${fe.series.map(p => `<span>${DOW_S[dowOf(p.d)]}</span>`).join("")}</div></div>`); }
   // dokumenty
   const miss = docsMissing();
   if (miss.length) out.push(`<div class="td warn"><b>Dokumenty bez zwrotu</b><div class="pills">${miss.map(([dd, n]) => `<a href="#" data-docday="${dd}">${DOW_S[dowOf(dd)]} ${shortDate(dd)} · ${n}</a>`).join("")}</div></div>`);
@@ -1936,12 +1986,6 @@ document.addEventListener("click", async e => {
   }
   if (w === "salda") saveXlsx(`salda_${SALX.date || T}.xlsx`, [{ name: "Salda", rows: salRowsX(salFiltered()) }]);
   if (w === "stany") saveXlsx(`stany_placu_${T}.xlsx`, stanRowsX());
-  if (w === "prog") {
-    const ser = [["Data", "Dzień", ...CATS.map(c => c.n + " szt."), ...CATS.filter(c => c.t).map(c => c.n + " aut")]];
-    const fs = CATS.map(c => forecast(c.k, horizon));
-    for (let i = 0; i <= horizon; i++) { const d = addDays(T, i); ser.push([xDate(d), DOW[dowOf(d)], ...fs.map(f => f && f.series[i] ? Math.round(f.series[i].v) : ""), ...CATS.map((c, j) => [c, fs[j]]).filter(([c]) => c.t).map(([c, f]) => f && f.series[i] ? r1(f.series[i].v / c.t) : "")]); }
-    saveXlsx(`prognoza_${horizon}dni_${T}.xlsx`, [{ name: `Prognoza ${horizon} dni`, rows: catRows(horizon) }, { name: "Dzień po dniu", rows: ser }]);
-  }
 });
 $("#exGo").addEventListener("click", async () => {
   const a = $("#exFrom").value, b = $("#exTo").value;
@@ -2147,19 +2191,27 @@ function renderSalda() {
   const eur = [...V.eur.values()], pos = eur.reduce((s, r) => s + Math.max(0, r.tot), 0), neg = eur.reduce((s, r) => s + Math.min(0, r.tot), 0);
   const ppos = [...V.prev.values()].reduce((s, r) => s + Math.max(0, r.tot), 0), dpos = V.prevDate ? pos - ppos : null;
   const t = (CAT.EUR && CAT.EUR.t) || 495, cand = salViewDate ? [] : salCandidates();
-  const k = (l, v, d, g = "") => `<div class="k ${g}"><span class="l">${l}</span><span class="v">${v}</span><span class="d">${d}</span></div>`;
+  const k = (l, v, d, g = "", ic = "", bar = null) => `<div class="k ${g}">${ic ? `<span class="ki">${ico(ic)}</span>` : ""}<span class="l">${l}</span><span class="v">${v}</span><span class="d">${d}</span>${bar != null ? `<span class="kb"><i style="width:${Math.max(0, Math.min(100, bar))}%"></i></span>` : ""}</div>`;
   const vh = (SALMETA.list || []).find(x => x.date === V.date), sus = salSuspect(vh);
   $("#salSum").innerHTML = !V.date ? "" : (sus ? `<div class="notice warn">Salda z ${plDate(V.date)} wczytano starszą wersją raportu${sus === "swap" ? " i z zamienioną datą (dzień ↔ miesiąc)" : ""} — salda od 1000 szt. w górę (np. Mlekovita) mogły zostać odczytane jako 0. Wczytaj ten plik ponownie${sus === "swap" ? ", a błędny wpis usuń w Archiwum sald (✕)" : ""}.</div>` : "") + (salViewDate ? `<div class="salarch">📂 Podgląd archiwum z ${plDate(V.date)} <button class="btn xs" type="button" id="salBack">Wróć do bieżących</button></div>` : "") + `<div class="kpis4">${[
-    k("Do oddania dostawcom", `${fmt(pos)} <small>szt.</small>`, `≈ ${fmt1(pos / t)} aut EUR · ${eur.filter(r => r.tot > 0).length} dostawców`, "g-own"),
-    k("Zmiana od poprzedniego", dpos == null ? "—" : `<span class="${dpos > 0 ? "up" : dpos < 0 ? "down" : ""}">${dpos > 0 ? "▲ +" : dpos < 0 ? "▼ " : ""}${fmt(dpos)}</span>`, V.prevDate ? "vs plik z " + plDate(V.prevDate) : "brak wcześniejszego pliku"),
-    k("Dostawcy winni nam", `${fmt(-neg)} <small>szt.</small>`, `${eur.filter(r => r.tot < 0).length} z saldem ujemnym`, "g-ndhp"),
-    k("Netto", `${fmt(pos + neg)} <small>szt.</small>`, "suma wszystkich sald EUR"),
-    salViewDate ? "" : k("Bez awizacji", `${cand.length} <small>${plural(cand.length, "firma", "firmy", "firm")}</small>`, `saldo ≥ ${fmt(CFG.salMin)} szt. · ${fmt(cand.reduce((s, r) => s + r.tot, 0))} szt.`, "g-lpr"),
+    k("Do oddania dostawcom", `${fmt(pos)} <small>szt.</small>`, `≈ ${fmt1(pos / t)} aut EUR · ${eur.filter(r => r.tot > 0).length} dostawców`, "g-own", "truck"),
+    k("Zmiana od poprzedniego", dpos == null ? "—" : `<span class="${dpos > 0 ? "up" : dpos < 0 ? "down" : ""}">${dpos > 0 ? "▲ +" : dpos < 0 ? "▼ " : ""}${fmt(dpos)}</span>`, V.prevDate ? "vs plik z " + plDate(V.prevDate) : "brak wcześniejszego pliku", dpos > 0 ? "g-lpr" : dpos < 0 ? "g-ndhp" : "", dpos < 0 ? "down" : "up"),
+    k("Dostawcy winni nam", `${fmt(-neg)} <small>szt.</small>`, `${eur.filter(r => r.tot < 0).length} z saldem ujemnym`, "g-ndhp", "hand"),
+    k("Netto", `${fmt(pos + neg)} <small>szt.</small>`, "suma wszystkich sald EUR", "g-woz", "scale"),
+    salViewDate ? "" : k("Bez awizacji", `${cand.length} <small>${plural(cand.length, "firma", "firmy", "firm")}</small>`, `saldo ≥ ${fmt(CFG.salMin)} szt. · ${fmt(cand.reduce((s, r) => s + r.tot, 0))} szt.`, "g-lpr", "bell", pos ? cand.reduce((s, r) => s + r.tot, 0) / pos * 100 : 0),
   ].join("")}</div>`;
   const rows = salFiltered(), sum = rows.reduce((s, r) => s + r.tot, 0);
   $("#salTbl").innerHTML = !V.date ? '<p class="sub">Wczytaj pierwszy plik z saldami.</p>' :
     `<table><thead><tr><th>Kod</th><th>Dostawca</th><th class="n">Saldo</th><th class="n">Zmiana</th><th class="n">Bufor</th><th>Umówione odbiory</th><th class="n">Po odbiorach</th><th></th></tr></thead><tbody>${rows.slice(0, 400).map(r => `<tr>${salCells(r, false)}</tr>`).join("")}</tbody></table>
     <p class="sub">${fmt(rows.length)} pozycji · suma ${fmt(sum)} szt.${rows.length > 400 ? " · na ekranie 400 największych, w Excelu wszystkie" : ""}</p>`;
+  // grafika: największe salda (z umówionymi odbiorami na pasku) i trend z archiwum
+  const top = eur.filter(r => r.tot > 0).sort((a, b) => b.tot - a.tot).slice(0, 10), tmax = top.length ? top[0].tot : 1;
+  $("#salViz").hidden = !V.date;
+  $("#salTop").innerHTML = top.length ? `<div class="hbars">${top.map(r => { const pl = salViewDate ? 0 : plannedFor(r.code).reduce((s, it) => s + qSum(it.q, "EUR"), 0), w = r.tot / tmax * 100, pw = Math.min(r.tot, pl) / tmax * 100;
+    return `<div class="hb" data-aw="${esc(r.code)}" title="${esc(r.name)} · ${fmt(r.tot)} szt.${pl ? " · umówione " + fmt(pl) : ""}"><span class="n">${esc(r.name || r.code)}</span><span class="bar"><i style="width:${w}%"></i>${pw ? `<b style="width:${pw}%"></b>` : ""}</span><span class="num">${fmt(r.tot)}</span><span class="tr">${"▮".repeat(Math.min(6, Math.max(1, Math.round(r.tot / t))))}</span></div>`; }).join("")}</div>
+    <div class="legend"><span class="g-own"><i class="dot"></i>saldo</span><span style="--gc:var(--info)"><i class="dot"></i>już umówione</span><span class="mut">▮ = ok. 1 auto</span></div>` : '<p class="sub">Brak dodatnich sald.</p>';
+  const tl = (SALMETA.list || []).slice(-14);
+  $("#salTrend").innerHTML = tl.length > 1 ? barChart(tl.map(h => ({ v: h.pos, g: "own", lab: fmt1(h.pos / t), x: shortDate(h.date), cls: h.date === V.date ? "cur" : "", tip: `<b>${plDate(h.date)}</b><br>do oddania: ${fmt(h.pos)} szt. (${fmt1(h.pos / t)} aut)<br>dostawców z saldem: ${fmt(h.cnt)}` })), null, 190) + '<p class="sub">etykiety w autach EUR</p>' : '<p class="sub">Trend pojawi się po wczytaniu drugiego pliku.</p>';
   const hist = (SALMETA.list || []).slice().reverse();
   $("#salHist").innerHTML = hist.length ? `<table><thead><tr><th>Stan na</th><th class="n">Do oddania (saldo &gt; 0)</th><th class="n">Zmiana</th><th class="n">Winni nam</th><th class="n">Dostawców &gt; 0</th><th></th></tr></thead><tbody>${hist.map((h, i) => { const pv = hist[i + 1], dd = pv ? h.pos - pv.pos : null;
     return `<tr class="click ${h.date === V.date ? "cat g-own" : ""}" data-salday="${h.date}"><td class="nw">${DOW_S[dowOf(h.date)]} ${plDate(h.date)}${i === 0 ? ' <span class="tag ok">bieżący</span>' : ""}</td><td class="n"><b>${fmt(h.pos)}</b></td><td class="n ${dd > 0 ? "up" : dd < 0 ? "down" : ""}">${dd == null ? "" : (dd > 0 ? "▲ +" : dd < 0 ? "▼ " : "") + fmt(dd)}</td><td class="n">${fmt(-h.neg)}</td><td class="n">${fmt(h.cnt)}</td><td class="nw">${salSuspect(h) === "swap" ? '<span class="tag warn" title="Data odczytana jako miesiąc/dzień — to raczej plik z ' + plDate(h.date.slice(0, 4) + "-" + h.date.slice(8) + "-" + h.date.slice(5, 7)) + '">zła data?</span> ' : salSuspect(h) ? '<span class="tag warn" title="Wczytany starszą wersją: salda od 1000 szt. w górę mogły zostać odczytane jako 0. Wczytaj ten plik ponownie.">wczytaj ponownie</span> ' : ""}<button class="btn xs" type="button" data-saldel="${h.date}" title="Usuń ten plik z archiwum">✕</button></td></tr>`; }).join("")}</tbody></table>` : '<p class="sub">Brak.</p>';
@@ -2208,6 +2260,7 @@ function renderStany() {
       const wt = c.k === "WOZ" || c.k === "POL" ? ` · ${c.k === "WOZ" ? fmt(wozSzt(st).w) + " wózków" : fmt(wozSzt(st).p) + " półek"}` : "";
       return `<td class="n" title="${r ? "zjazd ze sklepów: " + fmt(r.inf) + ", wydane: " + fmt(r.iss) : ""}${wt}">${st[c.k] == null ? "—" : fmt(st[c.k])}${dd ? `<br><span class="${dd > 0 ? "up" : "down"}" style="font-size:.68rem">${dd > 0 ? "▲ +" : "▼ "}${fmt(dd)}</span>` : ""}</td>`; }).join("")}</tr>`;
   }).join("")}</tbody></table>` : '<p class="sub">Brak zapisanych stanów.</p>';
+  renderProg();
 }
 const dTag = d => !d ? "" : `<b class="${d > 0 ? "up" : "down"}">${d > 0 ? "▲ +" : "▼ "}${fmt(d)}</b>`;
 function sTotal() {
@@ -2378,23 +2431,14 @@ function renderYard() {
 
 /* ---------- PROGNOZA ---------- */
 function renderProg() {
-  $$("#gH button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.h === horizon)));
-  $("#gActSub").textContent = `horyzont ${horizon} dni · najpilniejsze pierwsze`;
-  $("#gAct").innerHTML = actionsHtml(horizon, false);
-  $("#gTbl").innerHTML = catTable(horizon, false);
+  $("#gTbl").innerHTML = catTable(horizon, true);
   const sel = $("#gCat"); sel.innerHTML = CATS.map(c => `<option value="${c.k}">${esc(GROUPS[c.g])} · ${esc(c.n)}</option>`).join(""); sel.value = CAT[gCat] ? gCat : "EUR";
   const c = CAT[sel.value], f = forecast(c.k, Math.max(horizon, 7));
   $("#gChart").innerHTML = !f ? '<p class="sub">Brak stanu placu dla tej kategorii.</p>' :
     barChart(f.series.map(p => ({ v: p.v, g: c.g, lab: c.t ? fmt1(p.v / c.t) : fmt(p.v), x: DOW_S[dowOf(p.d)] + "<br>" + shortDate(p.d), cls: f.lim && p.v > f.lim ? "over" : "", go: p.d,
       tip: `<b>${DOW[dowOf(p.d)]} ${plDate(p.d)}</b> rano<br>prognoza: ${fmt(p.v)} szt.${c.t ? " (" + fmt1(p.v / c.t) + " aut)" : ""}<br>wyjedzie tego dnia: ${fmt(issued(p.d, c.k) + repK(p.d, c.k))} szt.${repK(p.d, c.k) ? `<br>naprawa przywiezie: +${fmt(repK(p.d, c.k))} szt.` : ""}` })), f.lim || null, 260, c.t ? `maks. ${fmt1(c.max)} ${plural(c.max, "auto", "auta", "aut")}` : "")
     + `<p class="sub">Stan ${fmt(f.s0)} szt. z ${plDate(f.c)} · zjazd ze sklepów ${fmt(f.rate)} szt./dzień${c.t ? " (" + fmt1(f.rate / c.t) + " aut)" : ""}${f.rep ? ` · naprawa przywiezie +${fmt(f.rep)} szt. (wliczone)` : ""} · etykiety w ${c.t ? "autach" : "sztukach"}.${f.needTrucks ? ` <b class="pos">Umów jeszcze ${f.needTrucks} ${plural(f.needTrucks, "auto", "auta", "aut")}${f.firstOver ? " — limit przekroczony od " + plDate(f.firstOver) : ""}.</b>` : ""}</p>`;
-  const inf = inflow(c.k), wd = [1, 2, 3, 4, 5, 6, 0];
-  $("#gWdSub").textContent = c.n + " · pon. obejmuje weekend";
-  $("#gWd").innerHTML = inf.rows.length ? barChart(wd.map(d => { const [s, n] = inf.wd[d]; const v = n ? s / n : 0; return { v, g: c.g, lab: n ? fmt(v) : "", x: DOW_S[d], tip: `${DOW[d]}: śr. ${fmt(v)} szt. (${n} pomiarów)` }; }), null, 200)
-    + `<div class="tbl-wrap" style="max-height:200px"><table><thead><tr><th>Okres</th><th class="n">Dni</th><th class="n">Wydane</th><th class="n">Zjazd</th></tr></thead><tbody>${inf.rows.slice(-14).reverse().map(r => `<tr><td>${shortDate(r.a)} → ${shortDate(r.b)}</td><td class="n">${r.n}</td><td class="n">${fmt(r.iss)}</td><td class="n">${fmt(r.inf)}</td></tr>`).join("")}</tbody></table></div>`
-    : '<p class="sub">Za mało liczeń stanu (potrzeba co najmniej dwóch w odstępie do 4 dni).</p>';
 }
-$("#gH").addEventListener("click", e => { const b = e.target.closest("[data-h]"); if (b) { horizon = +b.dataset.h; renderProg(); } });
 $("#gCat").addEventListener("change", e => { gCat = e.target.value; renderProg(); });
 
 /* ---------- BAZA MAILI DOSTAWCÓW ---------- */
