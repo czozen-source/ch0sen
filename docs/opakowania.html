@@ -548,7 +548,7 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
 .hi .si2 { width: 18px; height: 18px; }
 .panel > .row > .hi { margin-right: -2px; }
 #hWaitP .hi { --gc: var(--warn); } #p-stany .panel:has(#yard) .hi { --gc: var(--g-ndhp); } #p-stany .panel:has(#sHist) .hi { --gc: var(--g-chep); }
-#salViz .panel:last-child .hi, .panel:has(#hWeek) .hi { --gc: var(--g-chep); } #p-salda .panel:has(#salHist) .hi { --gc: var(--g-woz); }
+#salViz .panel:last-child .hi, details.more .hi { --gc: var(--g-chep); } #p-salda .panel:has(#salHist) .hi { --gc: var(--g-woz); }
 /* kafelki KPI z ikoną i paskiem */
 .kpis4 { gap: 10px; }
 .kpis4 .k { position: relative; border-radius: 10px; border: 1px solid var(--line-2); border-top: 0; padding: 10px 12px 10px 58px; min-height: 76px; align-content: center; overflow: hidden;
@@ -584,6 +584,13 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
 .bars .b i { border-radius: 4px 4px 0 0; }
 .sgroup { border-radius: 8px; }
 .tbl-wrap table tbody tr:hover td { background: color-mix(in srgb, var(--g-own) 6%, transparent); }
+details.more { border-top: 1px dashed var(--line); padding-top: 8px; }
+details.more > summary { cursor: pointer; display: flex; align-items: center; gap: 10px; font: 700 .95rem var(--f-cond); text-transform: uppercase; letter-spacing: .06em; list-style: none; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::after { content: "▸"; margin-left: auto; color: var(--muted); transition: rotate .2s; }
+details.more[open] > summary::after { rotate: 90deg; }
+details.more > summary .sub { text-transform: none; letter-spacing: 0; font: 400 .74rem var(--f-body); }
+details.more[open] > .tbl-wrap { margin-top: 8px; }
 .panel.side { padding: 0; gap: 0; overflow: hidden; }
 #sProgWrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
 @media (max-width: 980px) { #sProgWrap { grid-template-columns: 1fr; } }
@@ -675,15 +682,10 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
         <button class="btn xl" type="button" data-xls="harm">⤓ Excel</button>
       </div>
     </div>
-    <div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)">
-      <div class="panel" style="border-top:4px solid var(--g-own)">
-        <header><span class="hi" data-ico="truck"></span><h3>EUR · limit i co zrobić</h3><span class="sub" id="hSugSub"></span></header>
-        <div id="hSug"></div>
-      </div>
-      <div class="panel">
-        <header><span class="hi" data-ico="calendar"></span><h3>Tydzień w liczbach</h3></header>
-        <div class="tbl-wrap" id="hWeek"></div>
-      </div>
+    <div class="panel" style="border-top:4px solid var(--g-own)">
+      <header><span class="hi" data-ico="truck"></span><h3>EUR · limit i co zrobić</h3><span class="sub" id="hSugSub"></span></header>
+      <div id="hSug"></div>
+      <details class="more"><summary><span class="hi" data-ico="calendar"></span>Tydzień w liczbach <span class="sub">awizacje, wyjazdy EUR, wolne okna — rozwiń</span></summary><div class="tbl-wrap" id="hWeek"></div></details>
     </div>
     <div class="panel wait-list" id="hWaitP" style="border-top:4px solid var(--warn)">
       <header><span class="hi" data-ico="mail"></span><h3>Czeka na potwierdzenie</h3><span class="sub" id="hWaitSub"></span></header>
@@ -751,6 +753,15 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
       </div>
       <form id="sForm" class="sgroups"></form>
     </div>
+    <div class="panel">
+      <header><span class="hi" data-ico="map"></span><h3>Mapa placu — zapełnienie</h3><span class="sub">na żywo z wpisanych liczb · pojemność obszaru = suma „Maks.” jego kategorii (Ustawienia → Kategorie) · najedź na obszar, aby zobaczyć szczegóły</span></header>
+      <div class="yardtot" id="yardTot"></div>
+      <div class="ymap" id="yard"></div>
+    </div>
+    <div class="panel">
+      <header><span class="hi" data-ico="history"></span><h3>Historia · stan i zjazd</h3><span class="sub">zjazd = stan dziś − stan poprzedni + wydane w międzyczasie</span><button class="btn xl spacer" type="button" data-xls="stany">⤓ Excel</button></header>
+      <div class="tbl-wrap h" id="sHist" style="max-height:480px"></div>
+    </div>
     <div class="cols big" id="sProgWrap">
       <div class="panel">
         <header><span class="hi" data-ico="chart"></span><h3>Prognoza · 7 dni</h3><span class="sub">stan rano, dzień po dniu</span><select id="gCat" style="width:auto" class="spacer"></select></header>
@@ -760,15 +771,6 @@ kbd { font: 500 .68rem var(--f-mono); border: 1px solid currentColor; border-bot
         <header><span class="hi" data-ico="truck"></span><h3>Co zaplanować</h3><span class="sub">za 7 dni = stan + zjazd − wyjazdy · klik = wykres</span></header>
         <div class="tbl-wrap" id="gTbl"></div>
       </div>
-    </div>
-    <div class="panel">
-      <header><span class="hi" data-ico="map"></span><h3>Mapa placu — zapełnienie</h3><span class="sub">na żywo z wpisanych liczb · pojemność obszaru = suma „Maks.” jego kategorii (Ustawienia → Kategorie) · najedź na obszar, aby zobaczyć szczegóły</span></header>
-      <div class="yardtot" id="yardTot"></div>
-      <div class="ymap" id="yard"></div>
-    </div>
-    <div class="panel">
-      <header><span class="hi" data-ico="history"></span><h3>Historia · stan i zjazd</h3><span class="sub">zjazd = stan dziś − stan poprzedni + wydane w międzyczasie</span><button class="btn xl spacer" type="button" data-xls="stany">⤓ Excel</button></header>
-      <div class="tbl-wrap h" id="sHist" style="max-height:480px"></div>
     </div>
   </section>
 
