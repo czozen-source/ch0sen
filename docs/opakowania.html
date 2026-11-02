@@ -991,6 +991,7 @@ function fbStore(db) {
     watchSalMeta: cb => db.collection("pk_meta").doc("salda").onSnapshot(s => cb(s.exists ? s.data() : { list: [] }), showDbErr),
     getSalda: d => db.collection("pk_salda").doc(d).get().then(s => s.exists ? s.data() : null),
     saveSalda(doc, meta) { const b = db.batch(); b.set(db.collection("pk_salda").doc(doc.date), doc); b.set(db.collection("pk_meta").doc("salda"), meta); return b.commit(); },
+    delSalda(d, meta) { const b = db.batch(); b.delete(db.collection("pk_salda").doc(d)); b.set(db.collection("pk_meta").doc("salda"), meta); return b.commit(); },
     getDost: () => db.collection("pk_meta").doc("dostawcy").get().then(s => s.exists ? (s.data().txt || "") : ""),
     getMails: () => db.collection("pk_meta").doc("maile").get().then(s => s.exists ? (s.data().txt || "") : ""),
     saveMails: txt => db.collection("pk_meta").doc("maile").set({ txt, at: Date.now(), by: email }),
@@ -1032,6 +1033,7 @@ function localStore() {
       Object.keys(D.salda).sort().slice(0, -3).forEach(k => delete D.salda[k]); // lokalnie trzymamy 3 ostatnie pliki
       save(); L.meta.forEach(cb => cb(clone(meta)));
     },
+    async delSalda(d, meta) { delete D.salda[d]; D.meta = clone(meta); save(); L.meta.forEach(cb => cb(clone(meta))); },
     async getDost() { return D.dost || ""; },
     async getMails() { return D.maile || ""; },
     async saveMails(txt) { D.maile = txt; save(); },
@@ -1994,6 +1996,16 @@ function salCode(v) {
 }
 const normCode = c => { const x = salCode(c); return x ? x.code : String(c ?? "").trim(); };
 
+// v2: liczby ze spacją („1 194”) i daty z eksportu SAP czytane poprawnie; starsze wpisy mogą mieć salda ≥ 1000 jako 0
+const SAL_V = 2;
+// wpis z archiwum podejrzany: wczytany starszą wersją, albo dzień z miesiącem zamienione (02.11 → 11.02)
+function salSuspect(h) {
+  if (!h || (h.v || 1) >= SAL_V) return "";
+  const up = h.at ? new Date(h.at).toISOString().slice(0, 10) : null, [y, m, d] = h.date.split("-");
+  const sw = +d <= 12 && d !== m ? y + "-" + d + "-" + m : null, near = (a, b) => a && b && Math.abs((Date.parse(a) - Date.parse(b)) / 864e5) <= 4;
+  if (sw && up && near(sw, up) && !near(h.date, up)) return "swap";
+  return "old";
+}
 // arkusz z saldami: szuka wiersza nagłówków z „Dostawca” i „Saldo”
 function parseSaldaSheet(ws, fileName) {
   if (!ws || !ws["!ref"]) return null;
@@ -2048,7 +2060,7 @@ async function storeSalda(p, file) {
   const doc = packSalda(p, file);
   if (doc.rows.length > 900000) throw new Error("Plik z saldami jest za duży do zapisania (ponad 900 KB).");
   const eurRows = p.rows.filter(r => r.opak === normCode(CFG.opak) || !r.opak);
-  const entry = { date: p.date, n: p.rows.length, pos: eurRows.reduce((s, r) => s + Math.max(0, r.tot), 0), neg: eurRows.reduce((s, r) => s + Math.min(0, r.tot), 0), cnt: eurRows.filter(r => r.tot > 0).length, by: email, at: Date.now() };
+  const entry = { date: p.date, n: p.rows.length, pos: eurRows.reduce((s, r) => s + Math.max(0, r.tot), 0), neg: eurRows.reduce((s, r) => s + Math.min(0, r.tot), 0), cnt: eurRows.filter(r => r.tot > 0).length, by: email, at: Date.now(), v: SAL_V };
   const list = (SALMETA.list || []).filter(x => x.date !== p.date).concat(entry).sort((a, b) => a.date.localeCompare(b.date)).slice(-400);
   await S.saveSalda(doc, { list, latest: list[list.length - 1].date });
 }
@@ -2136,7 +2148,8 @@ function renderSalda() {
   const ppos = [...V.prev.values()].reduce((s, r) => s + Math.max(0, r.tot), 0), dpos = V.prevDate ? pos - ppos : null;
   const t = (CAT.EUR && CAT.EUR.t) || 495, cand = salViewDate ? [] : salCandidates();
   const k = (l, v, d, g = "") => `<div class="k ${g}"><span class="l">${l}</span><span class="v">${v}</span><span class="d">${d}</span></div>`;
-  $("#salSum").innerHTML = !V.date ? "" : (salViewDate ? `<div class="salarch">📂 Podgląd archiwum z ${plDate(V.date)} <button class="btn xs" type="button" id="salBack">Wróć do bieżących</button></div>` : "") + `<div class="kpis4">${[
+  const vh = (SALMETA.list || []).find(x => x.date === V.date), sus = salSuspect(vh);
+  $("#salSum").innerHTML = !V.date ? "" : (sus ? `<div class="notice warn">Salda z ${plDate(V.date)} wczytano starszą wersją raportu${sus === "swap" ? " i z zamienioną datą (dzień ↔ miesiąc)" : ""} — salda od 1000 szt. w górę (np. Mlekovita) mogły zostać odczytane jako 0. Wczytaj ten plik ponownie${sus === "swap" ? ", a błędny wpis usuń w Archiwum sald (✕)" : ""}.</div>` : "") + (salViewDate ? `<div class="salarch">📂 Podgląd archiwum z ${plDate(V.date)} <button class="btn xs" type="button" id="salBack">Wróć do bieżących</button></div>` : "") + `<div class="kpis4">${[
     k("Do oddania dostawcom", `${fmt(pos)} <small>szt.</small>`, `≈ ${fmt1(pos / t)} aut EUR · ${eur.filter(r => r.tot > 0).length} dostawców`, "g-own"),
     k("Zmiana od poprzedniego", dpos == null ? "—" : `<span class="${dpos > 0 ? "up" : dpos < 0 ? "down" : ""}">${dpos > 0 ? "▲ +" : dpos < 0 ? "▼ " : ""}${fmt(dpos)}</span>`, V.prevDate ? "vs plik z " + plDate(V.prevDate) : "brak wcześniejszego pliku"),
     k("Dostawcy winni nam", `${fmt(-neg)} <small>szt.</small>`, `${eur.filter(r => r.tot < 0).length} z saldem ujemnym`, "g-ndhp"),
@@ -2148,11 +2161,19 @@ function renderSalda() {
     `<table><thead><tr><th>Kod</th><th>Dostawca</th><th class="n">Saldo</th><th class="n">Zmiana</th><th class="n">Bufor</th><th>Umówione odbiory</th><th class="n">Po odbiorach</th><th></th></tr></thead><tbody>${rows.slice(0, 400).map(r => `<tr>${salCells(r, false)}</tr>`).join("")}</tbody></table>
     <p class="sub">${fmt(rows.length)} pozycji · suma ${fmt(sum)} szt.${rows.length > 400 ? " · na ekranie 400 największych, w Excelu wszystkie" : ""}</p>`;
   const hist = (SALMETA.list || []).slice().reverse();
-  $("#salHist").innerHTML = hist.length ? `<table><thead><tr><th>Stan na</th><th class="n">Do oddania (saldo &gt; 0)</th><th class="n">Zmiana</th><th class="n">Winni nam</th><th class="n">Dostawców &gt; 0</th></tr></thead><tbody>${hist.map((h, i) => { const pv = hist[i + 1], dd = pv ? h.pos - pv.pos : null;
-    return `<tr class="click ${h.date === V.date ? "cat g-own" : ""}" data-salday="${h.date}"><td class="nw">${DOW_S[dowOf(h.date)]} ${plDate(h.date)}${i === 0 ? ' <span class="tag ok">bieżący</span>' : ""}</td><td class="n"><b>${fmt(h.pos)}</b></td><td class="n ${dd > 0 ? "up" : dd < 0 ? "down" : ""}">${dd == null ? "" : (dd > 0 ? "▲ +" : dd < 0 ? "▼ " : "") + fmt(dd)}</td><td class="n">${fmt(-h.neg)}</td><td class="n">${fmt(h.cnt)}</td></tr>`; }).join("")}</tbody></table>` : '<p class="sub">Brak.</p>';
+  $("#salHist").innerHTML = hist.length ? `<table><thead><tr><th>Stan na</th><th class="n">Do oddania (saldo &gt; 0)</th><th class="n">Zmiana</th><th class="n">Winni nam</th><th class="n">Dostawców &gt; 0</th><th></th></tr></thead><tbody>${hist.map((h, i) => { const pv = hist[i + 1], dd = pv ? h.pos - pv.pos : null;
+    return `<tr class="click ${h.date === V.date ? "cat g-own" : ""}" data-salday="${h.date}"><td class="nw">${DOW_S[dowOf(h.date)]} ${plDate(h.date)}${i === 0 ? ' <span class="tag ok">bieżący</span>' : ""}</td><td class="n"><b>${fmt(h.pos)}</b></td><td class="n ${dd > 0 ? "up" : dd < 0 ? "down" : ""}">${dd == null ? "" : (dd > 0 ? "▲ +" : dd < 0 ? "▼ " : "") + fmt(dd)}</td><td class="n">${fmt(-h.neg)}</td><td class="n">${fmt(h.cnt)}</td><td class="nw">${salSuspect(h) === "swap" ? '<span class="tag warn" title="Data odczytana jako miesiąc/dzień — to raczej plik z ' + plDate(h.date.slice(0, 4) + "-" + h.date.slice(8) + "-" + h.date.slice(5, 7)) + '">zła data?</span> ' : salSuspect(h) ? '<span class="tag warn" title="Wczytany starszą wersją: salda od 1000 szt. w górę mogły zostać odczytane jako 0. Wczytaj ten plik ponownie.">wczytaj ponownie</span> ' : ""}<button class="btn xs" type="button" data-saldel="${h.date}" title="Usuń ten plik z archiwum">✕</button></td></tr>`; }).join("")}</tbody></table>` : '<p class="sub">Brak.</p>';
 }
 $("#salDay").addEventListener("change", e => viewSalda(e.target.value));
-$("#salHist").addEventListener("click", e => { const tr = e.target.closest("[data-salday]"); if (tr) { viewSalda(tr.dataset.salday); scrollTo({ top: 0, behavior: "smooth" }); } });
+$("#salHist").addEventListener("click", async e => {
+  const del = e.target.closest("[data-saldel]"); if (!del) return;
+  e.stopPropagation(); const d = del.dataset.saldel;
+  if (!confirm("Usunąć z archiwum salda ze stanem na " + plDate(d) + "?")) return;
+  const list = (SALMETA.list || []).filter(x => x.date !== d);
+  try { if (salViewDate === d) { salViewDate = null; SALX = SAL; } salLoadedFor = null; await S.delSalda(d, { list, latest: list.length ? list[list.length - 1].date : null }); toast("Usunięto salda z " + plDate(d)); }
+  catch (err) { fail(err); }
+}, true);
+$("#salHist").addEventListener("click", e => { if (e.target.closest("[data-saldel]")) return; const tr = e.target.closest("[data-salday]"); if (tr) { viewSalda(tr.dataset.salday); scrollTo({ top: 0, behavior: "smooth" }); } });
 $("#salSum").addEventListener("click", e => { if (e.target.id === "salBack") viewSalda(null); });
 $("#salQ").addEventListener("input", renderSalda);
 $("#salOpak").addEventListener("change", renderSalda);
