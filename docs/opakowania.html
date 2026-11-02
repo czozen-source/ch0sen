@@ -1157,7 +1157,7 @@ function slotIdx(slot) {
   for (let j = 0; j < CFG.slots.length; j++) { const [a, b] = span(CFG.slots[j].t); if (m >= a && m < b && e <= b) return j; }
   return -1;
 }
-const salOf = code => SAL.eur.get(String(code || "").trim());
+const salOf = code => SAL.eur.get(normCode(code));
 function plannedFor(code, from = today(), to = addDays(today(), 30)) {
   const out = []; code = String(code || "").trim(); if (!code) return out;
   for (let d = from; d <= to; d = addDays(d, 1)) itemsOf(d).forEach(it => { if (String(it.code) === code && active(it) && it.st !== "done") out.push(it); });
@@ -1867,9 +1867,12 @@ const loadXLSX = () => xlsxP || (xlsxP = new Promise((res, rej) => {
   s.onload = () => res(window.XLSX); s.onerror = () => { xlsxP = null; rej(new Error("Nie udało się wczytać biblioteki do plików Excel (sprawdź internet).")); };
   document.head.appendChild(s);
 }));
-async function readWorkbook(file) {
-  const X = await loadXLSX(); const buf = await file.arrayBuffer();
-  return X.read(buf, { type: "array", cellFormula: true, cellDates: false });
+async function readWorkbook(file, opt = {}) {
+  const X = await loadXLSX(); const buf = await file.arrayBuffer(), b = new Uint8Array(buf.slice(0, 4));
+  // eksport z SAP to często tekst (UTF-16, tabulatory) z rozszerzeniem .xls — wtedy bez automatycznej
+  // konwersji, bo „02.11.2026” zamienia się w 11 lutego, a „1 194” zostaje tekstem
+  const binary = (b[0] === 0x50 && b[1] === 0x4b) || (b[0] === 0xd0 && b[1] === 0xcf && b[2] === 0x11 && b[3] === 0xe0);
+  return X.read(buf, { type: "array", cellFormula: true, cellDates: false, raw: !!opt.rawText && !binary });
 }
 // sheets: [{ name, rows: [[nagłówki], [wartości]...] }]
 async function saveXlsx(fileName, sheets) {
@@ -1962,37 +1965,78 @@ function textDate(v) {
 const num = v => typeof v === "number" ? v : (typeof v === "string" && /^\s*~?\s*-?\d+([.,]\d+)?\s*$/.test(v) ? parseFloat(v.replace("~", "").replace(",", ".")) : null);
 const cellAt = (ws, r, c) => ws[XLSX.utils.encode_cell({ r, c })];
 
+// liczby z eksportów SAP/Excela: „12 345”, „12.345,00”, „1,234.5”, „1.234-” (minus na końcu), „(123)”
+function salNum(v) {
+  if (typeof v === "number") return isFinite(v) ? v : null;
+  let s = String(v ?? "").replace(/[\s\u00a0\u202f'~]/g, "").replace(/szt\.?$/i, "");
+  if (!s) return null;
+  let neg = false;
+  if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
+  if (/-$/.test(s)) { neg = true; s = s.slice(0, -1); }
+  if (/^[-−]/.test(s)) { neg = !neg; s = s.slice(1); }
+  if (!/^\d[\d.,]*$/.test(s)) return null;
+  const lc = Math.max(s.lastIndexOf(","), s.lastIndexOf("."));
+  if (lc >= 0) {
+    const dec = s.slice(lc + 1), sep = s[lc], other = sep === "," ? "." : ",";
+    // „12.345” / „12,345” (dokładnie 3 cyfry, jeden rodzaj separatora) = tysiące
+    const thousands = dec.length === 3 && !s.includes(other) && s.split(sep).slice(1).every(x => x.length === 3);
+    s = thousands ? s.split(sep).join("") : s.slice(0, lc).replace(/[.,]/g, "") + "." + dec;
+  }
+  const n = parseFloat(s); return isNaN(n) ? null : (neg ? -n : n);
+}
+// kod kontrahenta: „0000601299” → „601299”, 601299.0 → „601299”, „601299 S.M.MLEKOVITA” → kod + nazwa
+function salCode(v) {
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return Number.isInteger(v) ? { code: String(v) } : null;
+  const s = String(v).trim(), m = /^0*(\d{3,})(?:[.,]0+)?(?:\s*[-–:]?\s+(.+))?$/.exec(s);
+  if (m) return { code: m[1], name: (m[2] || "").trim() };
+  return /^\w+$/.test(s) ? { code: s } : null;
+}
+const normCode = c => { const x = salCode(c); return x ? x.code : String(c ?? "").trim(); };
+
 // arkusz z saldami: szuka wiersza nagłówków z „Dostawca” i „Saldo”
 function parseSaldaSheet(ws, fileName) {
   if (!ws || !ws["!ref"]) return null;
   const R = XLSX.utils.decode_range(ws["!ref"]);
-  for (let hr = R.s.r; hr <= Math.min(R.e.r, R.s.r + 25); hr++) {
+  for (let hr = R.s.r; hr <= Math.min(R.e.r, R.s.r + 40); hr++) {
     const col = {};
     for (let c = R.s.c; c <= R.e.c; c++) {
-      const h = norm((cellAt(ws, hr, c) || {}).v).replace(/\s+/g, " ").trim(); if (!h) continue;
+      const h = norm((cellAt(ws, hr, c) || {}).v).replace(/\s+/g, " ").replace(/[.:]+$/, "").trim(); if (!h) continue;
       if (h.startsWith("oddz")) col.oddz = c;
-      else if (h === "dostawca" || h === "kod dostawcy" || h === "nr dostawcy" || h === "nr sap") col.code ??= c;
-      else if (h === "opakowanie" || h === "kod opakowania") col.opak ??= c;
+      else if (h.startsWith("nazwa dost") || h.startsWith("nazwa kontr") || h.startsWith("nazwa odb") || h === "nazwa" || h === "nazwa firmy") col.name ??= c;
+      else if (h.startsWith("nazwa opak")) col.opakName = c;
+      else if (h === "dostawca" || h === "kod dostawcy" || h === "nr dostawcy" || h === "nr sap" || h === "kod sap" || h === "kontrahent" || h === "kod kontrahenta" || h === "nr kontrahenta" || h === "odbiorca" || h === "kod odbiorcy" || h === "klient" || h === "kod klienta") col.code ??= c;
+      else if (h === "opakowanie" || h === "kod opakowania" || h === "indeks opakowania" || h === "material" || h === "indeks") col.opak ??= c;
       else if (h.startsWith("saldo mag")) col.mag = c;
       else if (h.includes("bufor")) col.buf = c;
-      else if (h.includes("ogol")) col.tot = c;
-      else if (h.startsWith("nazwa dost")) col.name = c;
-      else if (h.startsWith("nazwa opak")) col.opakName = c;
+      else if (h.includes("ogol") || h === "saldo" || h === "saldo razem" || h === "razem saldo") col.tot ??= c;
     }
     if (col.code == null || (col.tot == null && col.mag == null)) continue;
     let date = null;
     for (let r = R.s.r; r < hr && !date; r++) for (let c = R.s.c; c <= R.e.c && !date; c++) date = cellDate(cellAt(ws, r, c));
     date = date || textDate(fileName);
-    const rows = [], opakNames = {};
+    const by = new Map(), opakNames = {};
+    let lastCode = null, lastName = "";
     for (let r = hr + 1; r <= R.e.r; r++) {
-      const cv = (cellAt(ws, r, col.code) || {}).v; if (cv == null || cv === "") continue;
-      const code = String(cv).trim(); if (!/^\w+$/.test(code)) continue;
       const g = c => c == null ? null : (cellAt(ws, r, c) || {}).v;
-      const mag = num(g(col.mag)) || 0, buf = num(g(col.buf)) || 0, tot = col.tot != null ? (num(g(col.tot)) ?? mag + buf) : mag + buf;
-      const opak = String(g(col.opak) ?? "").trim();
+      const raw = g(col.code), rawTxt = norm(raw).trim();
+      if (/^(suma|razem|ogolem|total|podsum)/.test(rawTxt)) { lastCode = null; continue; } // wiersze sum
+      const mag = salNum(g(col.mag)), buf = salNum(g(col.buf)), t0 = col.tot != null ? salNum(g(col.tot)) : null;
+      let cc = salCode(raw);
+      // raport grupowany: kod tylko w pierwszym wierszu firmy, kolejne opakowania pod spodem z pustą komórką
+      if (!cc && (raw == null || raw === "") && lastCode && (mag != null || buf != null || t0 != null)) cc = { code: lastCode, name: lastName };
+      if (!cc) { if (raw != null && raw !== "") lastCode = null; continue; }
+      const name = String(g(col.name) ?? "").trim() || cc.name || (cc.code === lastCode ? lastName : "");
+      lastCode = cc.code; lastName = name;
+      const m = mag || 0, b = buf || 0, tot = t0 ?? m + b;
+      const opak = normCode(g(col.opak) ?? "");
       if (col.opakName != null && opak) opakNames[opak] = String(g(col.opakName) ?? "").trim();
-      rows.push({ code, opak, mag, buf, tot, name: String(g(col.name) ?? "").trim() });
+      // ten sam kontrahent i opakowanie w kilku wierszach (np. różne oddziały) — sumujemy zamiast nadpisywać
+      const k = cc.code + "|" + opak, prev = by.get(k);
+      if (prev) { prev.mag += m; prev.buf += b; prev.tot += tot; if (!prev.name) prev.name = name; }
+      else by.set(k, { code: cc.code, opak, mag: m, buf: b, tot, name });
     }
+    const rows = [...by.values()];
     return rows.length ? { date, rows, opakNames } : null;
   }
   return null;
@@ -2003,7 +2047,7 @@ const unpackSalda = doc => (doc && doc.rows ? doc.rows.split("\n") : []).map(l =
 async function storeSalda(p, file) {
   const doc = packSalda(p, file);
   if (doc.rows.length > 900000) throw new Error("Plik z saldami jest za duży do zapisania (ponad 900 KB).");
-  const eurRows = p.rows.filter(r => r.opak === CFG.opak || !r.opak);
+  const eurRows = p.rows.filter(r => r.opak === normCode(CFG.opak) || !r.opak);
   const entry = { date: p.date, n: p.rows.length, pos: eurRows.reduce((s, r) => s + Math.max(0, r.tot), 0), neg: eurRows.reduce((s, r) => s + Math.min(0, r.tot), 0), cnt: eurRows.filter(r => r.tot > 0).length, by: email, at: Date.now() };
   const list = (SALMETA.list || []).filter(x => x.date !== p.date).concat(entry).sort((a, b) => a.date.localeCompare(b.date)).slice(-400);
   await S.saveSalda(doc, { list, latest: list[list.length - 1].date });
@@ -2012,11 +2056,11 @@ let salPending = null;
 async function handleSalFile(file) {
   const box = $("#salPrev"); box.innerHTML = '<p class="sub">Czytam plik…</p>';
   try {
-    const wb = await readWorkbook(file);
+    const wb = await readWorkbook(file, { rawText: true });
     let p = null; for (const n of wb.SheetNames) { p = parseSaldaSheet(wb.Sheets[n], file.name); if (p) break; }
     if (!p) { box.innerHTML = '<div class="notice err">Nie znalazłem tabeli z kolumnami „Dostawca” i „Saldo ogółem”.</div>'; return; }
     salPending = { p, file: file.name };
-    const eur = p.rows.filter(r => r.opak === CFG.opak || !r.opak), exists = (SALMETA.list || []).some(x => x.date === p.date);
+    const eur = p.rows.filter(r => r.opak === normCode(CFG.opak) || !r.opak), exists = (SALMETA.list || []).some(x => x.date === p.date);
     box.innerHTML = `<div class="notice ${exists ? "warn" : "info"}"><b>${esc(file.name)}</b>: ${fmt(p.rows.length)} wierszy, stan na <b>${p.date ? plDate(p.date) : "?"}</b> · EUR: ${fmt(eur.filter(r => r.tot > 0).length)} dostawców z dodatnim saldem, razem ${fmt(eur.reduce((s, r) => s + Math.max(0, r.tot), 0))} szt.${exists ? " · salda z tego dnia już są — zapis je zastąpi" : ""}</div>
       <div class="row"><label class="field">Stan na dzień <input type="date" id="salDate" value="${p.date || today()}"></label><button class="btn primary" type="button" id="salSave" style="align-self:end">Zapisz salda</button><button class="btn" type="button" id="salCancel" style="align-self:end">Anuluj</button></div>`;
   } catch (e) { console.error(e); box.innerHTML = `<div class="notice err">${esc(e.message || e)}</div>`; }
@@ -2047,7 +2091,7 @@ async function loadSalda(meta) {
   try {
     const [a, b] = await Promise.all([S.getSalda(last), prev ? S.getSalda(prev) : null]);
     const rows = unpackSalda(a), prows = unpackSalda(b);
-    const eurMap = rs => new Map(rs.filter(r => r.opak === CFG.opak || !r.opak).map(r => [r.code, r]));
+    const eurMap = rs => new Map(rs.filter(r => r.opak === normCode(CFG.opak) || !r.opak).map(r => [normCode(r.code), r]));
     SAL = { date: last, rows, eur: eurMap(rows), prev: eurMap(prows), prevDate: prev || null, opakNames: (a && a.opak) || {}, file: a && a.file };
     rows.forEach(r => { if (r.name && !NAMES.has(r.code)) NAMES.set(r.code, r.name); });
     schedule();
@@ -2056,7 +2100,7 @@ async function loadSalda(meta) {
 function salFiltered() {
   const opaks = [...new Set(SALX.rows.map(r => r.opak))].filter(Boolean), op = $("#salOpak").value || CFG.opak;
   const q = norm($("#salQ").value).trim(), booked = bookedCodes();
-  let rows = SALX.rows.filter(r => r.opak === op || !r.opak || !opaks.length);
+  let rows = SALX.rows.filter(r => r.opak === op || r.opak === normCode(op) || !r.opak || !opaks.length);
   if (q) rows = rows.filter(r => r.code.startsWith(q) || norm(r.name).includes(q));
   if (salFilter === "pos") rows = rows.filter(r => r.tot > 0);
   if (salFilter === "neg") rows = rows.filter(r => r.tot < 0);
@@ -2072,7 +2116,7 @@ async function viewSalda(date) {
   try {
     const [a, b] = await Promise.all([S.getSalda(date), prev ? S.getSalda(prev) : null]);
     if (!a) { toast("Tego pliku nie ma już w archiwum (tryb lokalny trzyma 3 ostatnie).", true); return viewSalda(null); }
-    const eurMap = rs => new Map(rs.filter(r => r.opak === CFG.opak || !r.opak).map(r => [r.code, r]));
+    const eurMap = rs => new Map(rs.filter(r => r.opak === normCode(CFG.opak) || !r.opak).map(r => [normCode(r.code), r]));
     const rows = unpackSalda(a), prows = unpackSalda(b);
     salViewDate = date; SALX = { date, rows, eur: eurMap(rows), prev: eurMap(prows), prevDate: prev || null, opakNames: a.opak || {} };
     renderSalda();
