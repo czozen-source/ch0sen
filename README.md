@@ -54,7 +54,7 @@ Po zapisaniu zgłoszenia i po każdej zmianie statusu pojawia się przycisk **�
 Formularz raportu po zmianie dla specjalistów: `https://czozen-source.github.io/ch0sen/raport.html` (link „Raport zmiany →” jest też w nagłówku rejestru). Logowanie tym samym kontem co rejestr.
 
 - Nie da się wysłać raportu z pustym polem; „ok”, „brak” itp. nie przechodzą jako odpowiedź.
-- Gdy są naczepy zamiecione lub zgłoszone do mycia, trzeba wpisać numery tych naczep – liczba wpisanych numerów musi się zgadzać z podaną liczbą, inaczej raport nie przejdzie.
+- Gdy są naczepy zamiecione lub zgłoszone do mycia, pod liczbą pojawia się tyle okienek, ile wpisano naczep – w każde trzeba wpisać numer naczepy, inaczej raport nie przejdzie.
 - Bilans naczep i butelek liczy się sam; gdy się nie zgadza, trzeba podać powód.
 - Sekcja 0 pokazuje, co zostawił poprzednik. Gdy stan na start różni się od jego stanu na koniec, specjalista musi opisać różnicę.
 - Nadawca (adres e-mail konta) jest u góry raportu. Po zapisaniu formularz się czyści.
