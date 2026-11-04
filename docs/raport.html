@@ -97,9 +97,10 @@ section.sec.done { box-shadow: inset 4px 0 0 var(--ok); }
 .prev { font-size: .88rem; background: var(--surface-2); border-radius: var(--r); padding: 10px 12px; }
 .prev b { font-family: var(--f-mono); font-weight: 500; }
 .prev ul { margin: 6px 0 0; padding-left: 18px; }
-.plates { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
-.plate { display: flex; align-items: center; gap: 6px; font: 500 .8rem var(--f-mono); color: var(--muted); }
-.plate input { flex: 1; min-width: 0; text-transform: uppercase; }
+.plates { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 4px 6px; }
+.plate { display: flex; align-items: center; gap: 4px; font: 500 .72rem var(--f-mono); color: var(--muted); }
+.plate span { width: 2.2ch; text-align: right; flex: none; }
+.plate input { flex: 1; min-width: 0; padding: 4px 6px; font: 500 .82rem var(--f-mono); text-transform: uppercase; }
 .f.err .plates input { border-color: var(--bad); }
 .status-pick { display: flex; gap: 8px; flex-wrap: wrap; }
 .status-pick button { flex: 1 1 150px; font: 600 .9rem var(--f-body); text-align: left; border: 2px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: var(--r); padding: 9px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
@@ -377,7 +378,7 @@ function errOf(f) {
   if (f.t === "plates") {
     const want = n(f.list) || 0, a = plateArr(f.k), miss = [];
     for (let i = 0; i < want; i++) { const x = String(a[i] || "").trim(); if (!x || BAD_WORDS.includes(x.toLowerCase())) miss.push(i + 1); }
-    return miss.length ? "Wpisz numer naczepy w polu nr " + miss.join(", ") : null;
+    return !miss.length ? null : miss.length <= 5 ? "Wpisz numer naczepy w polu nr " + miss.join(", ") : "Brakuje " + miss.length + " z " + want + " numerów naczep";
   }
   if (!filled(f.k)) return "Uzupełnij";
   const v = String(V[f.k]).trim();
@@ -440,9 +441,10 @@ function syncPlates(f) {
   for (let i = box.children.length; i < want; i++) {
     const w = document.createElement("label"); w.className = "plate";
     w.innerHTML = '<span>' + (i + 1) + '.</span>';
-    const inp = document.createElement("input"); inp.type = "text"; inp.placeholder = "nr naczepy"; inp.autocomplete = "off";
+    const inp = document.createElement("input"); inp.type = "text"; inp.placeholder = "nr"; inp.autocomplete = "off";
     inp.value = a[i] || "";
     inp.oninput = () => { const arr = plateArr(f.k).slice(); arr[i] = inp.value; V[f.k] = arr; change(); };
+    inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); const nx = box.children[i + 1]; if (nx) nx.querySelector("input").focus(); } };
     w.appendChild(inp); box.appendChild(w);
   }
 }
