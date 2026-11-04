@@ -285,7 +285,9 @@ const S = [
  ]},
  { no: "2", title: "Higiena naczep", f: [
   { k: "sw", l: "Naczepy zamiecione", t: "num" },
+  { k: "sw_list", l: "Które naczepy zamiecione? (numery)", t: "area", wide: 1, reason: 1, list: "sw", ph: "Numery naczep, każda po przecinku lub w nowej linii", need: () => n("sw") > 0 },
   { k: "wash_req", l: "Zgłoszone do mycia", t: "num" },
+  { k: "wash_list", l: "Które naczepy zgłoszone do mycia? (numery)", t: "area", wide: 1, reason: 1, list: "wash_req", ph: "Numery naczep, każda po przecinku lub w nowej linii", need: () => n("wash_req") > 0 },
   { k: "washed", l: "Umyte na myjni", t: "num" },
   { k: "next_spec", l: "Czy jest specjalista na kolejną zmianę?", t: "yn", wide: 1 },
   { k: "wash_lists", l: "Czy przygotowane listy z naczepami do mycia?", t: "yn", wide: 1, reason: 1, need: () => V.next_spec === "NIE" }
@@ -361,6 +363,7 @@ function prevMismatch() {
   if (filled("h_start") && pv.h_end && HALA.includes(pv.h_end) && V.h_start !== pv.h_end) m.push("Hala do przebrania: poprzednik zostawił „" + pv.h_end + "”, zastałeś „" + V.h_start + "”");
   return m;
 }
+const listItems = (v) => String(v || "").split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
 const active = (f) => !f.reason || f.need();
 const optional = (f) => f.opt && f.opt();
 function errOf(f) {
@@ -371,6 +374,11 @@ function errOf(f) {
   if (f.t === "num") return (isNaN(+v) || +v < 0 || !Number.isInteger(+v)) ? "Wpisz liczbę całkowitą" : null;
   if (f.t === "text" || f.t === "area") {
     if (BAD_WORDS.includes(v.toLowerCase())) return "„" + v + "” to nie jest odpowiedź";
+    if (f.list) {
+      const cnt = listItems(v).length, want = n(f.list);
+      if (cnt !== want) return "Wpisano " + cnt + " " + (cnt === 1 ? "naczepę" : cnt % 10 >= 2 && cnt % 10 <= 4 && (cnt % 100 < 12 || cnt % 100 > 14) ? "naczepy" : "naczep") + ", a liczba to " + want + " – podaj numer każdej naczepy (oddziel przecinkiem lub nową linią)";
+      return null;
+    }
     if (f.reason && v.length < 8) return "Napisz konkretnie (min. kilka słów)";
   }
   return null;
@@ -543,7 +551,7 @@ function rows() {
     it("Wysłane naczepy z DHP", T("s_dhp"))
   ]);
   sec("2. Higiena naczep", [
-    it("Zamiecione", T("sw")), it("Zgłoszone do mycia", T("wash_req")), it("Umyte na myjni", T("washed")),
+    it("Zamiecione", T("sw"), "", n("sw") > 0 ? listItems(V.sw_list).join(", ") : ""), it("Zgłoszone do mycia", T("wash_req"), "", n("wash_req") > 0 ? listItems(V.wash_list).join(", ") : ""), it("Umyte na myjni", T("washed")),
     it("Specjalista na kolejną zmianę", T("next_spec")),
     V.next_spec === "NIE" ? it("Przygotowane listy z naczepami do mycia", T("wash_lists"), yn("wash_lists")) : null
   ]);
