@@ -97,6 +97,11 @@ section.sec.done { box-shadow: inset 4px 0 0 var(--ok); }
 .prev { font-size: .88rem; background: var(--surface-2); border-radius: var(--r); padding: 10px 12px; }
 .prev b { font-family: var(--f-mono); font-weight: 500; }
 .prev ul { margin: 6px 0 0; padding-left: 18px; }
+.plates { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 4px 6px; }
+.plate { display: flex; align-items: center; gap: 4px; font: 500 .72rem var(--f-mono); color: var(--muted); }
+.plate span { width: 2.2ch; text-align: right; flex: none; }
+.plate input { flex: 1; min-width: 0; padding: 4px 6px; font: 500 .82rem var(--f-mono); text-transform: uppercase; }
+.f.err .plates input { border-color: var(--bad); }
 .status-pick { display: flex; gap: 8px; flex-wrap: wrap; }
 .status-pick button { flex: 1 1 150px; font: 600 .9rem var(--f-body); text-align: left; border: 2px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: var(--r); padding: 9px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
 .status-pick button.on { border-color: var(--fg); }
@@ -285,7 +290,9 @@ const S = [
  ]},
  { no: "2", title: "Higiena naczep", f: [
   { k: "sw", l: "Naczepy zamiecione", t: "num" },
+  { k: "sw_list", l: "Numery zamiecionych naczep", t: "plates", wide: 1, reason: 1, list: "sw", need: () => n("sw") > 0 },
   { k: "wash_req", l: "Zgłoszone do mycia", t: "num" },
+  { k: "wash_list", l: "Numery naczep zgłoszonych do mycia", t: "plates", wide: 1, reason: 1, list: "wash_req", need: () => n("wash_req") > 0 },
   { k: "washed", l: "Umyte na myjni", t: "num" },
   { k: "next_spec", l: "Czy jest specjalista na kolejną zmianę?", t: "yn", wide: 1 },
   { k: "wash_lists", l: "Czy przygotowane listy z naczepami do mycia?", t: "yn", wide: 1, reason: 1, need: () => V.next_spec === "NIE" }
@@ -361,11 +368,18 @@ function prevMismatch() {
   if (filled("h_start") && pv.h_end && HALA.includes(pv.h_end) && V.h_start !== pv.h_end) m.push("Hala do przebrania: poprzednik zostawił „" + pv.h_end + "”, zastałeś „" + V.h_start + "”");
   return m;
 }
+const listItems = (v) => (Array.isArray(v) ? v : String(v || "").split(/[,;\n]+/)).map(x => String(x || "").trim()).filter(Boolean);
+const plateArr = (k) => { const v = V[k]; return Array.isArray(v) ? v : listItems(v); };
 const active = (f) => !f.reason || f.need();
 const optional = (f) => f.opt && f.opt();
 function errOf(f) {
   if (!active(f)) return null;
   if (optional(f) && !filled(f.k)) return null;
+  if (f.t === "plates") {
+    const want = n(f.list) || 0, a = plateArr(f.k), miss = [];
+    for (let i = 0; i < want; i++) { const x = String(a[i] || "").trim(); if (!x || BAD_WORDS.includes(x.toLowerCase())) miss.push(i + 1); }
+    return !miss.length ? null : miss.length <= 5 ? "Wpisz numer naczepy w polu nr " + miss.join(", ") : "Brakuje " + miss.length + " z " + want + " numerów naczep";
+  }
   if (!filled(f.k)) return "Uzupełnij";
   const v = String(V[f.k]).trim();
   if (f.t === "num") return (isNaN(+v) || +v < 0 || !Number.isInteger(+v)) ? "Wpisz liczbę całkowitą" : null;
@@ -395,6 +409,8 @@ function renderForm() {
       } else if (f.t === "status") {
         inp = document.createElement("div"); inp.className = "status-pick"; inp.id = "i-" + f.k;
         Object.values(STATUS).forEach(([c, a, b]) => { const bt = document.createElement("button"); bt.type = "button"; bt.dataset.v = c; bt.innerHTML = '<span class="dot ' + c + '"></span><span><b>' + a + "</b> – " + b + "</span>"; bt.onclick = () => { V.status = c; change(); }; inp.appendChild(bt); });
+      } else if (f.t === "plates") {
+        inp = document.createElement("div"); inp.className = "plates"; inp.id = "i-" + f.k;
       } else if (f.t === "shift" || f.t === "hala") {
         inp = document.createElement("select"); inp.id = "i-" + f.k;
         const opts = f.t === "shift" ? ["I", "II", "III"] : HALA;
@@ -417,6 +433,21 @@ function renderForm() {
   });
   update(); renderRL();
 }
+function syncPlates(f) {
+  const box = $("#i-" + f.k), want = Math.min(n(f.list) || 0, 200);
+  if (box.children.length === want) return;
+  const a = plateArr(f.k).slice(); V[f.k] = a;
+  while (box.children.length > want) box.lastChild.remove();
+  for (let i = box.children.length; i < want; i++) {
+    const w = document.createElement("label"); w.className = "plate";
+    w.innerHTML = '<span>' + (i + 1) + '.</span>';
+    const inp = document.createElement("input"); inp.type = "text"; inp.placeholder = "nr"; inp.autocomplete = "off";
+    inp.value = a[i] || "";
+    inp.oninput = () => { const arr = plateArr(f.k).slice(); arr[i] = inp.value; V[f.k] = arr; change(); };
+    inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); const nx = box.children[i + 1]; if (nx) nx.querySelector("input").focus(); } };
+    w.appendChild(inp); box.appendChild(w);
+  }
+}
 function change() { LS.set("rz-draft", V); update(); }
 function update() {
   let tot = 0, ok = 0;
@@ -431,6 +462,7 @@ function update() {
       }
       const w = $("#w-" + f.k), on = active(f); w.hidden = !on; if (!on) return;
       $("#l-" + f.k).textContent = lbl(f);
+      if (f.t === "plates") syncPlates(f);
       if (f.t === "yn" || f.t === "yn3" || f.t === "status") w.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === V[f.k]));
       if (optional(f) && !filled(f.k)) { w.classList.remove("err"); $("#m-" + f.k).textContent = ""; return; }
       const e = errOf(f); tot++; sTot++; if (!e) ok++; else sErr++;
@@ -543,7 +575,7 @@ function rows() {
     it("Wysłane naczepy z DHP", T("s_dhp"))
   ]);
   sec("2. Higiena naczep", [
-    it("Zamiecione", T("sw")), it("Zgłoszone do mycia", T("wash_req")), it("Umyte na myjni", T("washed")),
+    it("Zamiecione", T("sw"), "", n("sw") > 0 ? plateArr("sw_list").slice(0, n("sw")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Zgłoszone do mycia", T("wash_req"), "", n("wash_req") > 0 ? plateArr("wash_list").slice(0, n("wash_req")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Umyte na myjni", T("washed")),
     it("Specjalista na kolejną zmianę", T("next_spec")),
     V.next_spec === "NIE" ? it("Przygotowane listy z naczepami do mycia", T("wash_lists"), yn("wash_lists")) : null
   ]);
