@@ -55,6 +55,7 @@ Formularz raportu po zmianie dla specjalistów: `https://czozen-source.github.io
 
 - Nie da się wysłać raportu z pustym polem; „ok”, „brak” itp. nie przechodzą jako odpowiedź.
 - Gdy są naczepy zamiecione lub zgłoszone do mycia, pod liczbą pojawia się tyle okienek, ile wpisano naczep – w każde trzeba wpisać numer naczepy, inaczej raport nie przejdzie.
+- Przy każdej zmianie formularza podbij stałą `APP_VER` w `docs/raport.html` – karta otwarta ze starą wersją przed wysłaniem sama się odświeży (wpisane dane zostają), więc nikt nie wyśle raportu ze starego formularza.
 - Bilans naczep i butelek liczy się sam; gdy się nie zgadza, trzeba podać powód.
 - Sekcja 0 pokazuje, co zostawił poprzednik. Gdy stan na start różni się od jego stanu na koniec, specjalista musi opisać różnicę.
 - Nadawca (adres e-mail konta) jest u góry raportu. Po zapisaniu formularz się czyści.

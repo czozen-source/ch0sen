@@ -229,6 +229,7 @@ table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const BAD_WORDS = ["ok", "okej", "brak", "-", "--", "nie wiem", "x", ".", "..", "nic", "jw", "j.w.", "to samo"];
+const APP_VER = "2026-11-04b"; // zmień przy każdej zmianie formularza – stare otwarte karty odświeżą się przed wysłaniem
 const RL_MAX = 15;
 const HALA = ["Czysta", "Do bramy 90", "Do bramy 91", "Do bramy 92", "Do bramy 93", "Za bramą 93"];
 const halaOk = (v) => HALA.indexOf(v) >= 0 && HALA.indexOf(v) <= 1;
@@ -667,7 +668,19 @@ async function copyRich(html, text, btn) {
     s.removeAllRanges(); btn.textContent = ok ? "Skopiowano – wklej w Outlooku (Ctrl+V)" : "Zaznacz raport poniżej i skopiuj Ctrl+C";
   }
 }
+async function newerVersion() {
+  try {
+    const r = await fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" });
+    const m = (await r.text()).match(/const APP_VER = "([^"]+)"/);
+    return m && m[1] !== APP_VER;
+  } catch { return false; }
+}
 $("#btn-send").onclick = async () => {
+  if (await newerVersion()) {
+    LS.set("rz-draft", V);
+    toast("Jest nowsza wersja formularza – strona się odświeży, wpisane dane zostaną. Sprawdź raport i wyślij ponownie.");
+    setTimeout(() => location.reload(), 2500); return;
+  }
   showErr = true; const missing = update();
   if (missing > 0) {
     const first = document.querySelector(".f.err"); if (first) first.scrollIntoView({ behavior: "smooth", block: "center" });
