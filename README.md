@@ -62,6 +62,7 @@ Formularz raportu po zmianie dla specjalistów: `https://czozen-source.github.io
 - Redlink: tygodniowy licznik palet przerzutów (pon–nd), każdy dopisuje swoje palety, limit 15 palet na dzień.
 - Mail jest kolorowy: zielone = OK, czerwone = do uwagi. Temat ma [CZERWONY]/[ŻÓŁTY] przy takim statusie zmiany.
 - Raporty: kolekcja `shift_reports`, plan Redlink: kolekcja `redlink`. Historia: wszystkie raporty i podsumowanie 7 dni na specjalistę.
+- **Wyniki** (zakładka widoczna tylko dla konta czozen@gmail.com): tabela liczb z raportów w wybranym okresie – każda zmiana osobno albo zsumowane po dniu/tygodniu, % wykonania punktów TAK/NIE na zmianę i specjalistę, lista zmian bez raportu, eksport do Excela.
 
 ### Jednorazowo
 1. Firebase → Firestore Database → **Reguły** → wklej aktualny `firestore.rules` (reguły `shift_reports` i `redlink`) → **Opublikuj**. Bez tego raporty się nie zapisują.

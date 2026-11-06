@@ -159,6 +159,30 @@ table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 /* colored preview of the mail */
 .preview { border: 1px solid var(--line); border-radius: var(--r); background: #ffffff; color: #17202b; padding: 12px; overflow-x: auto; }
 .sig { font-size: .9rem; }
+/* Wyniki (tylko właściciel) */
+.rtwrap { overflow: auto; max-height: 72vh; border: 1px solid var(--line); border-radius: var(--r); }
+table.rt { border-collapse: separate; border-spacing: 0; font-size: .82rem; white-space: nowrap; min-width: 100%; }
+table.rt th, table.rt td { padding: 5px 9px; border-bottom: 1px solid var(--line); text-align: right; }
+table.rt .l { text-align: left; }
+table.rt thead th { position: sticky; background: var(--surface-2); font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); z-index: 2; }
+table.rt thead tr:first-child th { top: 0; color: var(--fg); border-bottom: 0; }
+table.rt thead tr:nth-child(2) th { top: 26px; }
+table.rt thead th.gs, table.rt td.gs { border-left: 1px solid var(--line); }
+table.rt tbody td:first-child, table.rt thead th:first-child, table.rt tfoot td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+table.rt thead th:first-child { z-index: 3; background: var(--surface-2); }
+table.rt td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+table.rt td.w { background: var(--warn-bg); color: var(--warn); font-weight: 600; }
+table.rt td.b { background: var(--bad-bg); color: var(--bad); font-weight: 600; }
+table.rt td.ok { background: var(--ok-bg); color: var(--ok); }
+table.rt td.mut { color: var(--muted); }
+table.rt tfoot td { font-weight: 700; background: var(--surface-2); border-top: 2px solid var(--line); }
+table.rt tfoot td:first-child { background: var(--surface-2); }
+.stdots { display: inline-flex; gap: 6px; align-items: center; font-family: var(--f-mono); }
+.stdots .dot { width: 9px; height: 9px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.seg button { font: 600 .85rem var(--f-body); border: 0; background: var(--surface-2); color: var(--fg); padding: 8px 12px; cursor: pointer; }
+.seg button.on { background: var(--accent); color: var(--accent-ink); }
+.miss { display: flex; flex-wrap: wrap; gap: 4px; }
 </style>
 </head>
 <body>
@@ -170,6 +194,7 @@ table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
       <button role="tab" id="tab-form" aria-controls="p-form" aria-selected="true">Nowy raport</button>
       <button role="tab" id="tab-rl" aria-controls="p-rl" aria-selected="false">Redlink</button>
       <button role="tab" id="tab-hist" aria-controls="p-hist" aria-selected="false">Historia</button>
+      <button role="tab" id="tab-res" aria-controls="p-res" aria-selected="false" hidden>Wyniki</button>
       <button role="tab" id="tab-set" aria-controls="p-set" aria-selected="false" hidden>Ustawienia</button>
     </nav>
   </div>
@@ -211,6 +236,7 @@ table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
   </section>
 
   <section role="tabpanel" id="p-hist" hidden></section>
+  <section role="tabpanel" id="p-res" hidden></section>
   <section role="tabpanel" id="p-set" hidden></section>
 </main>
 
@@ -229,7 +255,7 @@ table.t td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const BAD_WORDS = ["ok", "okej", "brak", "-", "--", "nie wiem", "x", ".", "..", "nic", "jw", "j.w.", "to samo"];
-const APP_VER = "2026-11-04b"; // zmień przy każdej zmianie formularza – stare otwarte karty odświeżą się przed wysłaniem
+const APP_VER = "2026-11-06a"; // zmień przy każdej zmianie formularza – stare otwarte karty odświeżą się przed wysłaniem
 const RL_MAX = 15;
 const HALA = ["Czysta", "Do bramy 90", "Do bramy 91", "Do bramy 92", "Do bramy 93", "Za bramą 93"];
 const halaOk = (v) => HALA.indexOf(v) >= 0 && HALA.indexOf(v) <= 1;
@@ -833,6 +859,188 @@ function renderHistList() {
   }));
 }
 
+/* ---------- wyniki: tabela z danych raportów (tylko właściciel) ---------- */
+const SH_ORD = { I: 1, II: 2, III: 3 };
+const SH_END = { I: [0, 14], II: [0, 22], III: [1, 6] };   // [dni po dacie zmiany, godzina końca]
+const RF = Object.assign({ from: addDays(today(), -13), to: today(), group: "shift", shift: "", spec: "" }, LS.get("rz-res", {}));
+const num = (v, k) => { const x = v[k]; return x === "" || x == null || isNaN(+x) ? null : +x; };
+const balOk = (v, p) => { const a = p === "n" ? ["n_start", "n_in", "n_unl", "n_end"] : ["b_start", "b_in", "b_done", "b_end"]; const x = a.map(k => num(v, k)); return x.some(y => y == null) ? null : x[0] + x[1] - x[2] === x[3]; };
+// agg: sum – sumuje się w dniu/tygodniu; avg – średnia; first/last – stan pierwszej/ostatniej zmiany w grupie
+const RC = [
+  { g: "Ludzie", h: "Opak.", k: "ppl_op", agg: "avg" },
+  { g: "Ludzie", h: "Strefa", k: "ppl_st", agg: "avg" },
+  { g: "Naczepy", h: "Start", k: "n_start", agg: "first" },
+  { g: "Naczepy", h: "Przyjechały", k: "n_in", agg: "sum" },
+  { g: "Naczepy", h: "Rozładowane", k: "n_unl", agg: "sum" },
+  { g: "Naczepy", h: "Koniec", k: "n_end", agg: "last", w: x => x > 0 },
+  { g: "Naczepy", h: "Bilans", get: v => { const b = balOk(v, "n"); return b == null ? null : b ? 0 : 1; }, agg: "sum", fmt: (x, one) => one ? (x ? "nie gra" : "OK") : (x ? x + "× nie gra" : "OK"), b: x => x > 0, okc: x => x === 0 },
+  { g: "Remonty", h: "Rozład.", k: "r_unl", agg: "sum" },
+  { g: "Remonty", h: "Zostało", k: "r_left", agg: "last", w: x => x > 0 },
+  { g: "Wysłane", h: "EUR", k: "s_eur", agg: "sum" },
+  { g: "Wysłane", h: "DHP", k: "s_dhp", agg: "sum" },
+  { g: "Higiena", h: "Zamiecione", k: "sw", agg: "sum" },
+  { g: "Higiena", h: "Do mycia", k: "wash_req", agg: "sum" },
+  { g: "Higiena", h: "Umyte", k: "washed", agg: "sum" },
+  { g: "Palety", h: "Zwrot", k: "p_ret", agg: "sum" },
+  { g: "Palety", h: "Combo", k: "p_combo", agg: "sum" },
+  { g: "Palety", h: "Utyl.", k: "p_util", agg: "sum" },
+  { g: "Palety", h: "Green Off.", k: "p_go", agg: "last" },
+  { g: "Butelki", h: "Przerob.", k: "b_done", agg: "sum" },
+  { g: "Butelki", h: "Koniec", k: "b_end", agg: "last" },
+  { g: "Butelki", h: "Bilans", get: v => { const b = balOk(v, "b"); return b == null ? null : b ? 0 : 1; }, agg: "sum", fmt: (x, one) => one ? (x ? "nie gra" : "OK") : (x ? x + "× nie gra" : "OK"), b: x => x > 0, okc: x => x === 0 },
+  { g: "Zostało po zmianie", h: "Złom", k: "scrap_left", agg: "last", w: x => x > 0 },
+  { g: "Zostało po zmianie", h: "DKM", k: "dkm_left", agg: "last", w: x => x > 0 },
+  { g: "Zostało po zmianie", h: "MM", k: "mm_left", agg: "last", w: x => x > 0 },
+  { g: "Zostało po zmianie", h: "Hala", get: v => v.h_end || null, agg: "last", txt: 1, w: x => !halaOk(x) },
+  { g: "Zostało po zmianie", h: "Brak skan.", get: v => { const a = num(v, "sc_b"), b = num(v, "sc_a"); return a == null || b == null ? null : a - b; }, agg: "sum", b: x => x !== 0 }
+];
+// pytania TAK/NIE – w tabeli liczba odpowiedzi NIE, niżej % wykonania
+const RY = [
+  ["prev_ok", "Stan zastany zgodny z raportem poprzednika"], ["prev_tasks", "Zadania poprzednika zamknięte"],
+  ["next_spec", "Jest specjalista na kolejną zmianę"], ["wash_lists", "Listy naczep do mycia przygotowane"],
+  ["scrap", "Złom posprzątany"], ["prz", "Przerzuty zrobione"], ["dkm", "DKM zrobione"], ["rl", "Odpowiedź w Redlink"],
+  ["mm", "MM wczytane"], ["sc_log", "Zestawienie skanerów kompletne"], ["ord", "Porządek po zmianie"]
+];
+const RD = [  // wyliczane z liczb
+  ["_nbal", "Bilans naczep się zgadza", v => balOk(v, "n")], ["_bbal", "Bilans butelek się zgadza", v => balOk(v, "b")],
+  ["_nend", "Wszystkie naczepy rozładowane", v => { const x = num(v, "n_end"); return x == null ? null : x === 0; }],
+  ["_hala", "Hala najdalej do bramy 90", v => v.h_end ? halaOk(v.h_end) : null],
+  ["_sc", "Skanery – tyle samo przed i po", v => { const a = num(v, "sc_b"), b = num(v, "sc_a"); return a == null || b == null ? null : a === b; }]
+];
+const noCount = (v) => RY.reduce((a, [k]) => a + (v[k] === "NIE" ? 1 : 0), 0);
+const repKey = (r) => { const v = r.v || {}; return (v.date || "") + "|" + (SH_ORD[v.shift] || 9) + "|" + (r.createdAt || ""); };
+const fmtN = (x) => x == null ? "" : Number.isInteger(x) ? String(x) : x.toLocaleString("pl-PL", { maximumFractionDigits: 1 });
+const dayLbl = (s) => DAYS[(new Date(s + "T12:00:00").getDay() + 6) % 7] + " " + dm(s);
+
+function resList() {
+  return reports.filter(r => { const v = r.v || {};
+    if (!v.date) return false;
+    if (RF.from && v.date < RF.from) return false;
+    if (RF.to && v.date > RF.to) return false;
+    if (RF.shift && v.shift !== RF.shift) return false;
+    if (RF.spec && repName(r) !== RF.spec) return false;
+    return true;
+  }).sort((a, b) => repKey(a) < repKey(b) ? -1 : 1);   // chronologicznie: potrzebne do first/last
+}
+function aggCol(c, list) {
+  const vals = list.map(r => c.get ? c.get(r.v || {}) : num(r.v || {}, c.k)).filter(x => x != null && x !== "");
+  if (!vals.length) return null;
+  if (c.agg === "first") return vals[0];
+  if (c.agg === "last") return vals[vals.length - 1];
+  if (c.txt) return vals[vals.length - 1];
+  const s = vals.reduce((a, b) => a + b, 0);
+  return c.agg === "avg" ? s / vals.length : s;
+}
+function cellCls(c, x) { if (x == null || x === "") return "mut"; if (c.b && c.b(x)) return "b"; if (c.w && c.w(x)) return "w"; if (c.okc && c.okc(x)) return "ok"; return ""; }
+function resGroups(list) {
+  const key = (r) => { const v = r.v; return RF.group === "day" ? v.date : RF.group === "week" ? monday(v.date) : r.id; };
+  const m = new Map(); list.forEach(r => { const k = key(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); });
+  return [...m.entries()].map(([k, rs]) => {
+    const v0 = rs[0].v, one = RF.group === "shift";
+    const label = one ? dayLbl(v0.date) + " · " + (v0.shift || "?") : RF.group === "day" ? dayLbl(k) : "tydz. " + dm(k) + "–" + dm(addDays(k, 6));
+    const st = { g: 0, y: 0, r: 0 }; rs.forEach(r => { if (st[r.status] != null) st[r.status]++; });
+    return { k, rs, one, label, spec: one ? repName(rs[0]) : [...new Set(rs.map(repName))].length + " os.", st, no: rs.reduce((a, r) => a + noCount(r.v || {}), 0), flags: rs.reduce((a, r) => a + (r.flags || 0), 0) };
+  }).reverse();   // najnowsze na górze
+}
+function missingShifts() {
+  const out = [], now = new Date(), have = new Set(reports.map(r => (r.v || {}).date + "|" + (r.v || {}).shift));
+  const end = RF.to && RF.to < today() ? RF.to : today();
+  if (!RF.from || RF.from > end) return out;
+  for (let d = RF.from, i = 0; d <= end && i < 400; d = addDays(d, 1), i++)
+    ["I", "II", "III"].forEach(s => {
+      if (RF.shift && RF.shift !== s) return;
+      const [plus, h] = SH_END[s], fin = new Date(addDays(d, plus) + "T00:00:00"); fin.setHours(h + 1);   // godzina zapasu na wysłanie
+      if (fin < now && !have.has(d + "|" + s)) out.push(d + "|" + s);
+    });
+  return out;
+}
+function resTableHtml(groups) {
+  const one = RF.group === "shift", gcols = [];
+  RC.forEach((c, i) => { if (!gcols.length || gcols[gcols.length - 1].g !== c.g) gcols.push({ g: c.g, n: 0, i }); gcols[gcols.length - 1].n++; });
+  const gStart = new Set(gcols.map(x => x.i));
+  let h = '<div class="rtwrap"><table class="rt"><thead><tr><th class="l"></th><th class="l"></th><th></th><th></th>' +
+    gcols.map(x => '<th class="gs l" colspan="' + x.n + '">' + esc(x.g) + "</th>").join("") + '<th class="gs"></th></tr><tr>' +
+    '<th class="l">' + (one ? "Zmiana" : RF.group === "day" ? "Dzień" : "Tydzień") + '</th><th class="l">' + (one ? "Specjalista" : "Specjaliści") + "</th><th>" + (one ? "Status" : "Statusy") + "</th><th>Do uwagi</th>" +
+    RC.map((c, i) => "<th" + (gStart.has(i) ? ' class="gs"' : "") + ">" + esc(c.h) + "</th>").join("") + '<th class="gs">Odp. NIE</th></tr></thead><tbody>';
+  groups.forEach(g => {
+    const stc = one ? (STATUS[g.rs[0].status] || ["", "—"]) : null;
+    h += '<tr><td class="l"><b>' + esc(g.label) + "</b>" + (one ? "" : ' <span class="meta">' + g.rs.length + " zm.</span>") + '</td><td class="l">' + esc(g.spec) + "</td>" +
+      "<td>" + (one ? '<span class="stdots"><span class="dot ' + stc[0] + '"></span>' + esc(stc[1]) + "</span>" : '<span class="stdots"><span class="dot g"></span>' + g.st.g + '<span class="dot y"></span>' + g.st.y + '<span class="dot r"></span>' + g.st.r + "</span>") + "</td>" +
+      '<td class="n' + (g.flags ? " w" : "") + '">' + g.flags + "</td>" +
+      RC.map((c, i) => { const x = aggCol(c, g.rs), cls = cellCls(c, x);
+        return '<td class="' + (c.txt ? "l" : "n") + (gStart.has(i) ? " gs" : "") + (cls ? " " + cls : "") + '">' + (x == null ? "–" : esc(c.fmt ? c.fmt(x, one) : c.txt ? x : fmtN(x))) + "</td>"; }).join("") +
+      '<td class="n gs' + (g.no ? " b" : " ok") + '">' + g.no + "</td></tr>";
+  });
+  const all = groups.flatMap(g => g.rs);
+  h += '</tbody><tfoot><tr><td class="l">Razem</td><td class="l">' + all.length + " zmian</td><td></td>" + '<td class="n">' + all.reduce((a, r) => a + (r.flags || 0), 0) + "</td>" +
+    RC.map((c, i) => { const ok = c.agg === "sum" || c.agg === "avg", x = ok ? aggCol(c, all) : null;
+      return '<td class="n' + (gStart.has(i) ? " gs" : "") + '">' + (x == null ? "" : esc(c.fmt ? c.fmt(x, false) : fmtN(x))) + "</td>"; }).join("") +
+    '<td class="n gs">' + all.reduce((a, r) => a + noCount(r.v || {}), 0) + "</td></tr>" +
+    '<tr><td class="l">Średnio na zmianę</td><td></td><td></td><td class="n">' + fmtN(all.reduce((a, r) => a + (r.flags || 0), 0) / (all.length || 1)) + "</td>" +
+    RC.map((c, i) => { const vals = all.map(r => c.get ? c.get(r.v || {}) : num(r.v || {}, c.k)).filter(x => x != null && x !== "" && typeof x === "number");
+      return '<td class="n' + (gStart.has(i) ? " gs" : "") + '">' + (c.fmt || c.txt || !vals.length ? "" : fmtN(vals.reduce((a, b) => a + b, 0) / vals.length)) + "</td>"; }).join("") +
+    '<td class="gs"></td></tr></tfoot></table></div>';
+  return h;
+}
+function resChecksHtml(list) {
+  const cols = [["Razem", list], ...["I", "II", "III"].map(s => ["Zm. " + s, list.filter(r => r.v.shift === s)]),
+    ...[...new Set(list.map(repName))].sort((a, b) => a.localeCompare(b, "pl")).map(n => [n, list.filter(r => repName(r) === n)])];
+  const cell = (rs, f) => { let t = 0, y = 0; rs.forEach(r => { const a = f(r.v || {}); if (a === true) { t++; y++; } else if (a === false) t++; });
+    if (!t) return '<td class="n mut">–</td>'; const p = Math.round(100 * y / t);
+    return '<td class="n ' + (p === 100 ? "ok" : p >= 80 ? "w" : "b") + '" title="' + y + " z " + t + '">' + p + '% <span class="meta">' + y + "/" + t + "</span></td>"; };
+  const rowsH = [...RY.map(([k, l]) => [l, v => v[k] === "TAK" ? true : v[k] === "NIE" ? false : null]), ...RD.map(([, l, f]) => [l, f])];
+  return '<div class="rtwrap"><table class="rt"><thead><tr><th class="l">Punkt raportu</th>' + cols.map(c => "<th>" + esc(c[0]) + "</th>").join("") + "</tr></thead><tbody>" +
+    rowsH.map(([l, f]) => '<tr><td class="l">' + esc(l) + "</td>" + cols.map(c => cell(c[1], f)).join("") + "</tr>").join("") + "</tbody></table></div>";
+}
+function renderRes() {
+  const p = $("#p-res"); if (!isOwnerAcc()) { p.innerHTML = ""; return; }
+  LS.set("rz-res", { group: RF.group });
+  const list = resList(), groups = resGroups(list);
+  const specs = [...new Set(reports.map(repName))].sort((a, b) => a.localeCompare(b, "pl"));
+  const opt = (val, label, cur) => '<option value="' + esc(val) + '"' + (val === cur ? " selected" : "") + ">" + esc(label) + "</option>";
+  const miss = missingShifts();
+  const unl = list.reduce((a, r) => a + (num(r.v, "n_unl") || 0), 0), red = list.filter(r => r.status === "r").length, no = list.reduce((a, r) => a + noCount(r.v), 0);
+  let h = '<div class="panel"><h2>Wyniki z raportów</h2><p class="sub">Widoczne tylko dla Twojego konta. Liczby wzięte prosto z wysłanych raportów. W widoku dnia i tygodnia: przepływy (przyjechały, rozładowane, zamiecione…) są sumowane, a stany na koniec pokazują ostatnią zmianę w okresie.</p>' +
+    '<div class="hfilt">' +
+    '<label class="field">Od <input type="date" id="rf-from" value="' + esc(RF.from) + '"></label>' +
+    '<label class="field">Do <input type="date" id="rf-to" value="' + esc(RF.to) + '"></label>' +
+    '<label class="field">Zmiana <select id="rf-shift">' + opt("", "Wszystkie", RF.shift) + ["I", "II", "III"].map(x => opt(x, x, RF.shift)).join("") + "</select></label>" +
+    '<label class="field">Specjalista <select id="rf-spec">' + opt("", "Wszyscy", RF.spec) + specs.map(x => opt(x, x, RF.spec)).join("") + "</select></label>" +
+    '</div><div class="row" style="flex-wrap:wrap;gap:8px"><span class="seg" role="group" aria-label="Grupowanie">' +
+    [["shift", "Każda zmiana"], ["day", "Dzień"], ["week", "Tydzień"]].map(([k, l]) => '<button type="button" data-g="' + k + '"' + (RF.group === k ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + ">" + l + "</button>").join("") +
+    '</span><span class="seg">' + [[7, "7 dni"], [14, "14 dni"], [30, "30 dni"]].map(([d, l]) => '<button type="button" data-d="' + d + '">' + l + "</button>").join("") +
+    '</span><button class="btn" type="button" id="rf-xlsx">Eksport tabeli do Excela</button></div></div>';
+  h += '<div class="stats"><div class="stat"><b>' + list.length + '</b><span>raportów w okresie</span></div><div class="stat"><b>' + unl + '</b><span>naczep rozładowanych</span></div><div class="stat"><b>' + fmtN(list.length ? unl / list.length : 0) + '</b><span>naczep średnio na zmianę</span></div><div class="stat"><b>' + red + '</b><span>zmian na czerwono</span></div><div class="stat"><b>' + no + '</b><span>odpowiedzi NIE</span></div><div class="stat"><b>' + miss.length + "</b><span>zmian bez raportu</span></div></div>";
+  if (!list.length) h += '<div class="notice info">Brak raportów w wybranym okresie.</div>';
+  else {
+    h += '<div class="panel"><h2>Tabela wyników</h2>' + resTableHtml(groups) + '<p class="sub" style="margin:0">Na żółto: coś zostało po zmianie. Na czerwono: bilans się nie zgadza, brakuje skanerów albo padła odpowiedź NIE.</p></div>';
+    h += '<div class="panel"><h2>Wykonanie punktów raportu</h2><p class="sub" style="margin:0">Jaki procent zmian odpowiedział TAK (lub liczby się zgadzały). Najedź na komórkę, żeby zobaczyć liczbę zmian.</p>' + resChecksHtml(list) + "</div>";
+  }
+  if (miss.length) h += '<div class="panel"><h2>Zmiany bez raportu</h2><p class="sub" style="margin:0">Zmiana jest liczona jako brakująca godzinę po jej końcu. Dni wolne od pracy też się tu pokażą.</p><div class="miss">' +
+    miss.slice(-60).reverse().map(x => { const [d, s] = x.split("|"); return '<span class="pill bad">' + esc(dayLbl(d)) + " · " + s + "</span>"; }).join("") + "</div></div>";
+  p.innerHTML = h;
+  const map = { from: "rf-from", to: "rf-to", shift: "rf-shift", spec: "rf-spec" };
+  Object.entries(map).forEach(([k, id]) => $("#" + id).addEventListener("change", (e) => { RF[k] = e.target.value; renderRes(); }));
+  p.querySelectorAll("[data-g]").forEach(b => b.addEventListener("click", () => { RF.group = b.dataset.g; renderRes(); }));
+  p.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", () => { RF.to = today(); RF.from = addDays(today(), 1 - +b.dataset.d); renderRes(); }));
+  $("#rf-xlsx").addEventListener("click", () => exportRes(groups));
+}
+async function exportRes(groups) {
+  if (!groups.length) { toast("Brak raportów w wybranym okresie"); return; }
+  let XLSX; try { XLSX = await loadXlsx(); } catch (e) { toast(e.message); return; }
+  const one = RF.group === "shift";
+  const head = [one ? "Data" : RF.group === "day" ? "Dzień" : "Tydzień od", ...(one ? ["Zmiana", "Specjalista", "Status"] : ["Liczba zmian", "Specjaliści", "Zielone", "Żółte", "Czerwone"]), "Do uwagi", ...RC.map(c => c.g + ": " + c.h), "Odpowiedzi NIE"];
+  const rowsX = groups.slice().reverse().map(g => [new Date((one ? g.rs[0].v.date : g.k) + "T12:00:00"),
+    ...(one ? [g.rs[0].v.shift || "", g.spec, (STATUS[g.rs[0].status] || ["", ""])[1]] : [g.rs.length, [...new Set(g.rs.map(repName))].join(", "), g.st.g, g.st.y, g.st.r]),
+    g.flags, ...RC.map(c => { const x = aggCol(c, g.rs); return x == null ? "" : c.fmt ? c.fmt(x, one) : typeof x === "number" ? Math.round(x * 10) / 10 : x; }), g.no]);
+  const ws = XLSX.utils.aoa_to_sheet([head, ...rowsX], { cellDates: true });
+  rowsX.forEach((_, i) => { const d = ws[XLSX.utils.encode_cell({ r: i + 1, c: 0 })]; if (d && d.t === "d") d.z = 'dd"."mm"."yyyy'; });
+  ws["!cols"] = head.map((h, i) => ({ wch: i === 0 ? 12 : Math.min(26, Math.max(8, h.length * 0.8)) }));
+  ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: rowsX.length, c: head.length - 1 } }) };
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Wyniki");
+  XLSX.writeFile(wb, "wyniki-raportow-" + RF.group + "-" + RF.from + "-" + RF.to + ".xlsx");
+}
+
 /* ---------- settings (moderators) ---------- */
 function renderSet() {
   const v = $("#p-set");
@@ -855,11 +1063,11 @@ function renderSet() {
 }
 
 /* ---------- tabs ---------- */
-const TABS = ["form", "rl", "hist", "set"];
+const TABS = ["form", "rl", "hist", "res", "set"];
 function showTab(t) {
   TABS.forEach(x => { $("#tab-" + x).setAttribute("aria-selected", x === t); $("#p-" + x).hidden = x !== t; });
   $("#bar").hidden = t !== "form";
-  if (t === "hist") renderHist(); if (t === "set") renderSet(); if (t === "rl") renderRL();
+  if (t === "hist") renderHist(); if (t === "res") renderRes(); if (t === "set") renderSet(); if (t === "rl") renderRL();
 }
 TABS.forEach(t => $("#tab-" + t).addEventListener("click", () => showTab(t)));
 
@@ -882,7 +1090,7 @@ function subscribe() {
   unsubs.push(db.collection("settings").doc("shiftReport").onSnapshot(s => { cfg = s.exists ? s.data() : {}; }, e => console.error(e)));
   unsubs.push(db.collection("shift_reports").orderBy("createdAt", "desc").limit(email.toLowerCase() === OWNER ? 2000 : 90).onSnapshot(s => {
     $("#dbErr").hidden = true;
-    reports = s.docs.map(d => Object.assign({ id: d.id }, d.data())); prev = reports[0] || null; update(); if (!$("#p-hist").hidden) renderHist();
+    reports = s.docs.map(d => Object.assign({ id: d.id }, d.data())); prev = reports[0] || null; update(); if (!$("#p-hist").hidden) renderHist(); if (!$("#p-res").hidden) renderRes();
   }, showDbErr));
   subscribeRL();
 }
@@ -901,6 +1109,7 @@ function subscribe() {
     if (!inside) { TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#noAccess").hidden = true; return; }
     email = u.email || ""; $("#whoEmail").textContent = email;
     $("#navReg").hidden = email.toLowerCase() !== OWNER;
+    $("#tab-res").hidden = email.toLowerCase() !== OWNER;   // wyniki: tylko właściciel
     if (BUDGET_ONLY.includes(email.toLowerCase())) {
       $("#tabs").hidden = true; TABS.forEach(x => $("#p-" + x).hidden = true); $("#bar").hidden = true; $("#navReg").hidden = true; $("#navPk").hidden = true;
       const n = $("#noAccess"); n.innerHTML = 'To konto ma dostęp tylko do <a href="budzet.html">budżetu</a>.'; n.hidden = false; return;
