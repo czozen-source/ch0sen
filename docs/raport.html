@@ -255,7 +255,7 @@ table.rt tfoot td:first-child { background: var(--surface-2); }
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const BAD_WORDS = ["ok", "okej", "brak", "-", "--", "nie wiem", "x", ".", "..", "nic", "jw", "j.w.", "to samo"];
-const APP_VER = "2026-11-06a"; // zmień przy każdej zmianie formularza – stare otwarte karty odświeżą się przed wysłaniem
+const APP_VER = "2026-11-09a"; // zmień przy każdej zmianie formularza – stare otwarte karty odświeżą się przed wysłaniem
 const RL_MAX = 15;
 const HALA = ["Czysta", "Do bramy 90", "Do bramy 91", "Do bramy 92", "Do bramy 93", "Za bramą 93"];
 const halaOk = (v) => HALA.indexOf(v) >= 0 && HALA.indexOf(v) <= 1;
@@ -318,8 +318,10 @@ const S = [
  { no: "2", title: "Higiena naczep", f: [
   { k: "sw", l: "Naczepy zamiecione", t: "num" },
   { k: "sw_list", l: "Numery zamiecionych naczep", t: "plates", wide: 1, reason: 1, list: "sw", need: () => n("sw") > 0 },
-  { k: "wash_req", l: "Zgłoszone do mycia", t: "num" },
-  { k: "wash_list", l: "Numery naczep zgłoszonych do mycia", t: "plates", wide: 1, reason: 1, list: "wash_req", need: () => n("wash_req") > 0 },
+  { k: "wash_prep", l: "Naczepy przygotowane z listy myjni", t: "num" },
+  { k: "wash_prep_list", l: "Numery naczep przygotowanych z listy myjni (wydrukowanej na zmianę)", t: "plates", wide: 1, reason: 1, list: "wash_prep", need: () => n("wash_prep") > 0 },
+  { k: "wash_req", l: "Naczepy zgłoszone dodatkowo do mycia (spoza listy)", t: "num" },
+  { k: "wash_list", l: "Numery naczep zgłoszonych dodatkowo", t: "plates", wide: 1, reason: 1, list: "wash_req", need: () => n("wash_req") > 0 },
   { k: "washed", l: "Umyte na myjni", t: "num" },
   { k: "next_spec", l: "Czy jest specjalista na kolejną zmianę?", t: "yn", wide: 1 },
   { k: "wash_lists", l: "Czy przygotowane listy z naczepami do mycia?", t: "yn", wide: 1, reason: 1, need: () => V.next_spec === "NIE" }
@@ -602,7 +604,7 @@ function rows() {
     it("Wysłane naczepy z DHP", T("s_dhp"))
   ]);
   sec("2. Higiena naczep", [
-    it("Zamiecione", T("sw"), "", n("sw") > 0 ? plateArr("sw_list").slice(0, n("sw")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Zgłoszone do mycia", T("wash_req"), "", n("wash_req") > 0 ? plateArr("wash_list").slice(0, n("wash_req")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Umyte na myjni", T("washed")),
+    it("Zamiecione", T("sw"), "", n("sw") > 0 ? plateArr("sw_list").slice(0, n("sw")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Przygotowane z listy myjni", T("wash_prep"), "", n("wash_prep") > 0 ? plateArr("wash_prep_list").slice(0, n("wash_prep")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Zgłoszone dodatkowo do mycia", T("wash_req"), "", n("wash_req") > 0 ? plateArr("wash_list").slice(0, n("wash_req")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Umyte na myjni", T("washed")),
     it("Specjalista na kolejną zmianę", T("next_spec")),
     V.next_spec === "NIE" ? it("Przygotowane listy z naczepami do mycia", T("wash_lists"), yn("wash_lists")) : null
   ]);
@@ -879,7 +881,8 @@ const RC = [
   { g: "Wysłane", h: "EUR", k: "s_eur", agg: "sum" },
   { g: "Wysłane", h: "DHP", k: "s_dhp", agg: "sum" },
   { g: "Higiena", h: "Zamiecione", k: "sw", agg: "sum" },
-  { g: "Higiena", h: "Do mycia", k: "wash_req", agg: "sum" },
+  { g: "Higiena", h: "Z listy myjni", k: "wash_prep", agg: "sum" },
+  { g: "Higiena", h: "Dodatkowo", k: "wash_req", agg: "sum" },
   { g: "Higiena", h: "Umyte", k: "washed", agg: "sum" },
   { g: "Palety", h: "Zwrot", k: "p_ret", agg: "sum" },
   { g: "Palety", h: "Combo", k: "p_combo", agg: "sum" },
