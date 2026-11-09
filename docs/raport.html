@@ -92,6 +92,7 @@ section.sec.done { box-shadow: inset 4px 0 0 var(--ok); }
 .yn button.on[data-v="TAK"] { background: var(--ok); color: #fff; }
 .yn button.on[data-v="NIE"] { background: var(--bad); color: #fff; }
 .yn button.on[data-v="Nie było"] { background: var(--muted); color: var(--bg); }
+.yn button.on.ch { background: var(--fg); color: var(--bg); }
 .calc { font: 500 .82rem var(--f-mono); padding: 7px 10px; border-radius: var(--r); background: var(--surface-2); color: var(--muted); }
 .calc.ok { background: var(--ok-bg); color: var(--ok); } .calc.bad { background: var(--bad-bg); color: var(--bad); }
 .prev { font-size: .88rem; background: var(--surface-2); border-radius: var(--r); padding: 10px 12px; }
@@ -102,6 +103,16 @@ section.sec.done { box-shadow: inset 4px 0 0 var(--ok); }
 .plate span { width: 2.2ch; text-align: right; flex: none; }
 .plate input { flex: 1; min-width: 0; padding: 4px 6px; font: 500 .82rem var(--f-mono); text-transform: uppercase; }
 .f.err .plates input { border-color: var(--bad); }
+.wl-src { min-height: 70px; font: 500 .82rem var(--f-mono); }
+.wl-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 8px 0 4px; font-size: .85rem; color: var(--muted); }
+.wl-head button { font: 600 .8rem var(--f-body); border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: var(--r); padding: 4px 10px; cursor: pointer; }
+.wl { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 4px 6px; }
+.wl label { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: var(--r); padding: 6px 8px; cursor: pointer; font: 500 .85rem var(--f-mono); background: var(--surface-2); }
+.wl label.on { border-color: var(--ok); background: var(--ok-bg); }
+.wl label input { width: 18px; height: 18px; margin: 0; flex: none; }
+.wl label b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.wl label i { font-style: normal; color: var(--muted); font-size: .75rem; white-space: nowrap; }
+.f.err .wl-src { border-color: var(--bad); }
 .status-pick { display: flex; gap: 8px; flex-wrap: wrap; }
 .status-pick button { flex: 1 1 150px; font: 600 .9rem var(--f-body); text-align: left; border: 2px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: var(--r); padding: 9px 12px; cursor: pointer; display: flex; gap: 8px; align-items: center; }
 .status-pick button.on { border-color: var(--fg); }
@@ -255,7 +266,7 @@ table.rt tfoot td:first-child { background: var(--surface-2); }
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const BAD_WORDS = ["ok", "okej", "brak", "-", "--", "nie wiem", "x", ".", "..", "nic", "jw", "j.w.", "to samo"];
-const APP_VER = "2026-11-06a"; // zmień przy każdej zmianie formularza – stare otwarte karty odświeżą się przed wysłaniem
+const APP_VER = "2026-11-09c"; // zmień przy każdej zmianie formularza – stare otwarte karty odświeżą się przed wysłaniem
 const RL_MAX = 15;
 const HALA = ["Czysta", "Do bramy 90", "Do bramy 91", "Do bramy 92", "Do bramy 93", "Za bramą 93"];
 const halaOk = (v) => HALA.indexOf(v) >= 0 && HALA.indexOf(v) <= 1;
@@ -286,6 +297,7 @@ let rlWeek = monday(today()), rlDoc = { days: {} }, rlUnsub = null;
 /* ---------- field model ---------- */
 const n = (k) => { const x = V[k]; return (x === "" || x == null || isNaN(+x)) ? null : +x; };
 const filled = (k) => V[k] != null && String(V[k]).trim() !== "";
+const WM_XLS = "Wklej listę z Excela", WM_HAND = "Wpisz ręcznie";
 const S = [
  { no: "·", title: "Dane zmiany", f: [
   { k: "date", l: "Data", t: "date" },
@@ -318,8 +330,12 @@ const S = [
  { no: "2", title: "Higiena naczep", f: [
   { k: "sw", l: "Naczepy zamiecione", t: "num" },
   { k: "sw_list", l: "Numery zamiecionych naczep", t: "plates", wide: 1, reason: 1, list: "sw", need: () => n("sw") > 0 },
-  { k: "wash_req", l: "Zgłoszone do mycia", t: "num" },
-  { k: "wash_list", l: "Numery naczep zgłoszonych do mycia", t: "plates", wide: 1, reason: 1, list: "wash_req", need: () => n("wash_req") > 0 },
+  { k: "wash_mode", l: "Naczepy przygotowane z listy myjni – jak wpisać?", t: "choice", opts: [WM_XLS, WM_HAND], wide: 1 },
+  { k: "wash_src", l: "Lista myjni – wklej z Excela (numer naczepy, dni od mycia) i zaznacz przygotowane", t: "washlist", wide: 1, show: () => V.wash_mode === WM_XLS },
+  { k: "wash_prep", l: "Naczepy przygotowane z listy myjni", t: "num", show: () => V.wash_mode === WM_HAND },
+  { k: "wash_prep_list", l: "Numery naczep przygotowanych z listy myjni", t: "plates", wide: 1, reason: 1, list: "wash_prep", need: () => n("wash_prep") > 0, show: () => V.wash_mode === WM_HAND },
+  { k: "wash_req", l: "Naczepy zgłoszone dodatkowo do mycia (spoza listy)", t: "num" },
+  { k: "wash_list", l: "Numery naczep zgłoszonych dodatkowo", t: "plates", wide: 1, reason: 1, list: "wash_req", need: () => n("wash_req") > 0 },
   { k: "washed", l: "Umyte na myjni", t: "num" },
   { k: "next_spec", l: "Czy jest specjalista na kolejną zmianę?", t: "yn", wide: 1 },
   { k: "wash_lists", l: "Czy przygotowane listy z naczepami do mycia?", t: "yn", wide: 1, reason: 1, need: () => V.next_spec === "NIE" }
@@ -397,11 +413,36 @@ function prevMismatch() {
 }
 const listItems = (v) => (Array.isArray(v) ? v : String(v || "").split(/[,;\n]+/)).map(x => String(x || "").trim()).filter(Boolean);
 const plateArr = (k) => { const v = V[k]; return Array.isArray(v) ? v : listItems(v); };
-const active = (f) => !f.reason || f.need();
+// lista myjni wklejona z Excela: każdy wiersz = numer naczepy + dni od mycia (Tab, średnik lub dwie spacje między kolumnami)
+function parseWash(t) {
+  const out = [], seen = new Set();
+  String(t || "").split(/\r?\n/).forEach(line => {
+    let cols = line.split(/\t|;|\s{2,}/).map(x => x.trim()).filter(Boolean);
+    if (cols.length === 1) { const m = cols[0].match(/^(.*\d.*?)\s+(\d{1,3})$/); if (m) cols = [m[1], m[2]]; }
+    if (!cols.length) return;
+    const nr = cols[0].toUpperCase().replace(/\s+/g, " ");
+    if (/^(lp|nr|numer|naczep|rejestr)/i.test(nr) || BAD_WORDS.includes(nr.toLowerCase())) return; // nagłówek
+    if (/^\d{1,3}\.?$/.test(nr) && cols.length > 2) cols.shift(); // pierwsza kolumna to Lp.
+    const nr2 = cols[0].toUpperCase().replace(/\s+/g, " ");
+    if (seen.has(nr2)) return; seen.add(nr2);
+    const dr = cols.slice(1).find(c => /^-?\d+([.,]\d+)?$/.test(c));
+    out.push({ nr: nr2, d: dr == null ? null : Math.round(+dr.replace(",", ".")) });
+  });
+  return out;
+}
+const washRows = () => parseWash(V.wash_src);
+const washDone = () => { const s = new Set(plateArr("wash_prep_list")); return washRows().filter(r => s.has(r.nr)); };
+const daysTxt = (d) => d == null ? "" : d + (d === 1 ? " dzień" : " dni");
+function setWashDone(set) {
+  const rows = washRows().filter(r => set.has(r.nr)).map(r => r.nr);
+  V.wash_prep_list = rows; V.wash_prep = String(rows.length);
+}
+const active = (f) => (!f.show || f.show()) && (!f.reason || f.need());
 const optional = (f) => f.opt && f.opt();
 function errOf(f) {
   if (!active(f)) return null;
   if (optional(f) && !filled(f.k)) return null;
+  if (f.t === "washlist") return washRows().length ? null : "Wklej listę myjni z Excela (numer naczepy i dni od mycia)";
   if (f.t === "plates") {
     const want = n(f.list) || 0, a = plateArr(f.k), miss = [];
     for (let i = 0; i < want; i++) { const x = String(a[i] || "").trim(); if (!x || BAD_WORDS.includes(x.toLowerCase())) miss.push(i + 1); }
@@ -430,14 +471,22 @@ function renderForm() {
       const w = document.createElement("div"); w.className = "f" + (f.wide ? " wide" : "") + (f.reason ? " reason" : ""); w.id = "w-" + f.k;
       const lab = document.createElement("label"); lab.htmlFor = "i-" + f.k; lab.id = "l-" + f.k; lab.textContent = lbl(f); w.appendChild(lab);
       let inp;
-      if (f.t === "yn" || f.t === "yn3") {
+      if (f.t === "yn" || f.t === "yn3" || f.t === "choice") {
         inp = document.createElement("div"); inp.className = "yn"; inp.id = "i-" + f.k;
-        (f.t === "yn3" ? ["TAK", "NIE", "Nie było"] : ["TAK", "NIE"]).forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.dataset.v = o; b.onclick = () => { V[f.k] = o; change(); }; inp.appendChild(b); });
+        (f.opts || (f.t === "yn3" ? ["TAK", "NIE", "Nie było"] : ["TAK", "NIE"])).forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.dataset.v = o; if (f.t === "choice") b.className = "ch"; b.onclick = () => { V[f.k] = o; if (f.k === "wash_mode" && o === WM_XLS) setWashDone(new Set(plateArr("wash_prep_list"))); change(); }; inp.appendChild(b); });
       } else if (f.t === "status") {
         inp = document.createElement("div"); inp.className = "status-pick"; inp.id = "i-" + f.k;
         Object.values(STATUS).forEach(([c, a, b]) => { const bt = document.createElement("button"); bt.type = "button"; bt.dataset.v = c; bt.innerHTML = '<span class="dot ' + c + '"></span><span><b>' + a + "</b> – " + b + "</span>"; bt.onclick = () => { V.status = c; change(); }; inp.appendChild(bt); });
       } else if (f.t === "plates") {
         inp = document.createElement("div"); inp.className = "plates"; inp.id = "i-" + f.k;
+      } else if (f.t === "washlist") {
+        inp = document.createElement("div"); inp.id = "i-" + f.k;
+        const ta = document.createElement("textarea"); ta.className = "wl-src"; ta.id = "ta-" + f.k;
+        ta.placeholder = "Zaznacz w Excelu kolumny z numerem naczepy i dniami od mycia, skopiuj (Ctrl+C) i wklej tutaj (Ctrl+V).\nMożna też wpisać ręcznie: jedna naczepa w wierszu, np. WGM12345  14";
+        ta.value = V[f.k] || ""; ta.oninput = () => { V[f.k] = ta.value; setWashDone(new Set(plateArr("wash_prep_list"))); change(); };
+        const head = document.createElement("div"); head.className = "wl-head"; head.id = "wh-" + f.k;
+        const box = document.createElement("div"); box.className = "wl"; box.id = "wl-" + f.k;
+        inp.append(ta, head, box);
       } else if (f.t === "shift" || f.t === "hala") {
         inp = document.createElement("select"); inp.id = "i-" + f.k;
         const opts = f.t === "shift" ? ["I", "II", "III"] : HALA;
@@ -475,6 +524,26 @@ function syncPlates(f) {
     w.appendChild(inp); box.appendChild(w);
   }
 }
+function syncWash(f) {
+  const rows = washRows(), done = new Set(plateArr("wash_prep_list")), box = $("#wl-" + f.k), head = $("#wh-" + f.k);
+  const key = rows.map(r => r.nr + "|" + r.d).join(",");
+  if (box.dataset.key !== key) {
+    box.dataset.key = key; box.innerHTML = "";
+    rows.forEach(r => {
+      const l = document.createElement("label"), cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.nr = r.nr;
+      cb.onchange = () => { const s = new Set(plateArr("wash_prep_list")); cb.checked ? s.add(r.nr) : s.delete(r.nr); setWashDone(s); change(); };
+      const b = document.createElement("b"); b.textContent = r.nr; const i = document.createElement("i"); i.textContent = daysTxt(r.d);
+      l.append(cb, b, i); box.appendChild(l);
+    });
+  }
+  box.querySelectorAll("input").forEach(cb => { cb.checked = done.has(cb.dataset.nr); cb.parentNode.classList.toggle("on", cb.checked); });
+  const c = rows.filter(r => done.has(r.nr)).length;
+  head.hidden = !rows.length; head.innerHTML = "";
+  if (!rows.length) return;
+  const t = document.createElement("span"); t.innerHTML = "Na liście <b>" + rows.length + "</b> naczep · przygotowane <b>" + c + "</b>"; head.appendChild(t);
+  const all = document.createElement("button"); all.type = "button"; all.textContent = c === rows.length ? "Odznacz wszystkie" : "Zaznacz wszystkie";
+  all.onclick = () => { setWashDone(new Set(c === rows.length ? [] : rows.map(r => r.nr))); change(); }; head.appendChild(all);
+}
 function change() { LS.set("rz-draft", V); update(); }
 function update() {
   let tot = 0, ok = 0;
@@ -490,7 +559,8 @@ function update() {
       const w = $("#w-" + f.k), on = active(f); w.hidden = !on; if (!on) return;
       $("#l-" + f.k).textContent = lbl(f);
       if (f.t === "plates") syncPlates(f);
-      if (f.t === "yn" || f.t === "yn3" || f.t === "status") w.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === V[f.k]));
+      if (f.t === "washlist") syncWash(f);
+      if (f.t === "yn" || f.t === "yn3" || f.t === "choice" || f.t === "status") w.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === V[f.k]));
       if (optional(f) && !filled(f.k)) { w.classList.remove("err"); $("#m-" + f.k).textContent = ""; return; }
       const e = errOf(f); tot++; sTot++; if (!e) ok++; else sErr++;
       w.classList.toggle("err", !!(showErr && e)); $("#m-" + f.k).textContent = showErr && e ? e : "";
@@ -602,7 +672,8 @@ function rows() {
     it("Wysłane naczepy z DHP", T("s_dhp"))
   ]);
   sec("2. Higiena naczep", [
-    it("Zamiecione", T("sw"), "", n("sw") > 0 ? plateArr("sw_list").slice(0, n("sw")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Zgłoszone do mycia", T("wash_req"), "", n("wash_req") > 0 ? plateArr("wash_list").slice(0, n("wash_req")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Umyte na myjni", T("washed")),
+    it("Zamiecione", T("sw"), "", n("sw") > 0 ? plateArr("sw_list").slice(0, n("sw")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), V.wash_mode === WM_XLS && washRows().length ? it("Przygotowane z listy myjni", washDone().length + " z " + washRows().length, "", washDone().length ? washDone().map(r => r.nr + (r.d == null ? "" : " (" + daysTxt(r.d) + ")")).join(", ") : "") : it("Przygotowane z listy myjni" + (V.wash_mode === WM_HAND ? " (wpisane ręcznie)" : ""), T("wash_prep"), "", n("wash_prep") > 0 ? plateArr("wash_prep_list").slice(0, n("wash_prep")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""),
+    V.wash_mode === WM_XLS && washRows().length && washDone().length < washRows().length ? it("Z listy myjni nieprzygotowane", washRows().length - washDone().length, "", washRows().filter(r => !plateArr("wash_prep_list").includes(r.nr)).map(r => r.nr + (r.d == null ? "" : " (" + daysTxt(r.d) + ")")).join(", ")) : null, it("Zgłoszone dodatkowo do mycia", T("wash_req"), "", n("wash_req") > 0 ? plateArr("wash_list").slice(0, n("wash_req")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Umyte na myjni", T("washed")),
     it("Specjalista na kolejną zmianę", T("next_spec")),
     V.next_spec === "NIE" ? it("Przygotowane listy z naczepami do mycia", T("wash_lists"), yn("wash_lists")) : null
   ]);
@@ -879,7 +950,8 @@ const RC = [
   { g: "Wysłane", h: "EUR", k: "s_eur", agg: "sum" },
   { g: "Wysłane", h: "DHP", k: "s_dhp", agg: "sum" },
   { g: "Higiena", h: "Zamiecione", k: "sw", agg: "sum" },
-  { g: "Higiena", h: "Do mycia", k: "wash_req", agg: "sum" },
+  { g: "Higiena", h: "Z listy myjni", k: "wash_prep", agg: "sum" },
+  { g: "Higiena", h: "Dodatkowo", k: "wash_req", agg: "sum" },
   { g: "Higiena", h: "Umyte", k: "washed", agg: "sum" },
   { g: "Palety", h: "Zwrot", k: "p_ret", agg: "sum" },
   { g: "Palety", h: "Combo", k: "p_combo", agg: "sum" },
