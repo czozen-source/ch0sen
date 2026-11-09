@@ -92,6 +92,7 @@ section.sec.done { box-shadow: inset 4px 0 0 var(--ok); }
 .yn button.on[data-v="TAK"] { background: var(--ok); color: #fff; }
 .yn button.on[data-v="NIE"] { background: var(--bad); color: #fff; }
 .yn button.on[data-v="Nie było"] { background: var(--muted); color: var(--bg); }
+.yn button.on.ch { background: var(--fg); color: var(--bg); }
 .calc { font: 500 .82rem var(--f-mono); padding: 7px 10px; border-radius: var(--r); background: var(--surface-2); color: var(--muted); }
 .calc.ok { background: var(--ok-bg); color: var(--ok); } .calc.bad { background: var(--bad-bg); color: var(--bad); }
 .prev { font-size: .88rem; background: var(--surface-2); border-radius: var(--r); padding: 10px 12px; }
@@ -265,7 +266,7 @@ table.rt tfoot td:first-child { background: var(--surface-2); }
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const BAD_WORDS = ["ok", "okej", "brak", "-", "--", "nie wiem", "x", ".", "..", "nic", "jw", "j.w.", "to samo"];
-const APP_VER = "2026-11-09b"; // zmień przy każdej zmianie formularza – stare otwarte karty odświeżą się przed wysłaniem
+const APP_VER = "2026-11-09c"; // zmień przy każdej zmianie formularza – stare otwarte karty odświeżą się przed wysłaniem
 const RL_MAX = 15;
 const HALA = ["Czysta", "Do bramy 90", "Do bramy 91", "Do bramy 92", "Do bramy 93", "Za bramą 93"];
 const halaOk = (v) => HALA.indexOf(v) >= 0 && HALA.indexOf(v) <= 1;
@@ -296,6 +297,7 @@ let rlWeek = monday(today()), rlDoc = { days: {} }, rlUnsub = null;
 /* ---------- field model ---------- */
 const n = (k) => { const x = V[k]; return (x === "" || x == null || isNaN(+x)) ? null : +x; };
 const filled = (k) => V[k] != null && String(V[k]).trim() !== "";
+const WM_XLS = "Wklej listę z Excela", WM_HAND = "Wpisz ręcznie";
 const S = [
  { no: "·", title: "Dane zmiany", f: [
   { k: "date", l: "Data", t: "date" },
@@ -328,7 +330,10 @@ const S = [
  { no: "2", title: "Higiena naczep", f: [
   { k: "sw", l: "Naczepy zamiecione", t: "num" },
   { k: "sw_list", l: "Numery zamiecionych naczep", t: "plates", wide: 1, reason: 1, list: "sw", need: () => n("sw") > 0 },
-  { k: "wash_src", l: "Lista myjni – wklej z Excela (numer naczepy, dni od mycia) i zaznacz przygotowane", t: "washlist", wide: 1 },
+  { k: "wash_mode", l: "Naczepy przygotowane z listy myjni – jak wpisać?", t: "choice", opts: [WM_XLS, WM_HAND], wide: 1 },
+  { k: "wash_src", l: "Lista myjni – wklej z Excela (numer naczepy, dni od mycia) i zaznacz przygotowane", t: "washlist", wide: 1, show: () => V.wash_mode === WM_XLS },
+  { k: "wash_prep", l: "Naczepy przygotowane z listy myjni", t: "num", show: () => V.wash_mode === WM_HAND },
+  { k: "wash_prep_list", l: "Numery naczep przygotowanych z listy myjni", t: "plates", wide: 1, reason: 1, list: "wash_prep", need: () => n("wash_prep") > 0, show: () => V.wash_mode === WM_HAND },
   { k: "wash_req", l: "Naczepy zgłoszone dodatkowo do mycia (spoza listy)", t: "num" },
   { k: "wash_list", l: "Numery naczep zgłoszonych dodatkowo", t: "plates", wide: 1, reason: 1, list: "wash_req", need: () => n("wash_req") > 0 },
   { k: "washed", l: "Umyte na myjni", t: "num" },
@@ -432,7 +437,7 @@ function setWashDone(set) {
   const rows = washRows().filter(r => set.has(r.nr)).map(r => r.nr);
   V.wash_prep_list = rows; V.wash_prep = String(rows.length);
 }
-const active = (f) => !f.reason || f.need();
+const active = (f) => (!f.show || f.show()) && (!f.reason || f.need());
 const optional = (f) => f.opt && f.opt();
 function errOf(f) {
   if (!active(f)) return null;
@@ -466,9 +471,9 @@ function renderForm() {
       const w = document.createElement("div"); w.className = "f" + (f.wide ? " wide" : "") + (f.reason ? " reason" : ""); w.id = "w-" + f.k;
       const lab = document.createElement("label"); lab.htmlFor = "i-" + f.k; lab.id = "l-" + f.k; lab.textContent = lbl(f); w.appendChild(lab);
       let inp;
-      if (f.t === "yn" || f.t === "yn3") {
+      if (f.t === "yn" || f.t === "yn3" || f.t === "choice") {
         inp = document.createElement("div"); inp.className = "yn"; inp.id = "i-" + f.k;
-        (f.t === "yn3" ? ["TAK", "NIE", "Nie było"] : ["TAK", "NIE"]).forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.dataset.v = o; b.onclick = () => { V[f.k] = o; change(); }; inp.appendChild(b); });
+        (f.opts || (f.t === "yn3" ? ["TAK", "NIE", "Nie było"] : ["TAK", "NIE"])).forEach(o => { const b = document.createElement("button"); b.type = "button"; b.textContent = o; b.dataset.v = o; if (f.t === "choice") b.className = "ch"; b.onclick = () => { V[f.k] = o; if (f.k === "wash_mode" && o === WM_XLS) setWashDone(new Set(plateArr("wash_prep_list"))); change(); }; inp.appendChild(b); });
       } else if (f.t === "status") {
         inp = document.createElement("div"); inp.className = "status-pick"; inp.id = "i-" + f.k;
         Object.values(STATUS).forEach(([c, a, b]) => { const bt = document.createElement("button"); bt.type = "button"; bt.dataset.v = c; bt.innerHTML = '<span class="dot ' + c + '"></span><span><b>' + a + "</b> – " + b + "</span>"; bt.onclick = () => { V.status = c; change(); }; inp.appendChild(bt); });
@@ -555,7 +560,7 @@ function update() {
       $("#l-" + f.k).textContent = lbl(f);
       if (f.t === "plates") syncPlates(f);
       if (f.t === "washlist") syncWash(f);
-      if (f.t === "yn" || f.t === "yn3" || f.t === "status") w.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === V[f.k]));
+      if (f.t === "yn" || f.t === "yn3" || f.t === "choice" || f.t === "status") w.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === V[f.k]));
       if (optional(f) && !filled(f.k)) { w.classList.remove("err"); $("#m-" + f.k).textContent = ""; return; }
       const e = errOf(f); tot++; sTot++; if (!e) ok++; else sErr++;
       w.classList.toggle("err", !!(showErr && e)); $("#m-" + f.k).textContent = showErr && e ? e : "";
@@ -667,8 +672,8 @@ function rows() {
     it("Wysłane naczepy z DHP", T("s_dhp"))
   ]);
   sec("2. Higiena naczep", [
-    it("Zamiecione", T("sw"), "", n("sw") > 0 ? plateArr("sw_list").slice(0, n("sw")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), washRows().length ? it("Przygotowane z listy myjni", washDone().length + " z " + washRows().length, "", washDone().length ? washDone().map(r => r.nr + (r.d == null ? "" : " (" + daysTxt(r.d) + ")")).join(", ") : "") : it("Przygotowane z listy myjni", filled("wash_prep") ? T("wash_prep") : "—", "", filled("wash_prep_list") ? plateArr("wash_prep_list").join(", ") : ""),
-    washRows().length && washDone().length < washRows().length ? it("Z listy myjni nieprzygotowane", washRows().length - washDone().length, "", washRows().filter(r => !plateArr("wash_prep_list").includes(r.nr)).map(r => r.nr + (r.d == null ? "" : " (" + daysTxt(r.d) + ")")).join(", ")) : null, it("Zgłoszone dodatkowo do mycia", T("wash_req"), "", n("wash_req") > 0 ? plateArr("wash_list").slice(0, n("wash_req")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Umyte na myjni", T("washed")),
+    it("Zamiecione", T("sw"), "", n("sw") > 0 ? plateArr("sw_list").slice(0, n("sw")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), V.wash_mode === WM_XLS && washRows().length ? it("Przygotowane z listy myjni", washDone().length + " z " + washRows().length, "", washDone().length ? washDone().map(r => r.nr + (r.d == null ? "" : " (" + daysTxt(r.d) + ")")).join(", ") : "") : it("Przygotowane z listy myjni" + (V.wash_mode === WM_HAND ? " (wpisane ręcznie)" : ""), T("wash_prep"), "", n("wash_prep") > 0 ? plateArr("wash_prep_list").slice(0, n("wash_prep")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""),
+    V.wash_mode === WM_XLS && washRows().length && washDone().length < washRows().length ? it("Z listy myjni nieprzygotowane", washRows().length - washDone().length, "", washRows().filter(r => !plateArr("wash_prep_list").includes(r.nr)).map(r => r.nr + (r.d == null ? "" : " (" + daysTxt(r.d) + ")")).join(", ")) : null, it("Zgłoszone dodatkowo do mycia", T("wash_req"), "", n("wash_req") > 0 ? plateArr("wash_list").slice(0, n("wash_req")).map(x => String(x).trim()).filter(Boolean).join(", ") : ""), it("Umyte na myjni", T("washed")),
     it("Specjalista na kolejną zmianę", T("next_spec")),
     V.next_spec === "NIE" ? it("Przygotowane listy z naczepami do mycia", T("wash_lists"), yn("wash_lists")) : null
   ]);
